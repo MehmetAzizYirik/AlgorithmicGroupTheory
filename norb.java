@@ -1,5 +1,9 @@
 package Orbits;
 
+/**
+This is the re-implementation of the norb (number of orbits) function given in C.A.G.E.S book by Kreher.
+**/
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -195,19 +199,6 @@ public class norb {
 			}
 		}
 		
-		/**public static void norbUse(Permutation g) {
-			int OrderG= (int)group.order();
-			int k;
-			int[] V1= new int[deg];
-			int[] V2= new int[deg];
-			type(g,T7);
-			int X=0;
-			for(k=0;k<=X;k++){
-				T6[1]=k;
-				RecPartition(k,k,k,0);
-			}
-		}**/
-		
 		public static void norb(PermutationGroup G, int[] N, int limit) {
 			int k,deg,OrderG;
 			deg=group.getSize();
@@ -258,16 +249,6 @@ public class norb {
 	            }
 	        }
 	    }
-
-
-		/**public static void desc(){
-			IAtomicDescriptor descriptor = new AtomValenceDescriptor();
-			IMolecularFormula formula=MolecularFormulaManipulator.getMolecularFormula("C4H7NO2S", builder);
-			IAtomContainer mol=MolecularFormulaManipulator.getAtomContainer(formula);
-			for(IAtom atom: mol.atoms()) {
-				System.out.println(atom.getSymbol()+" "+((IntegerResult) descriptor.calculate(atom, mol).getValue()).intValue());
-			}
-		}**/
 		
 		public static Set<Integer> GetSet(Set<Integer> A){
 			Set<Integer> B=  new HashSet<Integer>(A);
@@ -303,120 +284,6 @@ public class norb {
 				i=i+1;
 			}
 		}
-		
-		/**public static int SetOrder(Set<Integer> S){
-			int ans,i;
-			UINT x;
-			ans = 0;
-			for(i=0;i<group.getSize();i++){
-				x=V[i];
-				while (x){
-					ans += look[x&(UINT)0377];
-					x >>= (UINT)8;
-				}
-			}
-		 return(ans);
-		}**/
-
-		/**public static int FindLargestElement(Set S){
-			int i,j,k,a;
-			i=group.getSize();
-			while(!V[i]) i--;;
-			a=V[i];
-			j=LASTBIT(a);
-			k=(WORDSIZE-1-j)+(i*WORDSIZE); // Not clear why they need WORDSIZE ?
-			return( (j>=0)? k : -1 );
-		}**/
-		
-		/**public static int FindPrevElement(int u, Set<Integer> S){
-			int i,j,k;
-			UINT a;
-
-			j=(u % WORDSIZE );
-			i=u/WORDSIZE;
-			a=V[i]&~rightmask[j]; // RightMax is a bit array given in the setlib file but I dont know what ?
-			if(!a){
-				i--;
-				while(!SV[i]) i--; 
-				a=S->V[i];
-			}
-			j=LASTBIT(a);
-			k=(WORDSIZE-1-j)+(i*WORDSIZE);
-			return( (j>=0)? k : -1 );
-		}**/
-
-		/**public static void Apply(Permutation g,Set<Integer> A,Set<Integer> B){
-			int u,n,h,z;
-			n=group.getSize();
-			Set empty= GetEmptySet();
-			h=0;
-			u=FindLargestElement(A);
-			z=SetOrder(A);
-			while(h<z){
-				h=h+1;
-				SetInsert(V[u],empty);
-				if(h<z) u=FindPrevElement(u,A);
-			}
-			GetSet(B,empty);
-		}**/
-		
-		/**public static void MinRepBackTrack(int k,PermutationGroup G,int ell){
-			int i,j,x,m,r,start,n=group.getSize();
-			Permutation g=null; //How can a permutation be 0 ?
-			if (ell==0){
-				start=0;
-			}else{
-				start=X[ell-1];
-			}
-			m=n;
-			for(x=start;x<n;x++){
-				if(MemberOfSet(x,blocks[ell])){
-					r=0;
-					while((r<ell)&&(X[r]==OptX[r])) {
-						r=r+1;
-					}
-					if( (r<ell) && X[r]>=OptX[r]) return;
-					X[ell]=x; 
-					SetPerm(ell+1,X,beta); // What is beta ? It was for the wordsize but why do we need it ?
-		 
-					group.changeBase(new Permutation(n));
-
-					for(j=0;j<=x;j++) {
-						if((g=T[ell][j])!=null) break;
-					}
-					if (V[x]<=m){
-						m=V[x];
-						X[ell]=m;
-						if(k==ell+1){
-							for(i=r;(i<k) && (X[i]==OptX[i]);i++) {
-								if((i!=k) && X[i]<OptX[i]) {
-									for(i=0;i<k;i++) OptX[i]=X[i];
-								}
-							}
-						}else{
-							Apply(g,C->blocks[ell],C->blocks[ell+1]);
-							SetDelete(m,C->blocks[ell+1]);
-							MinRepBT(k,G,ell+1);
-						}
-					}
-				}
-			}
-		}**/
-		
-		/**void MinRep(PermutationGroup G, Set<Integer> A, Set<Integer> ans){
-			int i,k,deg;
-			deg=group.getSize();
-			k=0; 
-			for(i=0;i<deg;i++){ 
-				if(MemberOfSet(i,A)) {
-					OptX[k++]=i;
-				}
-			}
-			GetSet(blocks[0],A);
-			MinRepBT(k,G,0);
-			GetEmptySet(ans);
-			for(i=0;i<k;i++) SetInsert(OptX[i],ans);
-		}**/
 		
 		public static void main(String[] args) {
 			// TODO Auto-generated method stub
