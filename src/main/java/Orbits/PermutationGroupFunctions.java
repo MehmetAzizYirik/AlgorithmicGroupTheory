@@ -30,175 +30,16 @@ public class PermutationGroupFunctions {
 	public static PermutationGroup group=PermutationGroup.makeSymN(4);
 	public static int order=(int)group.order();
 	public static int size=4;
-	class group_data{
-		Permutation I;
-		Permutation T0;
-		Permutation T1;
-		Permutation T2;
-		Permutation T3;
-		Permutation C1;
-		Permutation C2;
-		Permutation T4;
-		int T5;
-		int T6;
-		int T7;
-		int T8;
-		Permutation pi;
-		int DoneEarly;
-		int X;
-	}
-	
-	class orb_data{
-		Set S;
-		Set S2;
-		setlist C= new setlist();
-		int X;
-		int OptX;
-		Permutation beta;
-		Permutation f;
-		Permutation Invf;
-		Permutation F;
-	}
-	
-	class set_data{
-		Set FullSet;
-		Set EmptySet;
-	}
-	
-	class setlist{
-		universe U = new universe();
-		int size ;
-		Set blocks;
-	}
-	
-	class iso_data{
-		setlist TQ = new setlist();
-		setlist TP0 = new setlist(); 
-		setlist TP1 = new setlist();
-		setlist TP2 = new setlist();
-		setlist TP3 = new setlist();
-		setlist TR = new setlist();
-		Permutation best;
-		int BestExist;
-		Set Tx;
-		Set Ty;
-		setlist L= new setlist();
-		Set U;
-		setlist S= new setlist();
-		Set T;
-		int N;
-		Permutation f;
-		Permutation Invf;
-	}
-	
-	class universe{
-		int NODES;
-		int WORDS;
-		int n;
-		group_data GRP= new group_data();
-		orb_data ORB = new orb_data(); 
-		set_data SET = new set_data(); 
-		iso_data ISO = new iso_data();
-	}
-		
+
 	/**
-	 * These functions for the lexicographical generation of subsets.
-	 * The functions are explained in CAGES books chapter 2. 
+	 * Acts a permutation p on a given set of integers. 
+	 * The permutation permutates the integer set by the re-arrangement. 
+	 * 
+	 * @param set the set of integers 
+	 * @param p a permutation from a permutation group
+	 * @return modified set based on the acts of the permutation
 	 */
 	
-	public static int presence(Set<Integer> subset, int element, int size) {
-		int presence=0;
-		if(subset.contains(size-element)) {
-			presence=presence+1;
-		}
-		return presence;
-	}
-	
-	public static Set<Integer> buildSet(int size){
-		Set<Integer> set = new HashSet<Integer>();
-		for(int i=0;i<size;i++) {
-			set.add(i);
-		}
-		return set;
-	}
-	
-	public static int[] characteristicVector(Set<Integer> subset, int size) {
-		int[] vector = new int[size];
-		Set<Integer> set=buildSet(size);
-		int size2=size-1;
-		for(Integer element:set) {
-			vector[size2-element]=presence(subset,element,size2);
-		}
-		return vector;
-	}
-	
-	public static int power(int a, int b) {
-		return (int)Math.pow(a, b);
-	}
-	
-	public static void setSize(PermutationGroup group) {
-		Permutate.size= group.getSize();
-	}
-	
-	public static int getLexRank(Set<Integer> subset) {
-		int rank=0;
-		int [] vector=characteristicVector(subset,size);
-		int size2=size-1;
-		for(int i=size2;i>=0;i--) {
-			rank+=vector[i]*power(2,size2-i);
-		}
-		return rank;
-	}
-	
-	public static Set<Integer> getLexUnrank(int rank) {
-		Set<Integer> set = new HashSet<Integer>();
-		for(int i=size;i>=1;i--) {
-			if(rank%2==1) {
-				set.add(i-1);
-				rank=rank/2;
-			}
-		}
-		return set;
-	}
-	
-	//TODO: This orbitSet can be also build in an order. So everytime, just check the first set,
-	//which has the lowest rank in the set of orbits.
-	
-	public static Set<Integer> predecessorSet(List<Set<Integer>> orbitSet, Set<Integer> orbit) {
-		Set<Integer> predecessor= new HashSet<Integer>();
-		int rank1 = getLexRank(orbit); // Rank of the input orbit.
-		for(Set<Integer> set: orbitSet) {
-			if(getLexRank(set)<rank1) {
-				predecessor=set;
-			}
-		}
-		return predecessor;
-	}
-	
-	public static Set<Integer> maximumSet(List<Set<Integer>> orbitSet){
-		return orbitSet.get(orbitSet.size());
-	}
-	
-	/**
-	 * First, learn how to rebuild the backtracker like Gill did.
-	 * So the following backtrack functions are from Gill.
-	 */
-	public static void backtrack(int l, Permutation g, Backtracker backtracker) {
-		if (backtracker.isFinished()) { // He coded this backtrack in general. If needed finish is checked.
-            return;
-        }
-        if (l == group.getSize()) {
-            backtracker.applyTo(g);
-        } else {
-            for (int i = 0; i < group.getSize(); i++) {
-                Permutation h = group.get(l,i);
-                if (h != null) { // Because he defined them as null. Need to understand sims chain
-                	//In the book it says mult but the mult is done in backtrack function g.multiply(h)
-                	backtrack(l + 1, g.multiply(h), backtracker);
-                }
-            }
-        }
-    }
 	public static ArrayList<Integer> act(ArrayList<Integer> set, Permutation p) {
 		ArrayList<Integer> modifiedSet = new ArrayList<Integer>();
 		for(Integer element:set) {
@@ -207,635 +48,19 @@ public class PermutationGroupFunctions {
 		return modifiedSet;
 	}
 	
-	//TODO: Continue from this backtrack function to build orbitbacktrack function.
-	//TODO: Understand what R and S sets are in the book.
-	/**public static void orbitBacktrack(int l, Permutation g, Backtracker backtracker) {
-        if (backtracker.isFinished()) { 
-            return;
-        }
-        if (l == group.getSize()) {
-            Set<Integer> A= maximumSet(S);
-        }
-        while(A.size()!=0) {
-        	Set<Integer> C= predecessorSet(S,A);
-        	if(getLexRank(act(A,g))<getLexRank(A)) {
-        		S.delete(A);
-        		if(!S.contains(A)) {
-        			S.add(A);
-        		}
-        		if(S.size()==group.getSize()) {
-        			finished=true;
-        			return;
-        		}
-        	A=C;
-        	} else {
-                for (int i = 0; i < group.getSize(); i++) {
-                    Permutation h = group.get(l,i);
-                    if (h != null) { // Because he defined them as null. Need to understand sims chain
-                    	//In the book it says mult but the mult is done in backtrack function g.multiply(h)
-                        orbitBacktrack(l + 1, g.multiply(h), backtracker);
-                    }
-                }
-            }
-        }
-    }**/
-	
 	/**
-     * Apply the backtracker to all permutations in the larger group.
-     *
-     * @param backtracker a hook for acting on the permutations
-     */
-    public static void apply(Backtracker backtracker) {
-        backtrack(0, new Permutation(group.getSize()), backtracker);
-    }
-	
-    
-    /**
-     * Generate a transversal of a subgroup in this group.
-     *
-     * @param subgroup the subgroup to use for the transversal
-     * @return a list of permutations
-     */
-    
-    /**
-     * Schreier-Sims Algorithm returns the group element representation of the orbits
-     * Uo means the elements of the group sending 0 to the orbit element.
-     * And all the Us in the group are the left transversal of their Gs.
-     *
-     **/
-    public static List<Permutation> transversal(final PermutationGroup subgroup) {
-        final long m = group.order() / subgroup.order();
-        final List<Permutation> results = new ArrayList<Permutation>();
-        Backtracker transversalBacktracker = new Backtracker() {
-            private boolean finished = false;
-
-            public void applyTo(Permutation p) {
-            	//System.out.println("applyto"+" "+p);
-                for (Permutation f : results) {
-                    Permutation h = f.invert().multiply(p); // why we have invert function and what is the use() exactly
-                    //System.out.println("apply to invert function"+" "+h);
-                    //TODO: What is this test case ? Is subgroup test just for transversal ? Or for all the backtrackers ?
-                    if (subgroup.test(h) == group.getSize()) {
-                        return;
-                    }
-                }
-                results.add(p);
-                if (results.size() >= m) {
-                    this.finished = true;
-                }
-            }
-
-            public boolean isFinished() {
-                return finished;
-            }
-
-        };
-        apply(transversalBacktracker);
-        return results;
-    }
-    public static List<Permutation> all() {
-        final List<Permutation> permutations = new ArrayList<Permutation>();
-        Backtracker counter = new Backtracker() {
-
-            public void applyTo(Permutation p) {
-                permutations.add(p);
-            }
-
-            public boolean isFinished() {
-                return false;
-            }
-        };
-        apply(counter);
-        return permutations;
-    }
-    
-    /**
-     * Apply the backtracker to all permutations in the larger group.
-     *
-     * @param backtracker a hook for acting on the permutations
-     */
-    public static void apply2(Backtracker backtracker) {
-        //orbitBacktrack(0, new Permutation(group.getSize()), backtracker);
-    }
-    
-	public static List<Permutation> orbitRepresentatives() {
-		final List<Permutation> representations = new ArrayList<Permutation>();
-		Backtracker orbitRepresentation = new Backtracker() {
-
-            public void applyTo(Permutation p) {
-                representations.add(p);
-            }
-
-            public boolean isFinished() {
-                return false;
-            }
-        };
-        
-        apply(orbitRepresentation);
-        return representations;
-	}
-	
-	/***********************************************************/
-	public static IAtomContainer getAtomContainer(String elements, int[][] bonds) {
-        IChemObjectBuilder builder =  SilentChemObjectBuilder.getInstance();
-        IAtomContainer ac = builder.newInstance(IAtomContainer.class); 
-        for (int i = 0; i < elements.length(); i++) {
-            String eS = String.valueOf(elements.charAt(i));
-            ac.addAtom(builder.newInstance(IAtom.class, eS));
-        }
-        for (int[] bond : bonds) {
-            int o = bond[2];
-            ac.addBond(bond[0], bond[1], IBond.Order.values()[o - 1]);
-        }
-        return ac;
-    }
-	
-	public static Set<Set<Integer>> subSet( Set<Integer> set ) {
-		Integer[] elements = set.toArray(new Integer [set.size()]);
-        int power = 1 << elements.length;
-        Set<Set<Integer>> subsets = new HashSet<Set<Integer>>();
-        for( int count = 0; count < power; count++ ) {
-            Set<Integer> subset = new HashSet<Integer>();
-            for( int bit = 0; bit < elements.length; bit++ ) {
-            	if( (count & 1 << bit) != 0 ) {
-                    subset.add( elements[bit] );
-                }
-            }
-            subsets.add( subset );
-        }
-        return subsets;
-    }
-	
-	public static Set<Set<Integer>> ksubSet(int k,ArrayList<Integer> set ) {
-		Integer[] elements = set.toArray(new Integer [set.size()]);
-        int power = 1 << elements.length;
-        Set<Set<Integer>> subsets = new HashSet<Set<Integer>>();
-        for( int count = 0; count < power; count++ ) {
-            Set<Integer> subset = new HashSet<Integer>();
-            for( int bit = 0; bit < elements.length; bit++ ) {
-                if( (count & 1 << bit) != 0 ) {
-                    subset.add( elements[bit] );
-                }
-            }
-            if(subset.size()==k) {
-                subsets.add( subset );
-            }
-        }
-        return subsets;
-    }
-	/*
-	 * To have a qunique version, I put ArrayList<Integer> rather than Set.
+	 * These are the basic functions used for different functions. 
 	 */
 	
-	public static ArrayList<ArrayList<Integer>> ksubSet2(int k,ArrayList<Integer> set ) {
-		Integer[] elements = set.toArray(new Integer [set.size()]);
-        int power = 1 << elements.length; 
-        ArrayList<ArrayList<Integer>> subsets = new ArrayList<ArrayList<Integer>>();
-        for( int count = 0; count < power; count++ ) {
-        	ArrayList<Integer> subset = new ArrayList<Integer>();
-            for( int bit = 0; bit < elements.length; bit++ ) {
-                if( (count & 1 << bit) != 0 ) {
-                    subset.add( elements[bit] );
-                }
-            }
-            if(subset.size()==k) {
-                subsets.add( subset );
-            }
-        }
-        return subsets;
-    }
-	
-	public static boolean disjointCheck(ArrayList<ArrayList<Integer>> list, ArrayList<Integer> set) {
-		boolean check=true;
-		for(ArrayList<Integer> l:list) {
-			if(!Collections.disjoint(l,set)) {
-				check=false;
-				break;
-			}
-		}
-		return check;
-	}
-	
 	/**
-	 * Gneerating the k-disjoint subsets.
-	 * @param k
-	 * @param set
+	 * Calculates the power of a integer. 
+	 * @param a a integer
+	 * @param b power of the integer 
+	 * @return the power the integer
 	 */
 	
-	public static ArrayList<ArrayList<ArrayList<Integer>>> disjoints= new ArrayList<ArrayList<ArrayList<Integer>>>();
-	public static ArrayList<ArrayList<ArrayList<Integer>>> disjoint(int k,ArrayList<Integer> set ){
-		ArrayList<ArrayList<Integer>> list= ksubSet2(k,set);
-		ArrayList<ArrayList<Integer>> firstSets= new ArrayList<ArrayList<Integer>>(); // first element is zero
-		for(ArrayList<Integer> l: list) {
-			if(l.get(0)==0) {
-				firstSets.add(l);
-			}
-		}
-		list.removeAll(firstSets);
-		for(ArrayList<Integer> s:firstSets) {
-			ArrayList<ArrayList<Integer>> dis= new ArrayList<ArrayList<Integer>>();
-			dis.add(s);
-			disjointBuild(dis,list);
-		}
-		return disjoints;
-	}
-	public static ArrayList<ArrayList<Integer>> cloneList(ArrayList<ArrayList<Integer>> list){
-		ArrayList<ArrayList<Integer>> result= new ArrayList<ArrayList<Integer>>();
-		for(ArrayList<Integer> i:list) {
-			result.add(i);
-		}
-		return result;
-	}
-	
-	public static boolean disjointCheckAll(ArrayList<ArrayList<Integer>> list1, ArrayList<ArrayList<Integer>>list2) {
-		boolean check= false;
-		for(ArrayList<Integer> l2: list2) {
-			if(disjointCheck(list1,l2)) {
-				check=true;
-				break;
-			}
-		}
-		return check;
-	}
-	
-	public static void disjointBuild(ArrayList<ArrayList<Integer>> set, ArrayList<ArrayList<Integer>> list ) {
-		for(ArrayList<Integer> l:list) {
-			if(disjointCheck(set,l)) {
-				ArrayList<ArrayList<Integer>> set2=cloneList(set);
-				set2.add(l);
-				if(disjointCheckAll(set2,list)) {
-					disjointBuild(set2,list);
-				}else {
-					disjoints.add(set2);
-				}
-			}
-		}
-	}
-	
-	public static ArrayList<Permutation> getStabilizers(PermutationGroup group,ArrayList<Integer> set){
-		ArrayList<Permutation> stabilizers = new ArrayList<Permutation>();
-		for(Permutation p:group.all()){
-			ArrayList<Integer> stabilizer = new ArrayList<Integer>();
-			for(Integer i :set) {
-				stabilizer.add(p.get(i));
-			}
-			if(stabilizer.equals(set)) {
-				stabilizers.add(p);
-			}
-		}
-		return stabilizers;
-	}
-	
-	public static int getStabilizers2(Permutation g, ArrayList<ArrayList<Integer>> sets){
-		ArrayList<ArrayList<Integer>> stabilizedSets = new ArrayList<ArrayList<Integer>>();
-		for(ArrayList<Integer> set: sets) {
-			ArrayList<Integer> stabilize = new ArrayList<Integer>();
-			for(Integer i :set) {
-				stabilize.add(g.get(i));
-			}
-			if(stabilize.equals(set)) {
-				stabilizedSets.add(set);
-			}
-		}
-		return stabilizedSets.size();
-	}
-	
-	public static int checkStab(Permutation g, ArrayList<Integer> set){
-		int no=0;
-        if(set.equals(act(set,g))) {
-			no++;
-		}
-		return no;
-	}
-	
-	public static int[] type(int n,Permutation g) {
-		boolean[] p = new boolean[size];
-		int[] t = new int[n];
-		for(int i=0;i<n-1;i++) {
-			p[i]=true;
-			t[i+1]=0;
-		}
-		for(int i=0;i<n-1;i++) {
-			if(p[i]) {
-				int l=1;
-				int j=i;
-				p[j]=false;
-				while(p[g.get(j)]) {
-					l=l+1;
-					j=g.get(j);
-					p[j]=false;
-				}
-				t[l]=t[l]+1;
-			}
-		}
-		return t;
-	}
-	
-	public static int combination(int m, int n) {
-		return factorial(m) / (factorial(n) * factorial(m - n));
-	}
-
-	public static int factorial(int i){
-		if (i==0){
-			return 1;
-		}
-		return i * factorial(i - 1);
-	}
-	
-	public static void recPartition(int k, int m, int B, int N) {
-		int n=100;
-		int[] c= new int[1000];
-		int[] T= new int[size];
-		int[] V2= new int[size];
-		int[] V3= new int[size];
-		int prod;
-		if(m==0) {
-			for(int i=1;i<=n;i++) {
-				c[i]=0;
-			}
-			for(int i=1;i<=N;i++) {
-				c[V2[i]]=c[V2[i]]+1;
-			}
-			prod=1;
-			for(int i=1;i<=n;i++) {
-				prod=prod*combination(T[i],c[i]);
-			}
-			V3[k]=V3[k]+prod;
-		}else {
-			for(int i=1;i<Math.min(B, m);i++) {
-				V2[N+1]=i;
-				recPartition(k,m-i,i,N+1);
-			}
-		}
-		
-	}
-	/**public static void norbUse(int n,Permutation g){
-		//TODO: You need to define the type as V1 but as global. Then also V2 and V3 as global. So all the functions generate this arrays.
-		int OrderG,k,deg;
-		int[] V1, V2;
-		
-		deg=G->U->n;
-		G->U->GRP->DoneEarly=false;
-		G->U->GRP->X=limit;
-		for(k=0;k<=deg;k++) G->U->GRP->T5[k]=0;
-		Run(stdout,G,NorbUse);
-		OrderG=GroupOrder(G);
-		for(k=0;k<=deg;k++) N[k]=G->U->GRP->T5[k]/OrderG;
-		
-		V1=type(n,g);
-		for(int k=0;k<=n;k++) {
-			V2[1]=k;
-			recPartition(n,k,k,k,0);
-		}
-	}**/
-	
-	/**public static void Run( PermutationGroup G, void (* Use)(FILE *,perm) )
-	{
-	  G->U->GRP->DoneEarly=false;
-	  RunBacktrack(F,0,G,G->U->GRP->I,Use);
-	}**/
-	
-	
-	public static int[] N;
-	/**public static int[] norb(int n) {
-		doneEarly=false;
-		for(int k=0;k<n;k++) {
-			V3[k]=0;
-		}
-		for(Permutation p:group.all()) {
-			norbUse(n,p);
-		}
-		N = new int[n];
-		for(int j=0;j<n;j++) {
-			N[j]=V3[j]/size;
-		}
-		return N;
-	}**/
-	public static ArrayList<ArrayList<Integer>> getOrbits(PermutationGroup group, ArrayList<Integer> set){
-		ArrayList<ArrayList<Integer>> orbits = new ArrayList<ArrayList<Integer>>();
-		for(Permutation p:group.all()){
-			ArrayList<Integer> orbit = new ArrayList<Integer>();
-			for(Integer i :set) {
-				orbit.add(p.get(i));
-			}
-			orbit.sort(ASC_ORDER);
-
-			if(!orbits.contains(orbit)) {
-				orbits.add(orbit);
-			}
-		}
-		orbits.sort(ASC_ORDER2);
-		return orbits;
-	}
-	/**public static boolean minCheck(ArrayList<ArrayList<Integer>> list, ArrayList<Integer> orbit) {
-		boolean check=true;
-		for(ArrayList<Integer> set:list) {
-			
-		}
-	}**/
-	public static ArrayList<ArrayList<Integer>> getMinOrbits(PermutationGroup group, ArrayList<Integer> set){
-		ArrayList<ArrayList<Integer>> orbits = new ArrayList<ArrayList<Integer>>();
-		for(Permutation p:group.all()){
-			ArrayList<Integer> orbit = new ArrayList<Integer>();
-			for(Integer i :set) {
-				orbit.add(p.get(i));
-			}
-			orbit.sort(ASC_ORDER);
-			if(!orbits.contains(orbit)) {
-				orbits.add(orbit);
-			}
-		}
-		return orbits;
-	}
-	public static ArrayList<ArrayList<Permutation>> getOrbitsPerm(PermutationGroup group, ArrayList<Permutation> set){
-		ArrayList<ArrayList<Permutation>> orbits = new ArrayList<ArrayList<Permutation>>();
-		for(Permutation p:group.all()){
-			ArrayList<Permutation> orbit = new ArrayList<Permutation>();
-			for(Permutation i :set) {
-				orbit.add(p.multiply(i));
-			}
-			if(!orbits.contains(orbit)) {
-				orbits.add(orbit);
-			}
-		}
-		return orbits;
-	}
-	
-	/**
-	 * 
-	 * 
-	 **/
-	public static ArrayList<ArrayList<Integer>> getOrbits2(PermutationGroup group, ArrayList<ArrayList<Integer>> set){
-		ArrayList<ArrayList<Integer>> orbits = new ArrayList<ArrayList<Integer>>();
-		for(ArrayList<Integer> s:set) {
-			orbits.addAll(getOrbits(group,s));
-		}
-		return orbits;
-	}
-	
-	public static ArrayList<ArrayList<Permutation>> getOrbitsPermList(PermutationGroup group, ArrayList<ArrayList<Permutation>> set){
-		ArrayList<ArrayList<Permutation>> orbits = new ArrayList<ArrayList<Permutation>>();
-		for(ArrayList<Permutation> s:set) {
-			orbits.addAll(getOrbitsPerm(group,s));
-		}
-		return orbits;
-	}
-	public static ArrayList<Integer> getBase(PermutationGroup group) {
-		ArrayList<Integer> base = new ArrayList<Integer>();
-		for(int i=0;i<group.getSize();i++) {
-			base.add(i);
-		}
-		return base;
-	}
-	
-	/**public static int numberOfOrbits(PermutationGroup group) {
-		int count=0;
-		Set<Set<Integer>> subsets= subSet(getBase(group));
-		for(Set<Integer> set:subsets) {
-			//System.out.println(getOrbits(group,set).size()+" "+getStabilizers(group,set).size());
-			count+=(getStabilizers(group,set).size()/group.all().size());
-		}
-		return count;
-	}**/
-	
-	public static int numberOfOrbit(PermutationGroup group, ArrayList<ArrayList<Integer>> subset) {
-		int count=0;
-		for(Permutation perm:group.all()) {
-        	for(ArrayList<Integer> set:subset) {
-        		count=count+checkStab(perm,set);
-        		if(checkStab(perm,set)!=0) {
-        			System.out.println(perm.toCycleString()+" "+set); // Why ?
-        		}
-        	}
-        }
-		return count/group.all().size();
-	}
-	public static int numberOfOrbits2(int k) {
-		int count=0;
-		ArrayList<ArrayList<Integer>> subsets= ksubSet2(k,getBase(group));
-		for(Permutation perm:group.all()) {
-			//System.out.println(getOrbits(group,set).size()+" "+getStabilizers(group,set).size());
-			count+=getStabilizers2(perm,subsets);
-		}
-		return count/group.all().size();
-	}
-		
-	/**
-	 * Molecule depiction generator
-	 */
-	
-	public static void depict(IAtomContainer molecule, String path) throws CloneNotSupportedException, CDKException, IOException{
-		DepictionGenerator depiction = new DepictionGenerator();
-		depiction.withCarbonSymbols().withSize(200, 200).withZoom(4).depict(molecule).writeTo(path);
-	}
-	
-	public static HashMap<Integer, Integer> setCycleList(int size){
-		HashMap<Integer, Integer> list = new HashMap<Integer, Integer>(size);
-		for(int i=1;i<=size;i++) {
-			list.put(i, 0);
-		}
-		return list;
-	}
-	
-	public static HashMap<Permutation, HashMap<Integer, Integer>> cycleType(PermutationGroup group) {
-		HashMap<Permutation, HashMap<Integer, Integer>> map= new HashMap<Permutation, HashMap<Integer, Integer>>();
-		for(Permutation perm: group.all()) {
-			HashMap<Integer, Integer> list = setCycleList(group.getSize());
-			String [] cycles = perm.toCycleString().split("\\)"); 
-			for(String l:cycles) { 
-				int count=0;
-				String[] length= l.split(",");
-				for(String d:length) {
-					count=count+d.length()-1;
-				}
-				list.replace(count, list.get(count), (list.get(count)+1));
-			}
-			map.put(perm, list);
-		}
-		return map;
-	}
-	
-	public static Multimap<HashMap<Integer, Integer>, Permutation> conjugacyClasses(PermutationGroup group) {
-		Multimap<HashMap<Integer, Integer>, Permutation> multiMap = ArrayListMultimap.create();
-		HashMap<Permutation, HashMap<Integer, Integer>> map=cycleType(group);
-		for(Permutation entry:map.keySet()) {
-			multiMap.put(map.get(entry),entry);
-		}
-		return multiMap;
-	}
-	
-	/**
-	 * 
-	 * Cauchy Frobenious Theorem - Number of Orbits
-	 *
-	 **/
-	
-	public static PermutationGroup generateGroup(Permutation perm) {
-		List<Permutation> generators = new ArrayList<Permutation>();
-        generators.add(perm);
-        return new PermutationGroup(size, generators);
-	}
-	
-	public static PermutationGroup generateGroup(ArrayList<Permutation> list) {
-		List<Permutation> generators = new ArrayList<Permutation>();
-        generators.addAll(list);
-        return new PermutationGroup(size, generators);
-	}
-	
-	public static int numberOfGraphs(PermutationGroup group, int m) {
-		int count=0;
-		ArrayList<ArrayList<Integer>> subsets= ksubSet2(2,getBase(group));
-		Multimap<HashMap<Integer, Integer>,Permutation> classes= conjugacyClasses(group);
-		for(HashMap<Integer, Integer> key:classes.keySet()) {
-			Permutation perm = (Permutation) classes.get(key).toArray()[0];
-			System.out.println(perm.toCycleString());
-			PermutationGroup group2=generateGroup(perm);
-			//System.out.println(perm.toCycleString()+" "+numberOfOrbit(group2,subsets)+" "+group2.order());
-			count=count+classes.get(key).size()*power(m,numberOfOrbit(group2,subsets));
-		}
-		return count/group.all().size();
-	}
-	
-	/**
-	 * Polya's enumeration method:
-	 * 
-	 * Group reduction method  for which I need cycle index polynomial first
-	 */
-	
-	public static HashMap<String, Integer> cycleIndexCoefficient(PermutationGroup group) {
-		Multimap<String, String> map = ArrayListMultimap.create();
-		HashMap<String, Integer> coef = new HashMap<String, Integer>();
-		for(Permutation perm: group.all()) {
-			map.put(Arrays.toString(type((group.getSize()+1),perm)),Arrays.toString(type((group.getSize()+1),perm)));
-		}
-		for(String key:map.keySet()) {
-			coef.put(key, map.get(key).size());
-		}
-		return coef;
-	}
-	
-	/**
-	 * Set of orbits of length i of <g> on X 
-	 **/
-	public static List<Set<Integer>> getLengthBasedOrbits(PermutationGroup group, Set<Set<Integer>> set, int l){
-		List<Set<Integer>> orbits = new ArrayList<Set<Integer>>();
-		for(Permutation p:group.all()){
-			for(Set<Integer> s:set) {
-				Set<Integer> orbit = new HashSet<Integer>();
-				for(Integer i :s) {
-					orbit.add(p.get(i));
-				}
-				if(orbit.size()==l && !orbits.contains(orbit)) {
-					orbits.add(orbit);
-				}
-			}
-		}
-		return orbits;
-	}
-	
-	public static int numberOfLengthOrbits(Permutation perm, Set<Set<Integer>> set,int i) {
-		PermutationGroup group= generateGroup(perm);
-		return getLengthBasedOrbits(group,set,i).size();
+	public static int power(int a, int b) {
+		return (int)Math.pow(a, b);
 	}
 	
 	public static int[] buildZerosArray(int n) {
@@ -852,36 +77,7 @@ public class PermutationGroupFunctions {
 		}
 		return arr;
 	}
-	public static int[] cycleTypeInduced(Permutation perm) {
-		ArrayList<ArrayList<Integer>> subset= ksubSet2(2,getBase(group));
-		int size = group.getSize();
-		int[] cycle= buildZerosArray(size+1);
-        List<Permutation> generators = new ArrayList<Permutation>();
-        generators.add(perm);
-        PermutationGroup group2 = new PermutationGroup(size, generators);
-		for(ArrayList<Integer> set:subset) {
-			cycle[getOrbits(group2,set).size()]=cycle[getOrbits(group2,set).size()]+1;
-		}
-		return normalizeArray(cycle);
-	}
 	
-	/**
-	 * Permutation Types Based on MOLGEN Book.
-	 */
-	
-	public static ArrayList<Integer> cyclicFactors(Permutation perm) {
-		int[] cyclic=type(5,perm);
-		System.out.println("type"+" "+Arrays.toString(cyclic));
-		ArrayList<Integer> lengths= new ArrayList<Integer>();
-		for(int i=1;i<cyclic.length;i++) {
-			if(cyclic[i]>0) {
-				lengths.add(cyclic[i]);
-			}
-		}
-		Collections.sort(lengths,DES_ORDER);
-		return lengths;
-	}
-
 	public static void removeLastZeros(HashMap<Integer,Integer> map, int n) {
 		for(int i=n;i>0;i--) {
 			if(map.get(i)==0) {
@@ -892,19 +88,7 @@ public class PermutationGroupFunctions {
 			}
 		}
 	}
-	public static HashMap<Integer,Integer> nTuple(Permutation perm) {
-		ArrayList<Integer> list= cyclicFactors(perm);
-		Collections.sort(list, DES_ORDER);
-		System.out.println("cyclic"+" "+list);
-		int n=sum(list);
-		System.out.println("n"+" "+n);
-		HashMap<Integer,Integer> map= new HashMap<Integer,Integer>();
-		for(int i=1;i<=n;i++) {
-			map.put(i,count(list,i));
-		}
-		removeLastZeros(map,n);
-		return map;
-	}
+	
 	public static int sum(ArrayList<Integer> list) {
 		int sum=0;
 		for(Integer i:list) {
@@ -952,6 +136,7 @@ public class PermutationGroupFunctions {
         a.add(e);
         return a;
     }
+	
 	public static int sum(int[] array) {
 		int sum=0;
 		for(int i=0;i<array.length;i++) {
@@ -960,24 +145,6 @@ public class PermutationGroupFunctions {
 		return sum;
 	}
 	
-	/**
-	 * Partition with ArrayList
-	 * @param n
-	 * @param d
-	 * @param depth
-	 * @return
-	 */
-	
-	public static List<ArrayList<Integer>> partition2(int n, int d,int depth) {
-		if(d==depth) {
-			List<ArrayList<Integer>> array= new ArrayList<ArrayList<Integer>>();
-			ArrayList<Integer> take=new ArrayList<Integer>();
-			array.add(take);
-			return array;
-		}
-		return buildArray2(n,d,depth);
-		
-	}
 	
 	public static List<ArrayList<Integer>> buildArray2(int n,int d, int depth){
 		List<ArrayList<Integer>> array= new ArrayList<ArrayList<Integer>>();
@@ -986,7 +153,7 @@ public class PermutationGroupFunctions {
 			for(ArrayList<Integer> item: partition2(n-i,d,depth+1)) {
 					item=addElement2(item,i);
 			        if(item.size()==d) {
-			        	if(sum(item)==n) { //TODO: BE CAREFUL!
+			        	if(sum(item)==n) {
 			        		array.add(item);
 			        	}
 			        }else {
@@ -1004,7 +171,7 @@ public class PermutationGroupFunctions {
 			for(int[] item: partition(n-i,d,depth+1)) {
 					item=addElement(item,i);
 			        if(item.length==d) {
-			        	if(sum(item)==3) { //TODO: BE CAREFUL!
+			        	if(sum(item)==3) { 
 			        		array.add(item);
 			        	}
 			        }else {
@@ -1014,6 +181,691 @@ public class PermutationGroupFunctions {
 		}
 		return array;
 	}
+	
+	/**
+	 * Gets the size of group's base
+	 * @param group a permutation group
+	 */
+	
+	public static void setSize(PermutationGroup group) {
+		PermutationGroupFunctions.size= group.getSize();
+	}
+    
+	/**
+	 * Generates the subsets of a integer set. 
+	 * @param set
+	 * @return list of unique subsets
+	 */
+	
+	public static Set<Set<Integer>> subSet( Set<Integer> set ) {
+		Integer[] elements = set.toArray(new Integer [set.size()]);
+        int power = 1 << elements.length;
+        Set<Set<Integer>> subsets = new HashSet<Set<Integer>>();
+        for( int count = 0; count < power; count++ ) {
+            Set<Integer> subset = new HashSet<Integer>();
+            for( int bit = 0; bit < elements.length; bit++ ) {
+            	if( (count & 1 << bit) != 0 ) {
+                    subset.add( elements[bit] );
+                }
+            }
+            subsets.add( subset );
+        }
+        return subsets;
+    }
+	
+	/**
+	 * Generates all the k-subsets whose size is k
+	 * @param k size of subset
+	 * @param set a integer set
+	 * @return list of k-subsets
+	 */
+	
+	public static Set<Set<Integer>> ksubSet(int k,ArrayList<Integer> set ) {
+		Integer[] elements = set.toArray(new Integer [set.size()]);
+        int power = 1 << elements.length;
+        Set<Set<Integer>> subsets = new HashSet<Set<Integer>>();
+        for( int count = 0; count < power; count++ ) {
+            Set<Integer> subset = new HashSet<Integer>();
+            for( int bit = 0; bit < elements.length; bit++ ) {
+                if( (count & 1 << bit) != 0 ) {
+                    subset.add( elements[bit] );
+                }
+            }
+            if(subset.size()==k) {
+                subsets.add( subset );
+            }
+        }
+        return subsets;
+    }
+	
+	/**
+	 * It is the same as ksubSet function. The input and output types are ArrayList rather
+	 * than Set<Integer>
+	 * 
+	 * Generates all the k-subsets whose size is k
+	 * @param k size of subset
+	 * @param set a integer set
+	 * @return list of k-subsets
+	 */
+	
+	public static ArrayList<ArrayList<Integer>> ksubSet2(int k,ArrayList<Integer> set ) {
+		Integer[] elements = set.toArray(new Integer [set.size()]);
+        int power = 1 << elements.length; 
+        ArrayList<ArrayList<Integer>> subsets = new ArrayList<ArrayList<Integer>>();
+        for( int count = 0; count < power; count++ ) {
+        	ArrayList<Integer> subset = new ArrayList<Integer>();
+            for( int bit = 0; bit < elements.length; bit++ ) {
+                if( (count & 1 << bit) != 0 ) {
+                    subset.add( elements[bit] );
+                }
+            }
+            if(subset.size()==k) {
+                subsets.add( subset );
+            }
+        }
+        return subsets;
+    }
+	
+	/**
+	 * Checks the given set and the list of subsets are disjoint or not.
+	 * @param list list of subsets
+	 * @param set the set to check with the list
+	 * @return boolean disjoint or not.
+	 */
+	
+	public static boolean disjointCheck(ArrayList<ArrayList<Integer>> list, ArrayList<Integer> set) {
+		boolean check=true;
+		for(ArrayList<Integer> l:list) {
+			if(!Collections.disjoint(l,set)) {
+				check=false;
+				break;
+			}
+		}
+		return check;
+	}
+	
+	/**
+	 * Generating the k-disjoint subsets.
+	 * The disjoint k subsets are needed for Young subgroup representation.
+	 * 
+	 * @param k the subset size
+	 * @param set integer set 
+	 * @return the list of disjoint k-subsets 
+	 */
+	
+	public static ArrayList<ArrayList<ArrayList<Integer>>> disjoints= new ArrayList<ArrayList<ArrayList<Integer>>>();
+	public static ArrayList<ArrayList<ArrayList<Integer>>> disjoint(int k,ArrayList<Integer> set ){
+		ArrayList<ArrayList<Integer>> list= ksubSet2(k,set);
+		ArrayList<ArrayList<Integer>> firstSets= new ArrayList<ArrayList<Integer>>(); // first element is zero
+		for(ArrayList<Integer> l: list) {
+			if(l.get(0)==0) {
+				firstSets.add(l);
+			}
+		}
+		list.removeAll(firstSets);
+		for(ArrayList<Integer> s:firstSets) {
+			ArrayList<ArrayList<Integer>> dis= new ArrayList<ArrayList<Integer>>();
+			dis.add(s);
+			disjointBuild(dis,list);
+		}
+		return disjoints;
+	}
+	
+	/**
+	 * Cloning the input list, ArrayList<ArrayList<Integer>>
+	 * @param list the list of subsets
+	 * @return clone of the list
+	 */
+	
+	public static ArrayList<ArrayList<Integer>> cloneList(ArrayList<ArrayList<Integer>> list){
+		ArrayList<ArrayList<Integer>> result= new ArrayList<ArrayList<Integer>>();
+		for(ArrayList<Integer> i:list) {
+			result.add(i);
+		}
+		return result;
+	}
+	
+	/**
+	 * Checks two subset lists are disjoint or not. 
+	 * @param list1 the list of subsets
+	 * @param list2 the other list of subsets
+	 * @return boolean disjoint or not.
+	 */
+	
+	public static boolean disjointCheckAll(ArrayList<ArrayList<Integer>> list1, ArrayList<ArrayList<Integer>>list2) {
+		boolean check= false;
+		for(ArrayList<Integer> l2: list2) {
+			if(disjointCheck(list1,l2)) {
+				check=true;
+				break;
+			}
+		}
+		return check;
+	}
+	
+	/**
+	 * For the list of subsets, generating the disjoint subsets.
+	 * In the disjoint function, the subsets having 0 are listed.
+	 * Then these elements are used for the disjoint comparison and
+	 * generation of disjoint subsets for each of these subsets with 0.
+	 * 
+	 * @param set
+	 * @param list
+	 */
+	
+	public static void disjointBuild(ArrayList<ArrayList<Integer>> set, ArrayList<ArrayList<Integer>> list ) {
+		for(ArrayList<Integer> l:list) {
+			if(disjointCheck(set,l)) {
+				ArrayList<ArrayList<Integer>> set2=cloneList(set);
+				set2.add(l);
+				if(disjointCheckAll(set2,list)) {
+					disjointBuild(set2,list);
+				}else {
+					disjoints.add(set2);
+				}
+			}
+		}
+	}
+	
+	/**
+	 * 
+	 * @param group a permutation group
+	 * @param set a set of integers
+	 * @return the list of permutations stabilizing the input set
+	 */
+	
+	public static ArrayList<Permutation> getStabilizers(PermutationGroup group,ArrayList<Integer> set){
+		ArrayList<Permutation> stabilizers = new ArrayList<Permutation>();
+		for(Permutation p:group.all()){
+			ArrayList<Integer> stabilizer = new ArrayList<Integer>();
+			for(Integer i :set) {
+				stabilizer.add(p.get(i));
+			}
+			if(stabilizer.equals(set)) {
+				stabilizers.add(p);
+			}
+		}
+		return stabilizers;
+	}
+	
+	/**
+	 * Rather than the group action on the integer set, the action
+	 * of a permutation is considered.
+	 * 
+	 * @param g a permutation
+	 * @param sets list of subsets
+	 * @return the list of stabilized subsets under the permutation action.
+	 */
+	
+	public static int getStabilizers2(Permutation g, ArrayList<ArrayList<Integer>> sets){
+		ArrayList<ArrayList<Integer>> stabilizedSets = new ArrayList<ArrayList<Integer>>();
+		for(ArrayList<Integer> set: sets) {
+			ArrayList<Integer> stabilize = new ArrayList<Integer>();
+			for(Integer i :set) {
+				stabilize.add(g.get(i));
+			}
+			if(stabilize.equals(set)) {
+				stabilizedSets.add(set);
+			}
+		}
+		return stabilizedSets.size();
+	}
+	
+	/**
+	 * Checks the integer set is stable or not under the permutation action
+	 * 
+	 * @param g a permutation
+	 * @param set a set of integers
+	 * @return 1 or 0 meaning the set is stable or not.
+	 */
+	
+	public static int checkStab(Permutation g, ArrayList<Integer> set){
+		int no=0;
+        if(set.equals(act(set,g))) {
+			no++;
+		}
+		return no;
+	}
+	
+	/**
+	 * Returns the cycle type of a permutation. In the permutation,
+	 * cycles are counted based on their lengths and the counting return
+	 * as the cycle type array of the permutation.
+	 * 
+	 * ( The algorithm is from C.A.G.E.S. Book. )
+	 * 
+	 * @param n the size of the return array (group size +1)
+	 * @param g
+	 * @return cycle type array of the permutation.
+	 */
+	
+	public static int[] type(int n,Permutation g) {
+		boolean[] p = new boolean[size];
+		int[] t = new int[n];
+		for(int i=0;i<n-1;i++) {
+			p[i]=true;
+			t[i+1]=0;
+		}
+		for(int i=0;i<n-1;i++) {
+			if(p[i]) {
+				int l=1;
+				int j=i;
+				p[j]=false;
+				while(p[g.get(j)]) {
+					l=l+1;
+					j=g.get(j);
+					p[j]=false;
+				}
+				t[l]=t[l]+1;
+			}
+		}
+		return t;
+	}
+	
+	/**
+	 * Counting the n combinatoion of m.
+	 * @param m integer
+	 * @param n integer
+	 * @return the combination value of two integers.
+	 */
+	
+	public static int combination(int m, int n) {
+		return factorial(m) / (factorial(n) * factorial(m - n));
+	}
+	
+	/**
+	 * Calculating factorial of an integer.
+	 * @param i integer
+	 * @return factorial of the integer.
+	 */
+	
+	public static int factorial(int i){
+		if (i==0){
+			return 1;
+		}
+		return i * factorial(i - 1);
+	}
+	
+	/**
+	 * Building the orbits of a integer set under the group action of
+	 * a permutation group
+	 * 
+	 * @param group a permutation group
+	 * @param set a integer set
+	 * @return the list of orbits under the group action.
+	 */
+	
+	public static ArrayList<ArrayList<Integer>> getOrbits(PermutationGroup group, ArrayList<Integer> set){
+		ArrayList<ArrayList<Integer>> orbits = new ArrayList<ArrayList<Integer>>();
+		for(Permutation p:group.all()){
+			ArrayList<Integer> orbit = new ArrayList<Integer>();
+			for(Integer i :set) {
+				orbit.add(p.get(i));
+			}
+			orbit.sort(ASC_ORDER);
+
+			if(!orbits.contains(orbit)) {
+				orbits.add(orbit);
+			}
+		}
+		orbits.sort(ASC_ORDER2);
+		return orbits;
+	}
+	
+	/**
+	 * From the list of orbits, getting the minimum ones from the lexicographical order.
+	 * @param group a permutation group 
+	 * @param set an integer set
+	 * @return set of minimal orbits. 
+	 */
+	
+	public static ArrayList<ArrayList<Integer>> getMinOrbits(PermutationGroup group, ArrayList<Integer> set){
+		ArrayList<ArrayList<Integer>> orbits = new ArrayList<ArrayList<Integer>>();
+		for(Permutation p:group.all()){
+			ArrayList<Integer> orbit = new ArrayList<Integer>();
+			for(Integer i :set) {
+				orbit.add(p.get(i));
+			}
+			orbit.sort(ASC_ORDER);
+			if(!orbits.contains(orbit)) {
+				orbits.add(orbit);
+			}
+		}
+		return orbits;
+	}
+	
+	/**
+	 * Gets list of permutation under the orbits.
+	 * @param group a permutation group
+	 * @param set a integer set
+	 * @return the list of permutations.
+	 */
+	
+	public static ArrayList<ArrayList<Permutation>> getOrbitsPerm(PermutationGroup group, ArrayList<Permutation> set){
+		ArrayList<ArrayList<Permutation>> orbits = new ArrayList<ArrayList<Permutation>>();
+		for(Permutation p:group.all()){
+			ArrayList<Permutation> orbit = new ArrayList<Permutation>();
+			for(Permutation i :set) {
+				orbit.add(p.multiply(i));
+			}
+			if(!orbits.contains(orbit)) {
+				orbits.add(orbit);
+			}
+		}
+		return orbits;
+	}
+	
+
+	public static ArrayList<ArrayList<Permutation>> getOrbitsPermList(PermutationGroup group, ArrayList<ArrayList<Permutation>> set){
+		ArrayList<ArrayList<Permutation>> orbits = new ArrayList<ArrayList<Permutation>>();
+		for(ArrayList<Permutation> s:set) {
+			orbits.addAll(getOrbitsPerm(group,s));
+		}
+		return orbits;
+	}
+	
+	/**
+	 * Gets all the orbits without putting them in ascending order and without checking duplicates. 
+	 * @param group a permutation group
+	 * @param set a integer set
+	 * @return all the orbits under the group action
+	 */
+	
+	public static ArrayList<ArrayList<Integer>> getOrbits2(PermutationGroup group, ArrayList<ArrayList<Integer>> set){
+		ArrayList<ArrayList<Integer>> orbits = new ArrayList<ArrayList<Integer>>();
+		for(ArrayList<Integer> s:set) {
+			orbits.addAll(getOrbits(group,s));
+		}
+		return orbits;
+	}
+	
+	/**
+	 * Gets the base of a permutation group.
+	 * @param group a permutation group
+	 * @return the base set of the group
+	 */
+	
+	public static ArrayList<Integer> getBase(PermutationGroup group) {
+		ArrayList<Integer> base = new ArrayList<Integer>();
+		for(int i=0;i<group.getSize();i++) {
+			base.add(i);
+		}
+		return base;
+	}
+	
+	/**
+	 * 
+	 * Cauchy Frobenious Theorem - Number of Orbits
+	 *
+	 **/
+	
+	/**
+	 * Counts the number of orbits for k-subsets.
+	 * @param k size of subsets
+	 * @return number of orbits
+	 */
+	
+	public static int numberOfOrbits(int k) {
+		int count=0;
+		ArrayList<ArrayList<Integer>> subsets= ksubSet2(k,getBase(group));
+		for(Permutation perm:group.all()) {
+			count+=getStabilizers2(perm,subsets);
+		}
+		return count/group.all().size();
+	}
+	
+	public static int numberOfOrbit(PermutationGroup group, ArrayList<ArrayList<Integer>> subset) {
+		int count=0;
+		for(Permutation perm:group.all()) {
+			for(ArrayList<Integer> set:subset) {
+				count=count+checkStab(perm,set);
+			}
+		}
+	return count/group.all().size();
+	}
+	
+	/**
+	 * Molecule depiction 
+	 */
+	
+	public static void depict(IAtomContainer molecule, String path) throws CloneNotSupportedException, CDKException, IOException{
+		DepictionGenerator depiction = new DepictionGenerator();
+		depiction.withCarbonSymbols().withSize(200, 200).withZoom(4).depict(molecule).writeTo(path);
+	}
+	
+	
+	public static HashMap<Integer, Integer> setCycleList(int size){
+		HashMap<Integer, Integer> list = new HashMap<Integer, Integer>(size);
+		for(int i=1;i<=size;i++) {
+			list.put(i, 0);
+		}
+		return list;
+	}
+	
+	/**
+	 * Builds a map of cycle types in the permutation group
+	 * @param group
+	 * @return map of cycle types in the group
+	 */
+	
+	public static HashMap<Permutation, HashMap<Integer, Integer>> cycleType(PermutationGroup group) {
+		HashMap<Permutation, HashMap<Integer, Integer>> map= new HashMap<Permutation, HashMap<Integer, Integer>>();
+		for(Permutation perm: group.all()) {
+			HashMap<Integer, Integer> list = setCycleList(group.getSize());
+			String [] cycles = perm.toCycleString().split("\\)"); 
+			for(String l:cycles) { 
+				int count=0;
+				String[] length= l.split(",");
+				for(String d:length) {
+					count=count+d.length()-1;
+				}
+				list.replace(count, list.get(count), (list.get(count)+1));
+			}
+			map.put(perm, list);
+		}
+		return map;
+	}
+	
+	/**
+	 * Building the conjugacy classes of the permutation group.
+	 * @param group a permutation group
+	 * @return
+	 */
+	
+	public static Multimap<HashMap<Integer, Integer>, Permutation> conjugacyClasses(PermutationGroup group) {
+		Multimap<HashMap<Integer, Integer>, Permutation> multiMap = ArrayListMultimap.create();
+		HashMap<Permutation, HashMap<Integer, Integer>> map=cycleType(group);
+		for(Permutation entry:map.keySet()) {
+			multiMap.put(map.get(entry),entry);
+		}
+		return multiMap;
+	}
+	
+	/**
+	 * Generating a group from a permutation
+	 * @param perm a permutation	
+	 * @return permutation group generated by a permutation
+	 */
+	
+	public static PermutationGroup generateGroup(Permutation perm) {
+		List<Permutation> generators = new ArrayList<Permutation>();
+        generators.add(perm);
+        return new PermutationGroup(size, generators);
+	}
+	
+	/**
+	 * Generating a group from a list permutations
+	 * @param perm a list of permutations	
+	 * @return permutation group generated by a list of permutations
+	 */
+	
+	public static PermutationGroup generateGroup(ArrayList<Permutation> list) {
+		List<Permutation> generators = new ArrayList<Permutation>();
+        generators.addAll(list);
+        return new PermutationGroup(size, generators);
+	}
+	
+	/**
+	 * Counts the number of graphs by the acting of the permutation group
+	 * 
+	 * @param group a permutation group
+	 * @param m multiplicity
+	 * @return number of graphs
+	 */
+	
+	public static int numberOfGraphs(PermutationGroup group, int m) {
+		int count=0;
+		ArrayList<ArrayList<Integer>> subsets= ksubSet2(2,getBase(group));
+		Multimap<HashMap<Integer, Integer>,Permutation> classes= conjugacyClasses(group);
+		for(HashMap<Integer, Integer> key:classes.keySet()) {
+			Permutation perm = (Permutation) classes.get(key).toArray()[0];
+			System.out.println(perm.toCycleString());
+			PermutationGroup group2=generateGroup(perm);
+			count=count+classes.get(key).size()*power(m,numberOfOrbit(group2,subsets));
+		}
+		return count/group.all().size();
+	}
+	
+	/**
+	 * Polya's enumeration method:
+	 * 
+	 * Group reduction method  for which cycle index polynomial is built.
+	 */
+	
+	/**
+	 * Building a map of cycle index coefficients for a permutation group. 
+	 * Cylce index polynomial relies on the the cycle type function.
+	 * @param group
+	 * @return cycle index coefficients of the conjugacy classes representatives
+	 */
+	
+	public static HashMap<String, Integer> cycleIndexCoefficient(PermutationGroup group) {
+		Multimap<String, String> map = ArrayListMultimap.create();
+		HashMap<String, Integer> coef = new HashMap<String, Integer>();
+		for(Permutation perm: group.all()) {
+			map.put(Arrays.toString(type((group.getSize()+1),perm)),Arrays.toString(type((group.getSize()+1),perm)));
+		}
+		for(String key:map.keySet()) {
+			coef.put(key, map.get(key).size());
+		}
+		return coef;
+	}
+	
+	/**
+	 * Set of orbits of length i of <g> on X
+	 * 
+	 * @param group permutation group
+	 * @param set a integer set
+	 * @param l length of orbits
+	 * @return the set of orbits wth length l
+	 */
+	
+	public static List<Set<Integer>> getLengthBasedOrbits(PermutationGroup group, Set<Set<Integer>> set, int l){
+		List<Set<Integer>> orbits = new ArrayList<Set<Integer>>();
+		for(Permutation p:group.all()){
+			for(Set<Integer> s:set) {
+				Set<Integer> orbit = new HashSet<Integer>();
+				for(Integer i :s) {
+					orbit.add(p.get(i));
+				}
+				if(orbit.size()==l && !orbits.contains(orbit)) {
+					orbits.add(orbit);
+				}
+			}
+		}
+		return orbits;
+	}
+	
+	/**
+	 * Numbe rof orbits with the specified orbit length.
+	 * @param perm a permutation
+	 * @param set set of subsets
+	 * @param i orbits length
+	 * @return the number of specified orbits.
+	 */
+	
+	public static int numberOfLengthOrbits(Permutation perm, Set<Set<Integer>> set,int i) {
+		PermutationGroup group= generateGroup(perm);
+		return getLengthBasedOrbits(group,set,i).size();
+	}
+	
+	/**
+	 * Building the array of cycle type for a permutation. But the induced
+	 * form of the permutation is considered. For more details;
+	 * please look at MOLGEN Book. 
+	 * 
+	 * @param perm a permutation
+	 * @return cycle type array
+	 */
+	
+	public static int[] cycleTypeInduced(Permutation perm) {
+		ArrayList<ArrayList<Integer>> subset= ksubSet2(2,getBase(group));
+		int size = group.getSize();
+		int[] cycle= buildZerosArray(size+1);
+        List<Permutation> generators = new ArrayList<Permutation>();
+        generators.add(perm);
+        PermutationGroup group2 = new PermutationGroup(size, generators);
+		for(ArrayList<Integer> set:subset) {
+			cycle[getOrbits(group2,set).size()]=cycle[getOrbits(group2,set).size()]+1;
+		}
+		return normalizeArray(cycle);
+	}
+	
+	/**
+	 * Permutation Types like explain in MOLGEN Book.
+	 * Ordering the cycle types in descending order. 
+	 */
+	
+	public static ArrayList<Integer> cyclicFactors(Permutation perm) {
+		int[] cyclic=type(group.getSize()+1,perm);
+		ArrayList<Integer> lengths= new ArrayList<Integer>();
+		for(int i=1;i<cyclic.length;i++) {
+			if(cyclic[i]>0) {
+				lengths.add(cyclic[i]);
+			}
+		}
+		Collections.sort(lengths,DES_ORDER);
+		return lengths;
+	}
+	/**
+	 * Like given in MOLGEN Book, the n-tuple representation of cycles
+	 * @param perm a permutation
+	 * @return map of ntuples of a permutation
+	 */
+	
+	public static HashMap<Integer,Integer> nTuple(Permutation perm) {
+		ArrayList<Integer> list= cyclicFactors(perm);
+		Collections.sort(list, DES_ORDER);
+		System.out.println("cyclic"+" "+list);
+		int n=sum(list);
+		HashMap<Integer,Integer> map= new HashMap<Integer,Integer>();
+		for(int i=1;i<=n;i++) {
+			map.put(i,count(list,i));
+		}
+		removeLastZeros(map,n);
+		return map;
+	}
+
+	/**
+	 * Partitioning integer n into d parts. 
+	 * @param n integer to partition
+	 * @param d number of parts o partition
+	 * @param depth
+	 * @return The list of integer partition 
+	 */
+	
+	public static List<ArrayList<Integer>> partition2(int n, int d,int depth) {
+		if(d==depth) {
+			List<ArrayList<Integer>> array= new ArrayList<ArrayList<Integer>>();
+			ArrayList<Integer> take=new ArrayList<Integer>();
+			array.add(take);
+			return array;
+		}
+		return buildArray2(n,d,depth);
+		
+	}
+	
+	
 	
 	public static List<int[]> partition(int n, int d,int depth) {
 		if(d==depth) {
@@ -1255,7 +1107,8 @@ public class PermutationGroupFunctions {
 		}
 		return map;
 	}
-	//TODO: Theoretically check. Need to be tested.
+	
+	
 	public static ArrayList<ArrayList<Permutation>> groupDirectProduct(PermutationGroup group, PermutationGroup group2) {
 		ArrayList<ArrayList<Permutation>> product = new ArrayList<ArrayList<Permutation>>(); 
 		for(Permutation perm: group.all()) {
@@ -1441,109 +1294,7 @@ public class PermutationGroupFunctions {
 		return list;
 	}
 	
-	public static int[] OptX = new int[size];
-	public static ArrayList<ArrayList<Integer>> C= new ArrayList<ArrayList<Integer>>();
 	
-	public static int FindLargestElement(ArrayList<Integer> set) {
-		int result= set.get(0);
-		for(int i=0;i<set.size();i++) {
-			if(set.get(i)>result) result=set.get(i);
-		}
-		return result;
-	}
-	/**public static void Apply(Permutation g,ArrayList<Integer> A,ArrayList<Integer> B){
-		int u,n,h,z;
-		n=size;
-		ArrayList<Integer> set = new ArrayList<Integer>();
-		h=0;
-		u=FindLargestElement(A);
-		z=SetOrder(A);
-		while(h<z){
-			h=h+1;
-			SetInsert(g->V[u],g->U->ORB->S2);
-			if(h<z) u=FindPrevElement(u,A);
-		}
-		GetSet(B,g->U->ORB->S2);
-	}**/
-	
-	public static void MinRep(PermutationGroup G, ArrayList<Integer> A) {
-		int deg=size;
-		int k=0; 
-		for(int i=0;i<deg;i++) { 
-			if(A.contains(i)) {
-				OptX[k++]=i;
-			}
-		}
-		C.add(A);
-		MinRepBT(k,G,0);
-		ArrayList<Integer> ans= new ArrayList<Integer>();
-		for(int i=0;i<k;i++) {
-			ans.add(OptX[i]);
-		}
-	}
-	
-	public static void SetPerm(int k,int[] A,Permutation g){
-		int i,j,n;
-		n=size;
-		int[] V=g.getValues();
-		//GetEmptySet(ORB->S);
-		ArrayList<Integer> set= new ArrayList<Integer>();
-		for(i=0;i<k;i++){
-			set.add(A[i]);
-			V[i]=A[i];
-		}
-		for(j=0;j<n;j++) { 
-			if(!set.contains(j)){
-				V[i]=j;
-				i=i+1;
-			}
-		}
-        Permutation p = new Permutation(V);
-        g=p;
-	}
-	public static int[] X= new int[size];
-	public static Permutation beta= new Permutation(size);
-	/**public static void MinRepBT(int k,PermutationGroup G,int ell){
-		int i,j,x,m,r,start,n;
-		Permutation g = null;
-		n=size;
-		if (ell==0){
-			start=0;
-		}else{
-			start=X[ell-1];
-		}
-
-		m=n;
-		for(x=start;x<n;x++) { 
-			if(C.get(ell).contains(x)){
-				r=0;
-				while((r<ell)&&(X[r]==OptX[r])) r=r+1;
-				if( (r<ell) && X[r]>=OptX[r]) return;
-				X[ell]=x; 
-				SetPerm(ell+1,X,beta);
-				G.changeBase(beta);
-
-				for(j=0;j<=x;j++)
-					if((g=G.get(ell,j))!=null) break;
-					if (g.getValues()[x]<=m) {
-						m=g.getValues()[x];
-						X[ell]=m;
-	 
-						if ( k==ell+1) {
-							for(i=r;(i<k) && (X[i]==OptX[i]);i++) {
-								if( (i!=k) && X[i]<OptX[i]) {
-									for(i=0;i<k;i++) OptX[i]=X[i];	
-								}
-							}
-						}else{
-							Apply(g,C.get(ell),C.get(ell+1));
-							SetDelete(m,C->blocks[ell+1]);
-							MinRepBT(k,G,ell+1);
-						}
-					}
-			}
-		}
-	}**/
 	
 	/**
 	 * MOLGEN: Homomorphism principle
@@ -1568,7 +1319,7 @@ public class PermutationGroupFunctions {
 		if(bond(pair)<(m-1)) {
 			return bond(pair);
 		}else {
-			return (m-2); // (m-2) is a graph or the integer ?
+			return (m-2); 
 		}
 	}
 	/**
@@ -1793,6 +1544,7 @@ public class PermutationGroupFunctions {
 	 * @param group
 	 * @return
 	 */
+	
 	public static ArrayList<Permutation> youngSubgroup(ArrayList<ArrayList<Integer>> set,PermutationGroup group) {
 		ArrayList<Permutation> permutations = new ArrayList<Permutation>();
 		ArrayList<Integer> elements=getBase(group);
