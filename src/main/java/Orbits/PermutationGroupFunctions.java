@@ -3,7 +3,6 @@ package Orbits;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -16,12 +15,7 @@ import org.openscience.cdk.depict.DepictionGenerator;
 import org.openscience.cdk.exception.CDKException;
 import org.openscience.cdk.group.Permutation;
 import org.openscience.cdk.group.PermutationGroup;
-import org.openscience.cdk.group.PermutationGroup.Backtracker;
-import org.openscience.cdk.interfaces.IAtom;
-import org.openscience.cdk.interfaces.IBond;
 import org.openscience.cdk.interfaces.IAtomContainer;
-import org.openscience.cdk.interfaces.IChemObjectBuilder;
-import org.openscience.cdk.silent.SilentChemObjectBuilder;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
@@ -30,23 +24,6 @@ public class PermutationGroupFunctions {
 	public static PermutationGroup group=PermutationGroup.makeSymN(4);
 	public static int order=(int)group.order();
 	public static int size=4;
-
-	/**
-	 * Acts a permutation p on a given set of integers. 
-	 * The permutation permutates the integer set by the re-arrangement. 
-	 * 
-	 * @param set the set of integers 
-	 * @param p a permutation from a permutation group
-	 * @return modified set based on the acts of the permutation
-	 */
-	
-	public static ArrayList<Integer> act(ArrayList<Integer> set, Permutation p) {
-		ArrayList<Integer> modifiedSet = new ArrayList<Integer>();
-		for(Integer element:set) {
-			modifiedSet.add(p.get(element));
-		}
-		return modifiedSet;
-	}
 	
 	/**
 	 * These are the basic functions used for different functions. 
@@ -71,11 +48,36 @@ public class PermutationGroupFunctions {
 		return arr;
 	}
 	
+	public static int[] cloneArray(int[] arr) {
+		int[] result= new int[arr.length];
+		for(int i=0;i<arr.length;i++) {
+			result[i]=arr[i];
+		}
+		return result;
+	}
+	
 	public static int[] normalizeArray(int[] arr) {
 		for(int i=1;i<arr.length;i++) {
 			arr[i]=arr[i]/i;
 		}
 		return arr;
+	}
+	
+	public static void removeZeroArray(ArrayList<int[]> list) {
+		if(zeroArray(list.get(0))){
+			list.remove(list.get(0));
+		}
+	}
+	public static ArrayList<Integer> disjoint2List(ArrayList<ArrayList<Integer>> list){
+		ArrayList<Integer> result = new ArrayList<Integer>();
+		for(ArrayList<Integer> r:list) {
+			for(Integer i:r) {
+				if(!result.contains(i)) {
+					result.add(i);
+				}
+			}
+		}
+		return result;
 	}
 	
 	public static void removeLastZeros(HashMap<Integer,Integer> map, int n) {
@@ -86,6 +88,80 @@ public class PermutationGroupFunctions {
 			else {
 				break;
 			}
+		}
+	}
+	
+	public static void printListArray(ArrayList<int[]> list) {
+		for(int i=0;i<list.size();i++) {
+			System.out.println(Arrays.toString(list.get(i)));
+		}
+	}
+	
+	public static int findIncrement(int[] list) {
+		int result=0;
+		int index= notZero(list);
+		for(int i=index;i<list.length;i++) {
+			if(list[i+1]>list[i]) {
+				result=result+i;
+				break;
+			}
+		}
+		return result;
+	}
+	public static boolean allEqual(int[] arr) {
+		int index= notZero(arr);
+		boolean equal= true;
+		for(int i=index;i<arr.length-1;i++) {
+			if(arr[i+1]!=arr[i]) {
+				equal=false;
+				break;
+			}
+		}
+		return equal;
+	}
+	
+	public static int notZero(int[] arr) {
+		int index=0;
+		for(int i=0;i<arr.length;i++) {
+			if(arr[i]!=0) {
+				index= index+i;
+				break;
+			}
+		}
+		return index;
+	}
+	
+	public static boolean zeroArray(int[] bond) {
+		boolean check= true;
+		for(int i=0;i<bond.length;i++) {
+			if(bond[i]!=0) {
+				check=false;
+				break;
+			}
+		}
+		return check;
+	}
+	
+	public static ArrayList<int[]> inc= new ArrayList<int[]>();
+	public static boolean contains(ArrayList<int[]> list,int[] arr) {
+		boolean check= false;
+		for(int i=0;i<list.size();i++) {
+			if(Arrays.equals(list.get(i), arr)) {
+				check= true;
+			}
+		}
+		return check;
+	}
+	
+	public static void checkAdd(ArrayList<int[]> list, int[] arr) {
+		if(!contains(list,arr)) {
+			list.add(arr);
+		}
+	}
+	
+	public static void checkAddList(ArrayList<int[]> list, ArrayList<int[]> list2) {
+		for(int[] l: list2) {
+			checkAdd(list,l);
 		}
 	}
 	
@@ -105,6 +181,26 @@ public class PermutationGroupFunctions {
 			}
 		}
 		return count;
+	}
+	
+	/**
+	 * Counting the frequency of integers in the lists.
+	 * @param list	 the list of integer sets
+	 * @return map of the frequencies.
+	 */
+	
+	public static HashMap<Integer,Integer> countEntries(ArrayList<ArrayList<Integer>> list) {
+		HashMap<Integer,Integer> map= new HashMap<Integer,Integer>();
+		for(Integer s: getBase(group)) {
+			map.put(s,0);
+		}
+		for(ArrayList<Integer> l:list) {
+			int ind1= l.get(0);
+			int ind2= l.get(1);
+			map.put(ind1, map.get(ind1)+1);
+			map.put(ind2, map.get(ind2)+1);
+		}
+		return map;
 	}
 	
 	public static final Comparator<Integer> ASC_ORDER = new Comparator<Integer>() {
@@ -180,6 +276,147 @@ public class PermutationGroupFunctions {
 			}
 		}
 		return array;
+	}
+	
+	/**
+	 * Generating simple list. Just to put 1 into the ith index.
+	 * @param var length of the list
+	 * @param index where the entry is 1
+	 * @return simple list with ones and zeros.
+	 */
+	
+	public static ArrayList<Integer> simpleList(int var, int index){
+		ArrayList<Integer> list= new ArrayList<Integer>();
+		for(int i=0;i<var;i++) {
+			if(i==index) {
+				list.add(1);
+			}else {
+				list.add(0);
+			}
+		}
+		return list;
+	}
+	
+	public static int[] multiplyArray(int[] arr, int a) {
+		int[] res= new int[arr.length];
+		for(int i=0;i<arr.length;i++) {
+			res[i]=arr[i]*a;
+		}
+		return res;
+	}
+	
+	public static ArrayList<Integer> multiplyList(ArrayList<Integer> arr, int a) {
+		ArrayList<Integer> list= new ArrayList<Integer>();
+		for(int i=0;i<arr.size();i++) {
+			list.add(arr.get(i)*a);
+		}
+		return list;
+	}
+	
+	public static int[] sumArray(int[] arr1, int[] arr2) {
+		int[] arr3= new int[arr1.length];
+		for(int i=0;i<arr1.length;i++) {
+			arr3[i]=arr1[i]+arr2[i];
+		}
+		return arr3;
+	}
+	
+	public static ArrayList<Integer> sumList(ArrayList<Integer> arr1, ArrayList<Integer> arr2) {
+		ArrayList<Integer> arr3= new ArrayList<Integer>();
+		for(int i=0;i<arr1.size();i++) {
+			arr3.add(arr1.get(i)+arr2.get(i));
+		}
+		return arr3;
+	}
+	
+	public static HashMap<ArrayList<Integer>,Integer> multMultinomial(HashMap<int[],Integer> mult1,HashMap<int[],Integer>mult2) {
+		HashMap<ArrayList<Integer>,Integer> result= new HashMap<ArrayList<Integer>,Integer>();
+		for(int[] key:mult1.keySet()) {
+			for(int[] key2:mult2.keySet()) {
+				ArrayList<Integer> sumlist=arrayToList(sumArray(key,key2));
+				if(result.containsKey(sumlist)) {
+					result.put(sumlist, result.get(sumlist)+(mult1.get(key)*mult2.get(key2)));
+				}else {
+					result.put(arrayToList(sumArray(key,key2)),mult1.get(key)*mult2.get(key2));
+				}
+			}
+		}
+		return result;
+	}
+	
+	public static HashMap<ArrayList<Integer>,Integer> multMultinomialList(HashMap<ArrayList<Integer>,Integer> mult1,HashMap<ArrayList<Integer>,Integer>mult2) {
+		HashMap<ArrayList<Integer>,Integer> result= new HashMap<ArrayList<Integer>,Integer>();
+		for(ArrayList<Integer> key:mult1.keySet()) {
+			for(ArrayList<Integer> key2:mult2.keySet()) {
+				ArrayList<Integer> sumlist=sumList(key,key2);
+				if(result.containsKey(sumlist)) {
+					result.put(sumlist, result.get(sumlist)+(mult1.get(key)*mult2.get(key2)));
+				}else {
+					result.put(sumlist,mult1.get(key)*mult2.get(key2));
+				}
+			}
+		}
+		return result;
+	}
+	
+	public static ArrayList<Integer> arrayToList(int[] array) {
+		ArrayList<Integer> list= new ArrayList<Integer>();
+		for(int i=0;i<array.length;i++) {
+			list.add(array[i]);
+		}
+		return list;
+	}
+	public static HashMap<ArrayList<Integer>,Integer> idMultinomial(int m,int classSize){
+		HashMap<ArrayList<Integer>,Integer> mult= new HashMap<ArrayList<Integer>,Integer>();
+		ArrayList<Integer> list= new ArrayList<Integer>();
+		for(int i=0;i<m;i++) {
+			list.add(0);
+		}
+		mult.put(list, classSize);
+		return mult;
+	}
+	public static void divideByOrder(HashMap<ArrayList<Integer>,Integer> map) {
+		for(ArrayList<Integer> key:map.keySet()) {
+			map.replace(key, map.get(key), (Integer)(map.get(key)/order));
+		}
+	}
+	
+	public static HashMap<ArrayList<Integer>,Integer> sumLists(HashMap<ArrayList<Integer>,Integer> map1, HashMap<ArrayList<Integer>,Integer> map2){
+		Set<ArrayList<Integer>> keySet = new HashSet<ArrayList<Integer>>();
+        keySet.addAll(map1.keySet());
+        keySet.addAll(map2.keySet());
+
+        HashMap<ArrayList<Integer>, Integer> map3 = new HashMap<ArrayList<Integer>, Integer>();
+        Integer val1, val2;
+        for (ArrayList<Integer> key : keySet) {
+            val1 = map1.get(key);
+            val1 = (val1 == null ? 0 : val1);
+            val2 = map2.get(key);
+            val2 = (val2 == null ? 0 : val2);
+            map3.put(key, val1 + val2);
+        }
+		return map3;
+	}
+	
+	/**
+	 * ***********************************************************************
+	 */
+	
+	/**
+	 * Acts a permutation p on a given set of integers. 
+	 * The permutation permutates the integer set by the re-arrangement. 
+	 * 
+	 * @param set the set of integers 
+	 * @param p a permutation from a permutation group
+	 * @return modified set based on the acts of the permutation
+	 */
+	
+	public static ArrayList<Integer> act(ArrayList<Integer> set, Permutation p) {
+		ArrayList<Integer> modifiedSet = new ArrayList<Integer>();
+		for(Integer element:set) {
+			modifiedSet.add(p.get(element));
+		}
+		return modifiedSet;
 	}
 	
 	/**
@@ -865,8 +1102,6 @@ public class PermutationGroupFunctions {
 		
 	}
 	
-	
-	
 	public static List<int[]> partition(int n, int d,int depth) {
 		if(d==depth) {
 			List<int[]> array= new ArrayList<int[]>();
@@ -877,6 +1112,14 @@ public class PermutationGroupFunctions {
 		return buildArray(n,d,depth);
 		
 	}
+	
+	/**
+	 * Calculating the multinomial coefficient for the given power array
+	 * 
+	 * @param n main power over the multinomial.
+	 * @param array power array, the powers of each element in the multinomial
+	 * @return specified moltinomial coefficient
+	 */
 	
 	public static int multiCoef(int n, int[] array) {
 		int mult=1;
@@ -895,22 +1138,11 @@ public class PermutationGroupFunctions {
 	}
 	
 	/**
-	 * 
-	 * @param power power on the summation
-	 * @param terms: How many variables you sum
+	 * Building a monomial for number of variable with the power.
+	 * @param var number of variables
+	 * @param inPower the power of the variables
+	 * @return map representing the multinomials. 
 	 */
-	
-	public static ArrayList<Integer> simpleList(int var, int index){
-		ArrayList<Integer> list= new ArrayList<Integer>();
-		for(int i=0;i<var;i++) {
-			if(i==index) {
-				list.add(1);
-			}else {
-				list.add(0);
-			}
-		}
-		return list;
-	}
 	
 	public static HashMap<ArrayList<Integer>,Integer> monomial(int var, int inPower){
 		HashMap<ArrayList<Integer>,Integer> map= new HashMap<ArrayList<Integer>,Integer>();
@@ -919,6 +1151,14 @@ public class PermutationGroupFunctions {
 		}
 		return map;
 	}
+	
+	/**
+	 * Construction of a multinomial for the given number of variable and power information 
+	 * @param power power of the multinomial
+	 * @param var number of variables
+	 * @param inPower power of each variable
+	 * @return a multinomial.
+	 */
 	
 	public static HashMap<ArrayList<Integer>,Integer> multinomialList(int power, int var , int inPower ) {
 		if(power==1) {
@@ -939,70 +1179,14 @@ public class PermutationGroupFunctions {
 		return map;
 	}
 	
-	public static int[] multiplyArray(int[] arr, int a) {
-		int[] res= new int[arr.length];
-		for(int i=0;i<arr.length;i++) {
-			res[i]=arr[i]*a;
-		}
-		return res;
-	}
 	
-	public static ArrayList<Integer> multiplyList(ArrayList<Integer> arr, int a) {
-		ArrayList<Integer> list= new ArrayList<Integer>();
-		for(int i=0;i<arr.size();i++) {
-			list.add(arr.get(i)*a);
-		}
-		return list;
-	}
-	
-	public static int[] sumArray(int[] arr1, int[] arr2) {
-		int[] arr3= new int[arr1.length];
-		for(int i=0;i<arr1.length;i++) {
-			arr3[i]=arr1[i]+arr2[i];
-		}
-		return arr3;
-	}
-	
-	public static ArrayList<Integer> sumList(ArrayList<Integer> arr1, ArrayList<Integer> arr2) {
-		ArrayList<Integer> arr3= new ArrayList<Integer>();
-		for(int i=0;i<arr1.size();i++) {
-			arr3.add(arr1.get(i)+arr2.get(i));
-		}
-		return arr3;
-	}
-	
-	public static HashMap<ArrayList<Integer>,Integer> multMultinomial(HashMap<int[],Integer> mult1,HashMap<int[],Integer>mult2) {
-		HashMap<ArrayList<Integer>,Integer> result= new HashMap<ArrayList<Integer>,Integer>();
-		for(int[] key:mult1.keySet()) {
-			for(int[] key2:mult2.keySet()) {
-				ArrayList<Integer> sumlist=arrayToList(sumArray(key,key2));
-				if(result.containsKey(sumlist)) {
-					result.put(sumlist, result.get(sumlist)+(mult1.get(key)*mult2.get(key2)));
-				}else {
-					result.put(arrayToList(sumArray(key,key2)),mult1.get(key)*mult2.get(key2));
-				}
-			}
-		}
-		return result;
-	}
-	
-	public static HashMap<ArrayList<Integer>,Integer> multMultinomialList(HashMap<ArrayList<Integer>,Integer> mult1,HashMap<ArrayList<Integer>,Integer>mult2) {
-		HashMap<ArrayList<Integer>,Integer> result= new HashMap<ArrayList<Integer>,Integer>();
-		for(ArrayList<Integer> key:mult1.keySet()) {
-			for(ArrayList<Integer> key2:mult2.keySet()) {
-				ArrayList<Integer> sumlist=sumList(key,key2);
-				if(result.containsKey(sumlist)) {
-					result.put(sumlist, result.get(sumlist)+(mult1.get(key)*mult2.get(key2)));
-				}else {
-					result.put(sumlist,mult1.get(key)*mult2.get(key2));
-				}
-			}
-		}
-		return result;
-	}
 	/**
 	 * Group Reduction Function. The formula given in MOLGEN Book pg 77.
+	 * @param group permutation group 
+	 * @param m multiplicity
+	 * @return value of GRF for the multiplicity and permutation group
 	 */
+	
 	public static HashMap<ArrayList<Integer>, Integer> GRF(PermutationGroup group, int m) {
 		Multimap<HashMap<Integer, Integer>, Permutation> map=conjugacyClasses(group);
 		HashMap<ArrayList<Integer>, Integer> sum= new HashMap<ArrayList<Integer>, Integer>();
@@ -1021,51 +1205,11 @@ public class PermutationGroupFunctions {
 		return sum;
 	}
 	
-	public static ArrayList<Integer> arrayToList(int[] array) {
-		ArrayList<Integer> list= new ArrayList<Integer>();
-		for(int i=0;i<array.length;i++) {
-			list.add(array[i]);
-		}
-		return list;
-	}
-	public static HashMap<ArrayList<Integer>,Integer> idMultinomial(int m,int classSize){
-		HashMap<ArrayList<Integer>,Integer> mult= new HashMap<ArrayList<Integer>,Integer>();
-		ArrayList<Integer> list= new ArrayList<Integer>();
-		for(int i=0;i<m;i++) {
-			list.add(0);
-		}
-		mult.put(list, classSize);
-		return mult;
-	}
-	public static void divideByOrder(HashMap<ArrayList<Integer>,Integer> map) {
-		for(ArrayList<Integer> key:map.keySet()) {
-			map.replace(key, map.get(key), (Integer)(map.get(key)/order));
-		}
-	}
 	
-	public static HashMap<ArrayList<Integer>,Integer> sumLists(HashMap<ArrayList<Integer>,Integer> map1, HashMap<ArrayList<Integer>,Integer> map2){
-		Set<ArrayList<Integer>> keySet = new HashSet<ArrayList<Integer>>();
-        keySet.addAll(map1.keySet());
-        keySet.addAll(map2.keySet());
-
-        HashMap<ArrayList<Integer>, Integer> map3 = new HashMap<ArrayList<Integer>, Integer>();
-        Integer val1, val2;
-        for (ArrayList<Integer> key : keySet) {
-            val1 = map1.get(key);
-            val1 = (val1 == null ? 0 : val1);
-            val2 = map2.get(key);
-            val2 = (val2 == null ? 0 : val2);
-            map3.put(key, val1 + val2);
-        }
-		return map3;
-	}
 	
 	/**
 	 * Coset and Double Cosets on Groups - MOLGEN 1.36
-	 * @param args
-	 * @throws CloneNotSupportedException
-	 * @throws CDKException
-	 * @throws IOException
+	 *
 	 */
 	
 	public static ArrayList<Permutation> leftCoset(Permutation permutation, PermutationGroup group) {
@@ -1108,6 +1252,13 @@ public class PermutationGroupFunctions {
 		return map;
 	}
 	
+	/**
+	 * Direct product of two permutation groups is also a group.
+	 * 
+	 * @param group  a permutation group
+	 * @param group2 another permutation group
+	 * @return direct prodcut group
+	 */
 	
 	public static ArrayList<ArrayList<Permutation>> groupDirectProduct(PermutationGroup group, PermutationGroup group2) {
 		ArrayList<ArrayList<Permutation>> product = new ArrayList<ArrayList<Permutation>>(); 
@@ -1123,7 +1274,10 @@ public class PermutationGroupFunctions {
 	}
 	
 	/**
-	 * Group stabilizers are list of permutations. That is why we have this version.
+	 * Direct product of a group with a list of stabilizers. The stabilizers set is also a permutation group.
+	 * @param group a permutation group
+	 * @param stab a stabilizier group
+	 * @return direct product of permutation group with the stabilizer group.
 	 */
 	
 	public static ArrayList<ArrayList<Permutation>> groupDirectProduct2(PermutationGroup group, ArrayList<Permutation> stab) {
@@ -1141,7 +1295,11 @@ public class PermutationGroupFunctions {
 	
 	/**
 	 * Group action for direct product groups
+	 * @param product Direct product group
+	 * @param group a permutation group
+	 * @return action of direct product group on a permutation group
 	 */
+	
 	public static ArrayList<Permutation> groupActionProduct(ArrayList<ArrayList<Permutation>> product, PermutationGroup group) {
 		ArrayList<Permutation> result= new ArrayList<Permutation>();
 		for(Permutation perm: group.all()) {
@@ -1153,7 +1311,12 @@ public class PermutationGroupFunctions {
 	}
 	
 	/**
+	 * 
 	 * Double Cosets: Orbits for the group build by the group action of a product group
+	 *
+	 * @param product direct product group
+	 * @param group a permutation group
+	 * @return lis of double cosets of the permutation group
 	 */
 	
 	public static ArrayList<ArrayList<Permutation>> doubleCosets(ArrayList<ArrayList<Permutation>> product, PermutationGroup group) {
@@ -1166,7 +1329,12 @@ public class PermutationGroupFunctions {
 	
 	/**
 	 * Double coset of a permutation
+	 * 
+	 * @param product direct product group
+	 * @param perm a permutation
+	 * @return double cosets of a permutation
 	 */
+	
 	public static ArrayList<Permutation> doubleCoset(ArrayList<ArrayList<Permutation>> product, Permutation perm) {
 		ArrayList<Permutation> result= new ArrayList<Permutation>();
 		for(ArrayList<Permutation> list: product) {
@@ -1180,11 +1348,15 @@ public class PermutationGroupFunctions {
 	 */
 	
 	/**
-	 * G/Gx Gx is the stabilizer
+	 * G/Gx , the orbits of the stabilizer,Gx, by the group action of G.
+	 * @param group permutation group
+	 * @param subGroup permutation subgroup
+	 * @param set integer set
+	 * @return the list of permutations in the orbit of the stabilizer.
 	 */
+	
 	public static ArrayList<Permutation> stabilizerOrbits(PermutationGroup group, PermutationGroup subGroup, ArrayList<Integer> set) {
 		ArrayList<Permutation> stabilizers= getStabilizers(group,set);
-		System.out.println("stabilizers"+" "+stabilizers);
 		ArrayList<Permutation> result= new ArrayList<Permutation>();
 		for(Permutation perm: subGroup.all()) {
 			for(Permutation perm2: group.all()) {
@@ -1196,6 +1368,14 @@ public class PermutationGroupFunctions {
 		return result;
 	}
 	
+	/**
+	 * G/Gx , the orbits of the stabilizer,Gx, by the group action of G.
+	 * @param group 	a permutation group
+	 * @param subGroup 	a permutation subgroup
+	 * @param set 		list of subsets.
+	 * @return the list of permutations in the orbits of the stabilizer
+	 */
+	
 	public static ArrayList<ArrayList<Permutation>> stabilizerOrbitsList(PermutationGroup group, PermutationGroup subGroup, ArrayList<ArrayList<Integer>> sets) {
 		ArrayList<ArrayList<Permutation>> result= new ArrayList<ArrayList<Permutation>>();
 		for(ArrayList<Integer> set: sets) {
@@ -1205,6 +1385,8 @@ public class PermutationGroupFunctions {
 		return result;
 	}
 	
+	
+	/**
 	public static void constructTrans(PermutationGroup group, PermutationGroup subGroup) {
 		ArrayList<ArrayList<Integer>> subSets= ksubSet2(2,getBase(group));
 		ArrayList<ArrayList<ArrayList<Permutation>>> lis= new ArrayList<ArrayList<ArrayList<Permutation>>>();
@@ -1219,10 +1401,14 @@ public class PermutationGroupFunctions {
 		for(ArrayList<Permutation> list: stabOrbits) {
 			System.out.println("stab"+" "+list.size()+" "+stabOrbits.size());
 		}
-	}
+	}**/
 	
+
 	/**
 	 * MOLGEN - minimal orbit representation
+	 * @param group a permutation group 
+	 * @param subSets the list of subsets
+	 * @return the minimal orbit representative of the subsets
 	 */
 	public static ArrayList<Integer> minRep(PermutationGroup group, ArrayList<ArrayList<Integer>> subSets) {
 		ArrayList<Integer> min= new ArrayList<Integer>();
@@ -1240,26 +1426,10 @@ public class PermutationGroupFunctions {
 	 */
 	
 	/**
-	 * Counting the frequency of integers in the lists.
+	 * Returns the minimal source index for the bond adding.
+	 * @param list list of vertex labels.
+	 * @return source index for bond adding.
 	 */
-	
-	public static HashMap<Integer,Integer> countEntries(ArrayList<ArrayList<Integer>> list) {
-		HashMap<Integer,Integer> map= new HashMap<Integer,Integer>();
-		for(Integer s: getBase(group)) {
-			map.put(s,0);
-		}
-		for(ArrayList<Integer> l:list) {
-			int ind1= l.get(0);
-			int ind2= l.get(1);
-			map.put(ind1, map.get(ind1)+1);
-			map.put(ind2, map.get(ind2)+1);
-		}
-		return map;
-	}
-	
-	/**
-	 * Return the source index for the bond adding.
-	 **/
 	
 	public static int minSourceIndex(ArrayList<ArrayList<Integer>> list) {
 		ArrayList<Integer> atoms = getBase(group);
@@ -1273,6 +1443,12 @@ public class PermutationGroupFunctions {
 		return atoms.get(0);
 	}
 	
+	/**
+	 * Returns the minimal target index for the bond adding.
+	 * @param list list of vertex labels.
+	 * @return target index for bond adding.
+	 */
+	
 	public static int minTargetIndex(ArrayList<ArrayList<Integer>> list) {
 		ArrayList<Integer> atoms = getBase(group);
 		for(ArrayList<Integer> l: list) {
@@ -1284,6 +1460,8 @@ public class PermutationGroupFunctions {
 	
 	/**
 	 * Extends the bond list my adding the minimal bond to the list.
+	 * @param list the list of vertex labels.
+	 * @return adding a new vertex pair to the list meaning a new bond.
 	 */
 	
 	public static ArrayList<ArrayList<Integer>> minBondAdd(ArrayList<ArrayList<Integer>> list) {
@@ -1295,16 +1473,26 @@ public class PermutationGroupFunctions {
 	}
 	
 	
-	
 	/**
 	 * MOLGEN: Homomorphism principle
 	 * 
 	 * Mapping m multigraph to (m-1) multigraph
 	 */
 	
+	/**
+	 * The algorithm is from molgen book. 
+	 * @param pair vertex pair 
+	 * @return
+	 */
 	public static int bond(ArrayList<Integer> pair) {
 		return 1;
 	}
+	
+	/**
+	 * Returns an empty array in the size of multiplicity. 
+	 * @param n multiplicity
+	 * @return an n-length empty array
+	 */
 	
 	public static int[] bondMultiplicity(int n) {
 		ArrayList<ArrayList<Integer>> sets=ksubSet2(2,getBase(group));
@@ -1315,6 +1503,13 @@ public class PermutationGroupFunctions {
 		return mult;
 	}
 	
+	/**
+	 * Homomorphism Principle
+	 * @param pair vertex pair 
+	 * @param m bond multiplicity
+	 * @return  mapping the m-multigraph to (m-1)
+	 */
+	
 	public static int homomorphism(ArrayList<Integer> pair, int m) {
 		if(bond(pair)<(m-1)) {
 			return bond(pair);
@@ -1322,10 +1517,17 @@ public class PermutationGroupFunctions {
 			return (m-2); 
 		}
 	}
+	
 	/**
-	 * In the bond list of inverse homomorphism, increasing the bonds.
-	 * @param bond
-	 * @param index
+	 * From molgen book, the inverse homomorphism for m-multiplicity. 
+	 */
+	
+	/**
+	 * 
+	 * Increases the bond multiplcity and used in the inverse homomorphism function. 
+	 * 
+	 * @param bond the array of bond information.
+	 * @param index index of the bond in the bond array
 	 */
 	
 	public static void bondIncrease(int[] bond, int index) {
@@ -1337,18 +1539,12 @@ public class PermutationGroupFunctions {
 	}
 	
 	/**
-	 * From molgen book, the inverse homomorphism for m-multiplicity. 
-	 * @param bond
-	 * @return
+	 * As given in MOLGEN book, incrementing the bond multiplicity by one
+	 * in the bond array.
+	 * @param bond the array of bond multiplicities
+	 * @return the modified bond array.
 	 */
 	
-	public static int[] cloneArray(int[] arr) {
-		int[] result= new int[arr.length];
-		for(int i=0;i<arr.length;i++) {
-			result[i]=arr[i];
-		}
-		return result;
-	}
 	public static ArrayList<int[]> inverseHomomorphism(int[] bond) {
 		ArrayList<int[]> result= new ArrayList<int[]>();
 		int size=bond.length+1; 
@@ -1361,79 +1557,13 @@ public class PermutationGroupFunctions {
 		return result;
 	}
 	
-	public static void printListArray(ArrayList<int[]> list) {
-		for(int i=0;i<list.size();i++) {
-			System.out.println(Arrays.toString(list.get(i)));
-		}
-	}
 	
-	public static int findIncrement(int[] list) {
-		int result=0;
-		int index= notZero(list);
-		for(int i=index;i<list.length;i++) {
-			if(list[i+1]>list[i]) {
-				result=result+i;
-				break;
-			}
-		}
-		return result;
-	}
-	public static boolean allEqual(int[] arr) {
-		int index= notZero(arr);
-		boolean equal= true;
-		for(int i=index;i<arr.length-1;i++) {
-			if(arr[i+1]!=arr[i]) {
-				equal=false;
-				break;
-			}
-		}
-		return equal;
-	}
-	
-	public static int notZero(int[] arr) {
-		int index=0;
-		for(int i=0;i<arr.length;i++) {
-			if(arr[i]!=0) {
-				index= index+i;
-				break;
-			}
-		}
-		return index;
-	}
-	
-	public static boolean zeroArray(int[] bond) {
-		boolean check= true;
-		for(int i=0;i<bond.length;i++) {
-			if(bond[i]!=0) {
-				check=false;
-				break;
-			}
-		}
-		return check;
-	}
-	
-	public static ArrayList<int[]> inc= new ArrayList<int[]>();
-	public static boolean contains(ArrayList<int[]> list,int[] arr) {
-		boolean check= false;
-		for(int i=0;i<list.size();i++) {
-			if(Arrays.equals(list.get(i), arr)) {
-				check= true;
-			}
-		}
-		return check;
-	}
-	
-	public static void checkAdd(ArrayList<int[]> list, int[] arr) {
-		if(!contains(list,arr)) {
-			list.add(arr);
-		}
-	}
-	
-	public static void checkAddList(ArrayList<int[]> list, ArrayList<int[]> list2) {
-		for(int[] l: list2) {
-			checkAdd(list,l);
-		}
-	}
+	/** 
+	 * Besides the inverHomomorphism function, another way of 
+	 * increasing the bond multiplicities in m-multigraphs. 
+	 * @param bond bond multiplicity array
+	 * @param m maximum multiplicity in m-multigraph
+	 */
 	
 	public static void increaseBond(int[] bond, int m) {
 		if(zeroArray(bond)) {
@@ -1464,15 +1594,14 @@ public class PermutationGroupFunctions {
 		}
 	}
 	
-	
-	
 	/**
+	 * Generation of m-multigraphs. For a given set of numbers increasing
+	 * each bond multiplicity by one.  
 	 * 
-	 * Generation of m-multigraphs. For a given set of numbers increasing them 
-	 * in an order until they reach the upper limit, m.
-	 * 
+	 * @param bond bond multiplicity array
+	 * @return modified list of bond arrays
 	 */
-
+	
 	public static ArrayList<int[]> increaseToM(int[] bond) {
 		int iter;
 		if(zeroArray(bond)) {
@@ -1492,6 +1621,13 @@ public class PermutationGroupFunctions {
 		//inc.addAll(result);
 		return result;
 	}
+	
+	/**
+	 * Generation of m-multigraphs. For a given set of numbers increasing them 
+	 * in an order until they reach the upper limit, m.
+	 * @param bond bond multiplicity array
+	 * @param m    maximum multiplicity to reach.
+	 */
 	
 	public static void increaseToM(int[] bond,int m) {
 		int iter;
@@ -1516,33 +1652,16 @@ public class PermutationGroupFunctions {
 		}
 	}
 
-	public static void removeZeroArray(ArrayList<int[]> list) {
-		if(zeroArray(list.get(0))){
-			list.remove(list.get(0));
-		}
-	}
-	public static ArrayList<Integer> disjoint2List(ArrayList<ArrayList<Integer>> list){
-		ArrayList<Integer> result = new ArrayList<Integer>();
-		for(ArrayList<Integer> r:list) {
-			for(Integer i:r) {
-				if(!result.contains(i)) {
-					result.add(i);
-				}
-			}
-		}
-		return result;
-	}
+	
 	/**
-	 * Young Group construction
-	 * @param set
-	 * @param group
+	 * Young Subgroup construction
 	 */
 	
 	/**
 	 * Build the Young subgroup for the given disjoint set
-	 * @param set
-	 * @param group
-	 * @return
+	 * @param set   a disjoint set
+	 * @param group a permutation group
+	 * @return Young subgroups for the disjoint set
 	 */
 	
 	public static ArrayList<Permutation> youngSubgroup(ArrayList<ArrayList<Integer>> set,PermutationGroup group) {
@@ -1561,9 +1680,9 @@ public class PermutationGroupFunctions {
 	
 	/**
 	 * For all the disjoint sets, generating the Young subgroups.
-	 * @param sets
-	 * @param group
-	 * @return
+	 * @param sets a set of disjoint subsets
+	 * @param group a permutation group
+	 * @return Young subgroups of the disjoint sets
 	 */
 	
 	public static ArrayList<ArrayList<Permutation>> youngSubgroups(ArrayList<ArrayList<ArrayList<Integer>>> sets, PermutationGroup group) {
@@ -1574,9 +1693,13 @@ public class PermutationGroupFunctions {
 		return subGroups;
 	}
 	
+
 	/**
 	 * For the given size,k, generating all the k-disjoint subsets first; then
 	 * generating the Young subgroups for the Permutation group.
+	 * @param k size of subsets
+	 * @param group a permutation group
+	 * @return list of young subgroups for the k-subsets.
 	 */
 	
 	public static ArrayList<ArrayList<Permutation>> youngSubgroupRepresentation(int k, PermutationGroup group) {
@@ -1584,110 +1707,4 @@ public class PermutationGroupFunctions {
 		return youngSubgroups(kDisjointSets,group);
 	}
 	
-	//TODO: Look for better representation of product group construction rather than the list.
-	//TODO: This group representation also for the stab group and young subgroups.
-	public static void main(String[] args) throws CloneNotSupportedException, CDKException, IOException {   
-		ArrayList<ArrayList<Integer>> subSets= ksubSet2(2,getBase(group));
-		//System.out.println(subSets);
-		
-		int[] arr= new int[3];
-		arr[0]=0;
-		arr[1]=0;
-		arr[2]=0;
-		
-		int[] arr2= new int[3];
-		arr2[0]=0;
-		arr2[1]=0;
-		arr2[2]=0;
-		ArrayList<Integer> list= new ArrayList<Integer>();
-		list.add(0);
-		list.add(1);
-		list.add(2);
-		
-		//disjoint(2,list);
-		disjoint(2,list);
-		for(ArrayList<ArrayList<Integer>> l:disjoints) {
-			//System.out.println(l);
-		}
-		//System.out.println(Arrays.equals(arr,arr2));
-		//increaseBond(arr,3);
-		
-		//System.out.println("--------------------------------------");
-		//printListArray(inc);
-		//printListArray(inverseHomomorphism(bond));
-				
-		List<Permutation> generators = new ArrayList<Permutation>();
-
-        // p1 is (0, 1)
-		int size=4;
-        int[] p1 = new int[size];
-        p1[0] = 1;
-        p1[1] = 0;
-        for (int i = 2; i < size; i++) {
-            p1[i] = i;
-        }
-
-        // p2 is (1, 2, ...., n, 0)
-        int[] p2 = new int[size];
-        p2[0] = 1;
-        for (int i = 1; i < size - 1; i++) {
-            p2[i] = i + 1;
-        }
-        p2[size - 1] = 0;
-
-        generators.add(new Permutation(p1));
-        generators.add(new Permutation(p2));
-		PermutationGroup group = PermutationGroup.makeSymN(size);
-		//System.out.println(group);
-		//System.out.println(group.getLeftTransversal(0));
-		//System.out.println(group.getLeftTransversal(1));
-		//System.out.println(group.getLeftTransversal(2));
-		//System.out.println(group.getLeftTransversal(3));
-		//System.out.println(group);
-		Permutation perm = new Permutation(1,0,2,3);
-		PermutationGroup h= generateGroup(perm);
-		//System.out.println(group.transversal(h));
-		/**ArrayList<ArrayList<Integer>> subSets= ksubSet2(2,getBase(group));
-		for(ArrayList<Integer> set: subSets) {
-			ArrayList<ArrayList<Integer>> orbit=getOrbits(group, set);
-			System.out.println(orbit);
-		}
-		
-		
-		int size = 4;
-	    // Sym(n) : make the total symmetry group
-	    PermutationGroup group = PermutationGroup.makeSymN(size);
-	    
-	    for(int i=0;i<size;i++) {
-			System.out.println(group.getLeftTransversal(i));
-		}
-	    
-	    // Aut(G) : make the automorphism group for a graph
-	    Permutation p1 = new Permutation(2, 1, 0, 3);
-	    Permutation p2 = new Permutation(0, 3, 2, 1);
-	    List<Permutation> generators = new ArrayList<Permutation>();
-	    generators.add(p1);
-	    generators.add(p2);
-	    PermutationGroup subgroup = new PermutationGroup(size, generators);
-
-	    // generate the traversal
-	    List<Permutation> transversal = group.transversal(subgroup);
-
-	    int subgroupOrder = (int) subgroup.order();
-	    int groupOrder = (int) group.order();
-	    int transversalSize = transversal.size();
-	   
-	    // check that |Aut(G)| / |Sym(N)| = |Transversal|
-	    System.out.println(factorial(size)+" "+groupOrder);
-	    System.out.println((groupOrder / subgroupOrder)+" "+transversalSize);
-	    System.out.println(subgroupOrder);
-		for(int i=0;i<4;i++) {
-			System.out.println(group.getLeftTransversal(i));
-		}**/
-	    
-	    //ArrayList<ArrayList<Integer>> subSets= ksubSet2(2,getBase(group));
-		//constructTrans(group,group2);
-		
-	    //stabilizerOrbitsList(group,group2, subSets);
-	}
 }
