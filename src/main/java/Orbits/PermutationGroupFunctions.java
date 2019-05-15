@@ -1707,4 +1707,22 @@ public class PermutationGroupFunctions {
 		return youngSubgroups(kDisjointSets,group);
 	}
 	
+	/**
+	 * Degree Partition- Gruner Thesis Chapter 7
+	 */
+	
+	/**
+	 * For all the permutations of symmetry group n; the permutations in lexicographical
+	 * order are the set partitions. cdk group package has partition also but not 
+	 * generating all the partitions of a set. Still might be useful.  
+	 */
+	
+	//TODO: Think about degree partition vs permutations over the degree set.
+	
+	/**
+	 * This criteria is used for checking the generated degree partitioning. 
+	 */
+	public static void galeRyserCriteria() {
+		
+	}
 }
