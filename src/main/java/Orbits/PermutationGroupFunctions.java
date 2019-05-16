@@ -1742,7 +1742,7 @@ public class PermutationGroupFunctions {
 	//TODO: Think about degree partition vs permutations over the degree set.
 	
 	/**
-	 * Gale Ryser Criteria is used in the degree partition step.	
+	 * Gale-Ryser Criteria is used in the degree partition step.	
 	 * @param a int array for degree sequences
 	 * @param b int array for degree sequences
 	 * @return true if satisfies the criteria.
