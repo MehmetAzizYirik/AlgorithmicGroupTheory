@@ -216,11 +216,13 @@ public class PermutationGroupFunctions {
 	    }
 	};
 	
-	public static final Comparator<Integer> DES_ORDER = new Comparator<Integer>() {
+	public static  Comparator<Integer> DES_ORDER = new Comparator<Integer>() {
 	    public int compare(Integer e1, Integer e2) { 
 	        return e2.compareTo(e1);
 	    }
 	};
+	
+	
 		
 	public static int[] addElement(int[] a, int e) {
         a  = Arrays.copyOf(a, a.length + 1);
@@ -241,7 +243,27 @@ public class PermutationGroupFunctions {
 		return sum;
 	}
 	
+	public static int sum(int[] array, int index) {
+		int sum=0;
+		for(int i=0;i<=index;i++) {
+			sum=sum+array[i];
+		}
+		return sum;
+	}
 	
+	/**
+	 * SUm function for Gale Ryser Theorem. The right side of inequality. 
+	 * @param array integer array
+	 * @param k integer to check min value
+	 * @return sum of the array with the minimality check. 
+	 */
+	public static int sumGale(int[] array, int k) {
+		int sum=0;
+		for(int i=0;i<array.length;i++) {
+			sum=sum+Math.min(array[i], k);
+		}
+		return sum;
+	}
 	public static List<ArrayList<Integer>> buildArray2(int n,int d, int depth){
 		List<ArrayList<Integer>> array= new ArrayList<ArrayList<Integer>>();
 		IntStream range = IntStream.rangeClosed(0,n);
@@ -1720,9 +1742,25 @@ public class PermutationGroupFunctions {
 	//TODO: Think about degree partition vs permutations over the degree set.
 	
 	/**
-	 * This criteria is used for checking the generated degree partitioning. 
+	 * Gale Ryser Criteria is used in the degree partition step.	
+	 * @param a int array for degree sequences
+	 * @param b int array for degree sequences
+	 * @return true if satisfies the criteria.
 	 */
-	public static void galeRyserCriteria() {
-		
+	
+	public static boolean galeRyserCriteria(int[] a, int[] b) {
+		boolean check= true;
+		a = Arrays.stream(a).boxed().sorted((k, l) -> l.compareTo(k)).mapToInt(i -> i).toArray();
+		if(sum(a)==sum(b)) {
+			for(int i=0;i<a.length;i++) {
+				if(!(sum(a,i)<=sumGale(b, i))) {
+					check=false;
+					break;
+				}
+			}
+		}else {
+			check= false;
+		}
+		return check;
 	}
 }
