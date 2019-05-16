@@ -442,6 +442,76 @@ public class PermutationGroupFunctions {
 	}
 	
 	/**
+	 * Acts a group  on a given set of integers.  
+	 * 
+	 * @param set the set of integers 
+	 * @param group a group acting on the set 
+	 * @return modified set based on the acts of the group
+	 */
+	
+	public static ArrayList<ArrayList<Integer>> actGroup(ArrayList<Integer> set, PermutationGroup group) {
+		ArrayList<ArrayList<Integer>> list= new ArrayList<ArrayList<Integer>>();
+		for(Permutation perm: group.all()) {
+			ArrayList<Integer> modified = act(set, perm);
+			if(!list.contains(modified)) {
+				list.add(modified);
+			}
+		}
+		return list;
+	}
+	
+	/**
+	 * Acts a product group  on a given set of integers.  
+	 * 
+	 * @param set the set of integers 
+	 * @param productGroup a product group acting on the set 
+	 * @return modified set based on the acts of the product group
+	 */
+	//TODO: This should be an action on a bijection. m over ( n 2) is the set from MOLGEN page 42.
+	public static ArrayList<ArrayList<Integer>> actProductGroup(ArrayList<Integer> set, ArrayList<ArrayList<Permutation>> productGroup) {
+		ArrayList<ArrayList<Integer>> list= new ArrayList<ArrayList<Integer>>();
+		for(ArrayList<Permutation> perm: productGroup) {
+			
+		}
+		return list;
+	}
+	
+	/**
+	 * Group action for direct product groups
+	 * @param product Direct product group
+	 * @param group a permutation group
+	 * @return action of direct product group on a permutation group
+	 */
+	
+	public static ArrayList<Permutation> groupActionProduct(ArrayList<ArrayList<Permutation>> product, PermutationGroup group) {
+		ArrayList<Permutation> result= new ArrayList<Permutation>();
+		for(Permutation perm: group.all()) {
+			for(ArrayList<Permutation> list: product) {
+				result.add(list.get(0).multiply(perm.multiply(list.get(1).invert())));
+			}
+		}
+		return result;
+	}
+	
+
+	/**
+	 * Group action of direct product groups on vertex pairs.
+	 * @param product Direct product group
+	 * @param group a permutation group
+	 * @return action of direct product group on a permutation group
+	 */
+	
+	public static ArrayList<Permutation> groupActionProduct(ArrayList<ArrayList<Permutation>> product, int k) {
+		ArrayList<ArrayList<Integer>> subsets= ksubSet2(k,getBase(group));
+		ArrayList<Permutation> result= new ArrayList<Permutation>();
+		for(Permutation perm: group.all()) {
+			for(ArrayList<Permutation> list: product) {
+				result.add(list.get(0).multiply(perm.multiply(list.get(1).invert())));
+			}
+		}
+		return result;
+	}
+	/**
 	 * Gets the size of group's base
 	 * @param group a permutation group
 	 */
@@ -1295,6 +1365,9 @@ public class PermutationGroupFunctions {
 		return product;
 	}
 	
+	
+	
+	
 	/**
 	 * Direct product of a group with a list of stabilizers. The stabilizers set is also a permutation group.
 	 * @param group a permutation group
@@ -1315,22 +1388,6 @@ public class PermutationGroupFunctions {
 		return product;
 	}
 	
-	/**
-	 * Group action for direct product groups
-	 * @param product Direct product group
-	 * @param group a permutation group
-	 * @return action of direct product group on a permutation group
-	 */
-	
-	public static ArrayList<Permutation> groupActionProduct(ArrayList<ArrayList<Permutation>> product, PermutationGroup group) {
-		ArrayList<Permutation> result= new ArrayList<Permutation>();
-		for(Permutation perm: group.all()) {
-			for(ArrayList<Permutation> list: product) {
-				result.add(list.get(0).multiply(perm.multiply(list.get(1).invert())));
-			}
-		}
-		return result;
-	}
 	
 	/**
 	 * 
@@ -1780,6 +1837,7 @@ public class PermutationGroupFunctions {
 	 */
 	
 	 public static void gluingLemma(ArrayList<Integer> X, ArrayList<Integer> Y, PermutationGroup groupX, PermutationGroup groupY) {
+		 ArrayList<ArrayList<Permutation>> productGroup = groupDirectProduct(groupX, groupY);
 		 
 	 }
 	
