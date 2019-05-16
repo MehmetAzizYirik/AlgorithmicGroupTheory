@@ -1763,4 +1763,24 @@ public class PermutationGroupFunctions {
 		}
 		return check;
 	}
+	
+	/**
+	 * Automorphism group of an integer set. Th groups are needed for the degree partition.
+	 * But all automorphism groups of sets are already symmetry groups of the sets. But automorphism
+	 * group of a group does not have to be equal to symmetry group. 
+	 */
+	public static void automorphismGroup(ArrayList<Integer> set) {
+		
+	}
+	
+	/**
+	 * 
+	 * Gluing Lemma
+	 * 
+	 */
+	
+	 public static void gluingLemma(ArrayList<Integer> X, ArrayList<Integer> Y, PermutationGroup groupX, PermutationGroup groupY) {
+		 
+	 }
+	
 }
