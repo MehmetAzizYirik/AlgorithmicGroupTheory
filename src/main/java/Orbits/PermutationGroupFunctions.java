@@ -468,6 +468,7 @@ public class PermutationGroupFunctions {
 	 * @return modified set based on the acts of the product group
 	 */
 	//TODO: This should be an action on a bijection. m over ( n 2) is the set from MOLGEN page 42.
+	//TODO: This m maps are mapping from vertex pair to edge multiplicity. 
 	public static ArrayList<ArrayList<Integer>> actProductGroup(ArrayList<Integer> set, ArrayList<ArrayList<Permutation>> productGroup) {
 		ArrayList<ArrayList<Integer>> list= new ArrayList<ArrayList<Integer>>();
 		for(ArrayList<Permutation> perm: productGroup) {
@@ -476,6 +477,15 @@ public class PermutationGroupFunctions {
 		return list;
 	}
 	
+	/**
+	 * All the mappings describing all the m-multigraphs on n nodes
+	 * @param m maximum multiplicity in m-multigraph
+	 * @param n number of nodes
+	 */
+	public static void mapping(int m, int n) {
+		ArrayList<ArrayList<Integer>> subsets= ksubSet2(2,getBase(group));
+		
+	}
 	/**
 	 * Group action for direct product groups
 	 * @param product Direct product group
@@ -1836,9 +1846,46 @@ public class PermutationGroupFunctions {
 	 * 
 	 */
 	
-	 public static void gluingLemma(ArrayList<Integer> X, ArrayList<Integer> Y, PermutationGroup groupX, PermutationGroup groupY) {
+	 public static void gluingLemma(ArrayList<Integer> Y) {
+		 ArrayList<ArrayList<Integer>> subsets= ksubSet2(2,getBase(group));
+		 PermutationGroup groupX = PermutationGroup.makeSymN(subsets.size());
+		 PermutationGroup groupY = PermutationGroup.makeSymN(Y.size());
 		 ArrayList<ArrayList<Permutation>> productGroup = groupDirectProduct(groupX, groupY);
+		 //groupActionMaps(productGroup);
+	 }
+	 
+	 /**
+	  * For gluing lemma we need first the induced symmetry groups.
+	  * If G is a symmetry group on a set X, the G induced is the 
+	  * induced group by G on X. MOLGEN pg. 167
+	  */
+	 
+	 public static void inducedPermutationGroup( PermutationGroup G, ArrayList<Integer> set) {
 		 
 	 }
+	 
+	 
+	 /**
+	  * The group action on set of mappings. Molgen pg 52.
+	  * The group action is on the vertex pairs not on the
+	  * edge multiplicity of the mappings.
+	  */
+	 
+	 public static ArrayList<ArrayList<Integer>> groupActionMaps( ArrayList<Permutation> group, ArrayList<ArrayList<Integer>> set) {
+		 ArrayList<ArrayList<Integer>> modified = new ArrayList<ArrayList<Integer>>();
+		 for(Permutation perm: group) {
+			 for(ArrayList<Integer> s: set) {
+				 modified.add(replace(s,perm));
+			 }
+		 }
+		 return modified;
+	 }
 	
+	 public static ArrayList<Integer> replace(ArrayList<Integer> s, Permutation perm) {
+		 ArrayList<Integer> set= new ArrayList<Integer>(); 
+		 for(Integer i: s) {
+			 set.add(perm.invert().get(i));
+		 }
+		 return set;
+	 }
 }
