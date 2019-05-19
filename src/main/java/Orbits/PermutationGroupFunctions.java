@@ -441,6 +441,7 @@ public class PermutationGroupFunctions {
 		return modifiedSet;
 	}
 	
+	
 	/**
 	 * Acts a group  on a given set of integers.  
 	 * 
@@ -1433,6 +1434,20 @@ public class PermutationGroupFunctions {
 	}
 	
 	/**
+	 * Double coset of an integer. For gluing lemma
+	 * @param product direct product group
+	 * @param x an integer
+	 * @return double cosets of a integer
+	 */
+	public static ArrayList<Permutation> doubleCosetInt(ArrayList<ArrayList<Permutation>> product, Permutation perm) {
+		ArrayList<Permutation> result= new ArrayList<Permutation>();
+		for(ArrayList<Permutation> list: product) {
+			result.add(list.get(0).multiply(perm.multiply(list.get(1).invert())));
+		}
+		return result;
+	}
+	
+	/**
 	 * Fundamental Lemma: orbits, cosets and double cosets
 	 */
 	
@@ -1851,7 +1866,7 @@ public class PermutationGroupFunctions {
 		 PermutationGroup groupX = PermutationGroup.makeSymN(subsets.size());
 		 PermutationGroup groupY = PermutationGroup.makeSymN(Y.size());
 		 ArrayList<ArrayList<Permutation>> productGroup = groupDirectProduct(groupX, groupY);
-		 //groupActionMaps(productGroup);
+		 ArrayList<Integer> multiplicities=groupActionMaps(productGroup, subsets);
 	 }
 	 
 	 /**
@@ -1864,28 +1879,33 @@ public class PermutationGroupFunctions {
 		 
 	 }
 	 
+	 //TODO: Direct product can be a 2*n matrix 
 	 
 	 /**
 	  * The group action on set of mappings. Molgen pg 52.
 	  * The group action is on the vertex pairs not on the
 	  * edge multiplicity of the mappings.
+	  * 
+	  * The group action is part of gluing lemma.
 	  */
 	 
-	 public static ArrayList<ArrayList<Integer>> groupActionMaps( ArrayList<Permutation> group, ArrayList<ArrayList<Integer>> set) {
-		 ArrayList<ArrayList<Integer>> modified = new ArrayList<ArrayList<Integer>>();
-		 for(Permutation perm: group) {
+	 public static ArrayList<Integer> groupActionMaps( ArrayList<ArrayList<Permutation>> group, ArrayList<ArrayList<Integer>> set) {
+		 ArrayList<Integer> list = new ArrayList<Integer>();
+		 for(ArrayList<Permutation> perm: group) {
 			 for(ArrayList<Integer> s: set) {
-				 modified.add(replace(s,perm));
+				 list.add(replace(s,perm));
 			 }
 		 }
-		 return modified;
+		 return list;
 	 }
-	
-	 public static ArrayList<Integer> replace(ArrayList<Integer> s, Permutation perm) {
+	 
+	 public static int fixedMap(ArrayList<Integer> pair) {
+		 return 1;
+	 }
+	 public static int replace(ArrayList<Integer> s, ArrayList<Permutation> perm) {
 		 ArrayList<Integer> set= new ArrayList<Integer>(); 
-		 for(Integer i: s) {
-			 set.add(perm.invert().get(i));
-		 }
-		 return set;
+		 Permutation inverse = perm.get(0).invert();
+		 int multiplicity= perm.get(1).get(fixedMap(act(s,inverse)));
+		 return multiplicity;
 	 }
 }
