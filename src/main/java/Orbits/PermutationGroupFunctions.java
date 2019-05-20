@@ -1899,10 +1899,45 @@ public class PermutationGroupFunctions {
 		 return list;
 	 }
 	 
+	 /**
+	  * The double coset generation for gluing lemma. From the 1994 first paper. 
+	  * @param G permutation group
+	  * @param H permutation group
+	  */
+	 
+	 public static ArrayList<Integer> doubleCosetsGluing(ArrayList<ArrayList<Permutation>> group, ArrayList<ArrayList<Integer>> set) {
+		 ArrayList<Integer> list = new ArrayList<Integer>();
+		 for(ArrayList<Permutation> perm: group) {
+			 for(ArrayList<Integer> s: set) {
+				 list.add(gluingLeft(s,perm));
+			 }
+		 }
+		 return list;
+	 }
+	 
 	 public static int fixedMap(ArrayList<Integer> pair) {
 		 return 1;
 	 }
-	 public static int replace(ArrayList<Integer> s, ArrayList<Permutation> perm) {
+	 
+	 
+	 /**
+	  * The left and the right side of the gluing lemma. 
+	  * @param s
+	  * @param perm
+	  * @return
+	  */
+	 
+	 public static int gluingLeft(ArrayList<Integer> s, ArrayList<Permutation> perm) {
+		 ArrayList<Integer> set= new ArrayList<Integer>(); 
+		 Permutation inverse = perm.get(0).invert();
+		 int multiplicity= perm.get(1).get(fixedMap(act(s,inverse)));
+		 return multiplicity;
+	 }
+	 
+	 //TODO: This fixed map cannot map everything to the same vertex pair or the same
+	 //TODO: Multiplicity. Otherwise why do we need gluing lemma if the right side always
+	 //TODO: Mapped to the same vertex pair for each f elements of maps. Understand the maps.
+	 public static int gluingRight(ArrayList<Integer> s, ArrayList<Permutation> perm) {
 		 ArrayList<Integer> set= new ArrayList<Integer>(); 
 		 Permutation inverse = perm.get(0).invert();
 		 int multiplicity= perm.get(1).get(fixedMap(act(s,inverse)));
