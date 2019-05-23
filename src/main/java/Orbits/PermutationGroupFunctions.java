@@ -1943,4 +1943,24 @@ public class PermutationGroupFunctions {
 		 int multiplicity= perm.get(1).get(fixedMap(act(s,inverse)));
 		 return multiplicity;
 	 }
+	 
+	 /**
+	  * To be able to understand the gluing lemma, we need to find a fixed map 
+	  * in the set of m-multigraphs on n nodes. In MOLGEN Book, all the maps
+	  * are considered as a multigraph. The definition of fixed map is given
+	  * on page 81. 
+	  */
+	 
+	public static ArrayList<ArrayList<Integer>> findFixedMap(Permutation p) {
+		ArrayList<ArrayList<Integer>> subsets= ksubSet2(2,getBase(group));
+		ArrayList<ArrayList<Integer>> subsets2= ksubSet2(2,getBase(group));
+		for(Permutation perm:generateGroup(p).all()) {
+			for(ArrayList<Integer> m:subsets) {
+				if(!m.equals(act(m,perm))) {
+					subsets2.remove(m);
+				}
+			}
+		}
+		return subsets2;
+	 }
 }
