@@ -13,15 +13,25 @@ import java.util.stream.IntStream;
 
 import org.openscience.cdk.depict.DepictionGenerator;
 import org.openscience.cdk.exception.CDKException;
+import org.openscience.cdk.group.AtomContainerDiscretePartitionRefiner;
+import org.openscience.cdk.group.Partition;
+import org.openscience.cdk.group.PartitionRefinement;
 import org.openscience.cdk.group.Permutation;
 import org.openscience.cdk.group.PermutationGroup;
+import org.openscience.cdk.interfaces.IAtom;
 import org.openscience.cdk.interfaces.IAtomContainer;
+import org.openscience.cdk.interfaces.IBond;
+import org.openscience.cdk.interfaces.IBond.Order;
+import org.openscience.cdk.interfaces.IChemObjectBuilder;
+import org.openscience.cdk.silent.SilentChemObjectBuilder;
+import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
 
 public class PermutationGroupFunctions {
 	public static PermutationGroup group=PermutationGroup.makeSymN(4);
+	public static IChemObjectBuilder builder =  SilentChemObjectBuilder.getInstance();
 	public static int order=(int)group.order();
 	public static int size=4;
 	
@@ -1846,21 +1856,18 @@ public class PermutationGroupFunctions {
 		return check;
 	}
 	
-	/**
-	 * Automorphism group of an integer set. Th groups are needed for the degree partition.
-	 * But all automorphism groups of sets are already symmetry groups of the sets. But automorphism
-	 * group of a group does not have to be equal to symmetry group. 
-	 */
-	public static void automorphismGroup(ArrayList<Integer> set) {
-		
-	}
 	
 	/**
 	 * 
-	 * Gluing Lemma
+	 * Gluing Lemma: this method of joining partial structures
+	 * without producing isomorphic duplicates is known as gluing
+	 * lemma. Here, partial structures are the substructures
+	 * called macroatoms.the fixed map is a fixed m-multigraph. 
+	  * This means the list of vertex pair with bond multiplicity. 
 	 * 
-	 */
+	 **/
 	
+	 //TODO: How should we decide for a fixed m-multigraph ?
 	 public static void gluingLemma(ArrayList<Integer> Y) {
 		 ArrayList<ArrayList<Integer>> subsets= ksubSet2(2,getBase(group));
 		 PermutationGroup groupX = PermutationGroup.makeSymN(subsets.size());
@@ -1870,17 +1877,38 @@ public class PermutationGroupFunctions {
 	 }
 	 
 	 /**
-	  * For gluing lemma we need first the induced symmetry groups.
-	  * If G is a symmetry group on a set X, the G induced is the 
-	  * induced group by G on X. MOLGEN pg. 167
+	  * For substructures, automorphism group of the graphs
+	  * should be calculated. 
 	  */
 	 
-	 public static void inducedPermutationGroup( PermutationGroup G, ArrayList<Integer> set) {
-		 
+	public static PermutationGroup automorphismGroup(String formula) {
+		IAtomContainer ac= MolecularFormulaManipulator.getAtomContainer(formula, builder);
+		AtomContainerDiscretePartitionRefiner refiner = PartitionRefinement.forAtoms().create();
+	    PermutationGroup autoGroup = refiner.getAutomorphismGroup(ac);
+	    return autoGroup;
 	 }
-	 
+	
+	/** 
+	 * 
+	 * Like in dioxine example, MOLGEN, the atom symbols should
+	 * be classified. The gluing lemma is the for the bijection between
+	 * the symmetry groups of both sets.
+	 * 
+	 */
 	 //TODO: Direct product can be a 2*n matrix 
 	 
+	/**
+	 * Returns the equivalence classes of the atoms.
+	 * @param ac atom container
+	 * @return equivalence class partition of atoms.
+	 */
+	
+	public static Partition automorphismPartition(IAtomContainer ac){
+		AtomContainerDiscretePartitionRefiner refiner = PartitionRefinement.forAtoms().create();
+		Partition autoPart = refiner.getAutomorphismPartition(ac);
+		return autoPart;
+	}
+	
 	 /**
 	  * The group action on set of mappings. Molgen pg 52.
 	  * The group action is on the vertex pairs not on the
@@ -1893,11 +1921,11 @@ public class PermutationGroupFunctions {
 		 ArrayList<Integer> list = new ArrayList<Integer>();
 		 for(ArrayList<Permutation> perm: group) {
 			 for(ArrayList<Integer> s: set) {
-				 list.add(replace(s,perm));
+				 //list.add(replace(s,perm));
 			 }
 		 }
 		 return list;
-	 }
+	 }	
 	 
 	 /**
 	  * The double coset generation for gluing lemma. From the 1994 first paper. 
@@ -1970,11 +1998,4 @@ public class PermutationGroupFunctions {
 		}
 		return subsets2;
 	 }
-	 
-	 /**
-	  * In Gluing Lemma, the fixed map is a fixed m-multigraph. 
-	  * This means the list of vertex pair with bond multiplicity. 
-	  */
-	 
-	 
 }
