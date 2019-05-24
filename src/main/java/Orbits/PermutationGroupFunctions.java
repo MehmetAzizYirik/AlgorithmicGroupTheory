@@ -8,6 +8,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.IntStream;
 
@@ -34,6 +35,22 @@ public class PermutationGroupFunctions {
 	public static IChemObjectBuilder builder =  SilentChemObjectBuilder.getInstance();
 	public static int order=(int)group.order();
 	public static int size=4;
+	public static Map<String, Integer> valences; 
+	static {
+		//The atom valences from CDK.
+		valences = new HashMap<String, Integer>();
+			
+		valences.put("C", 4);
+		valences.put("N", 5);
+		valences.put("O", 2);
+		valences.put("S", 6);
+		valences.put("P", 5);
+		valences.put("F", 1);
+		valences.put("I", 7);
+		valences.put("Cl", 5);
+		valences.put("Br", 5);
+		valences.put("H", 1);
+	}
 	
 	/**
 	 * These are the basic functions used for different functions. 
@@ -48,6 +65,18 @@ public class PermutationGroupFunctions {
 	
 	public static int power(int a, int b) {
 		return (int)Math.pow(a, b);
+	}
+	
+	/**
+	 * Summation of the connected bond orders.
+	 */
+	
+	public static int orderSummation(IAtomContainer molecule, int index){
+		int orderCount=0;
+		for(IBond bond: molecule.getAtom(index).bonds()){	
+			orderCount=orderCount+bond.getOrder().numeric();
+	    }
+		return orderCount;
 	}
 	
 	public static int[] buildZerosArray(int n) {
@@ -1998,4 +2027,76 @@ public class PermutationGroupFunctions {
 		}
 		return subsets2;
 	 }
+	 
+	 /**
+	  * Check atom is saturated or not.
+	  */
+	 
+		
+	public static boolean saturationChecker(IAtomContainer molecule, int index) throws CloneNotSupportedException, CDKException, IOException{
+		if ((molecule.getAtom(index).getImplicitHydrogenCount()+orderSummation(molecule,index))>= (int)valences.get(molecule.getAtom(index).getSymbol())){ 
+			return true;
+		}else{
+			return false;
+		}
+	}
+	
+	/**
+	 * Get the list of atom indices with the free valences.
+	 * @param ac IAtomContainer
+	 * @return the list of unsaturated atom indices.
+	 * @throws CloneNotSupportedException
+	 * @throws CDKException
+	 * @throws IOException
+	 */
+	
+	 public static ArrayList<Integer> getFreeValences(IAtomContainer ac) throws CloneNotSupportedException, CDKException, IOException {
+		 ArrayList<Integer> freeV= new ArrayList<Integer>();
+		 for(int i=0;i<ac.getAtomCount();i++) {
+			 if(!saturationChecker(ac,i)) {
+				 freeV.add(i);
+			 }
+		 }
+		 return freeV;
+	 }
+	 
+	 /**
+	  * For the list of atom symbol, grouping the same symbols
+	  * and assigning the acting permutation group. 
+	  * @param list
+	  * @return map of symbols and acting permutation group
+	  */
+	 
+	 public static HashMap<Character,PermutationGroup> symbolClassification(ArrayList<Character> list) {
+		 ArrayList<Character> unique = new ArrayList<Character>();
+		 HashMap<Character,PermutationGroup> map= new HashMap<Character,PermutationGroup>();
+		 for(Character symbol: list) {
+			 if(!unique.contains(symbol)) {
+				 unique.add(symbol);
+			 }
+		 }
+		 for(Character sym: unique) {
+			 map.put(sym, PermutationGroup.makeSymN(countCharacter(list,sym)));
+		 }
+		 return map;
+	 }
+	 
+	 /**
+	  * Counting the number of occurences of symbols in the character list
+	  * @param list list of symbols
+	  * @param symbol atom symbol
+	  * @return number of occurence
+	  */
+	 
+	 public static int countCharacter(ArrayList<Character> list, Character symbol) {
+		 int count=0;
+		 for(Character sym: list) {
+			 if(sym.equals(symbol)) {
+				 count++;
+			 }
+		 }
+		 return count;
+	 }
+	 
+	 
 }
