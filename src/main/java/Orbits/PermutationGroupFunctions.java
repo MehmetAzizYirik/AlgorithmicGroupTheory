@@ -2098,5 +2098,14 @@ public class PermutationGroupFunctions {
 		 return count;
 	 }
 	 
+	 //TODO: This direct product group is needed for the group action on symbol list.
+	 /**
+	  * Generating the direct product group of a list of permutation groups
+	  * @param list list of permutation groups
+	  */
+	 
+	 public static void directProduct(ArrayList<PermutationGroup> list) {
+		 
+	 }
 	 
 }
