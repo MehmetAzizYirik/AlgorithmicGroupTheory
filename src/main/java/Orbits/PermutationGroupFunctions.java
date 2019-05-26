@@ -2098,14 +2098,34 @@ public class PermutationGroupFunctions {
 		 return count;
 	 }
 	 
+	 
 	 //TODO: This direct product group is needed for the group action on symbol list.
 	 /**
 	  * Generating the direct product group of a list of permutation groups
 	  * @param list list of permutation groups
 	  */
 	 
-	 public static void directProduct(ArrayList<PermutationGroup> list) {
-		 
+	 public static void multiDirectProduct(ArrayList<PermutationGroup> list) {
+		 ArrayList<ArrayList<Permutation>> grp= groupDirectProduct(list.get(0),list.get(1));
+		 for(int i=2;i<list.size();i++) {
+			 grp=directProductList(grp,list.get(i));
+		 }
+	 }
+	 
+	 /**
+	  * 
+	  * Direct group product of more than 2 groups.
+	  * @param perm list of permutation pairs
+	  * @param grp permutation group
+	  * @return direct product
+	  */
+	 public static ArrayList<ArrayList<Permutation>> directProductList(ArrayList<ArrayList<Permutation>> perm, PermutationGroup grp) {
+		 for(Permutation prm: grp.all()) {
+			 for(ArrayList<Permutation> lst: perm) {
+				 lst.add(prm);
+			 }
+		 }
+		 return perm;
 	 }
 	 
 }
