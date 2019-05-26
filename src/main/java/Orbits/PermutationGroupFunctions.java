@@ -25,6 +25,7 @@ import org.openscience.cdk.interfaces.IBond;
 import org.openscience.cdk.interfaces.IBond.Order;
 import org.openscience.cdk.interfaces.IChemObjectBuilder;
 import org.openscience.cdk.silent.SilentChemObjectBuilder;
+import org.openscience.cdk.tools.SaturationChecker;
 import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
 import com.google.common.collect.ArrayListMultimap;
@@ -1486,6 +1487,14 @@ public class PermutationGroupFunctions {
 		return result;
 	}
 	
+	public static ArrayList<Permutation> doubleCosetInt(ArrayList<ArrayList<Permutation>> product, Permutation perm) {
+		ArrayList<Permutation> result= new ArrayList<Permutation>();
+		for(ArrayList<Permutation> list: product) {
+			result.add(list.get(0).multiply(perm.multiply(list.get(1).invert())));
+		}
+		return result;
+	}
+	
 	/**
 	 * Fundamental Lemma: orbits, cosets and double cosets
 	 */
@@ -2034,7 +2043,7 @@ public class PermutationGroupFunctions {
 	 
 		
 	public static boolean saturationChecker(IAtomContainer molecule, int index) throws CloneNotSupportedException, CDKException, IOException{
-		if ((molecule.getAtom(index).getImplicitHydrogenCount()+orderSummation(molecule,index))>= (int)valences.get(molecule.getAtom(index).getSymbol())){ 
+		if ((orderSummation(molecule,index))>= (int)valences.get(molecule.getAtom(index).getSymbol())){ 
 			return true;
 		}else{
 			return false;
@@ -2049,9 +2058,10 @@ public class PermutationGroupFunctions {
 	 * @throws CDKException
 	 * @throws IOException
 	 */
-	
+	public static SaturationChecker saturation;
 	 public static ArrayList<Integer> getFreeValences(IAtomContainer ac) throws CloneNotSupportedException, CDKException, IOException {
 		 ArrayList<Integer> freeV= new ArrayList<Integer>();
+		 System.out.println(ac.getAtomCount());
 		 for(int i=0;i<ac.getAtomCount();i++) {
 			 if(!saturationChecker(ac,i)) {
 				 freeV.add(i);
@@ -2143,7 +2153,57 @@ public class PermutationGroupFunctions {
 	 }
 	 
 	 public static void main(String[] args) throws CloneNotSupportedException, CDKException, IOException {   
-		 
+		 IAtomContainer ac= MolecularFormulaManipulator.getAtomContainer("C3H3", builder);
+		 AtomContainerDiscretePartitionRefiner refiner = PartitionRefinement.forAtoms().create();
+	     //PermutationGroup autG = refiner.getAutomorphismGroup(ac);
+	     //System.out.println(autG.order());
+	     
+	     
+	     IChemObjectBuilder builder =  SilentChemObjectBuilder.getInstance();
+	     IAtomContainer acon = builder.newInstance(IAtomContainer.class); 
+	     acon.addAtom(builder.newInstance(IAtom.class, "C"));
+	     acon.addAtom(builder.newInstance(IAtom.class, "C"));
+	     acon.addAtom(builder.newInstance(IAtom.class, "C"));
+	     acon.addAtom(builder.newInstance(IAtom.class, "C"));
+	     acon.addAtom(builder.newInstance(IAtom.class, "C"));
+	     acon.addAtom(builder.newInstance(IAtom.class, "C"));
+	     acon.addAtom(builder.newInstance(IAtom.class, "C"));
+	     acon.addAtom(builder.newInstance(IAtom.class, "C"));
+	     acon.addAtom(builder.newInstance(IAtom.class, "C"));
+	     acon.addAtom(builder.newInstance(IAtom.class, "C"));
+	     acon.addAtom(builder.newInstance(IAtom.class, "C"));
+	     acon.addAtom(builder.newInstance(IAtom.class, "C"));
+	     acon.addAtom(builder.newInstance(IAtom.class, "O"));
+	     acon.addAtom(builder.newInstance(IAtom.class, "O"));
+
+	     acon.addBond(0, 1, Order.SINGLE);
+	     acon.addBond(1, 2, Order.DOUBLE);
+	     acon.addBond(2, 3, Order.SINGLE);
+	     acon.addBond(3, 4, Order.DOUBLE);
+	     acon.addBond(4, 5, Order.SINGLE);
+	     acon.addBond(0, 5, Order.DOUBLE);
+	     acon.addBond(2, 12, Order.SINGLE);
+	     acon.addBond(12, 6, Order.SINGLE);
+	     acon.addBond(3, 13, Order.SINGLE);
+	     acon.addBond(13, 11, Order.SINGLE);
+	     acon.addBond(6, 11, Order.SINGLE);
+	     acon.addBond(6, 7, Order.DOUBLE);
+	     acon.addBond(7, 8, Order.SINGLE);
+	     acon.addBond(8, 9, Order.DOUBLE);
+	     acon.addBond(9, 10, Order.SINGLE);
+	     acon.addBond(10, 11, Order.DOUBLE);
+	     depict(acon,"C:\\Users\\mehme\\Desktop\\fuck.png");
+	     PermutationGroup autG = refiner.getAutomorphismGroup(acon);
+	     PermutationGroup G= PermutationGroup.makeSymN(4);
+	     PermutationGroup H= PermutationGroup.makeSymN(4);
+	     ArrayList<ArrayList<Permutation>> s4= groupDirectProduct(G,G);
+	     for (Permutation auto: autG.all()) {
+			System.out.println(auto.toCycleString());
+	     }
+	     //TODO: How two multiply two permutations from different bases.
+	     System.out.println(getFreeValences(acon));
+	     Partition autP = refiner.getAutomorphismPartition(acon);
+	     //System.out.println(autP);
 	 }
 	 
 }
