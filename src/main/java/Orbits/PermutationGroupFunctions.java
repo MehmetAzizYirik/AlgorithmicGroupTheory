@@ -2128,4 +2128,22 @@ public class PermutationGroupFunctions {
 		 return perm;
 	 }
 	 
+	 public static String fixedMapDioxine(int index) {
+		 String atom="";
+		 if(0<=index && index<=3) { //How did we numerated these free valences?
+			 atom=atom+"Cl";
+		 }else {
+			 atom=atom+"H";
+		 }
+		 return atom;
+	 }
+	 
+	 public static ArrayList<ArrayList<Permutation>> gluingLemmaLeft(ArrayList<ArrayList<Permutation>> group){
+		 
+	 }
+	 
+	 public static void main(String[] args) throws CloneNotSupportedException, CDKException, IOException {   
+		 
+	 }
+	 
 }
