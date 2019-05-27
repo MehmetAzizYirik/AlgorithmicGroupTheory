@@ -482,6 +482,7 @@ public class PermutationGroupFunctions {
 	}
 	
 	
+	
 	/**
 	 * Acts a group  on a given set of integers.  
 	 * 
@@ -2148,7 +2149,54 @@ public class PermutationGroupFunctions {
 		 return atom;
 	 }
 	 
-	 public static ArrayList<ArrayList<Permutation>> gluingLemmaLeft(ArrayList<ArrayList<Permutation>> group){
+	 /**
+	  * Group action on fixedMapDioxine.
+	  * @param group an acting group
+	  * @param index input for the fixed map.
+	  * @return map of new indices and the return values.
+	  */
+	 
+	 public static HashMap<Integer, String> actionOnMap(PermutationGroup group, int index) {
+		 HashMap<Integer, String> map = new HashMap<Integer, String>();
+		 for(Permutation perm: group.all()) {
+			 int index2=perm.invert().get(index);
+			 map.put(index2, fixedMapDioxine(index2));
+		 }
+		 return map;
+	 }
+	 
+	 /**
+	  * Right group action on string values.
+	  * @param group
+	  * @param group2
+	  * @param index
+	  */
+	 
+	 public static void rightAction(PermutationGroup group, PermutationGroup group2, int index) {
+		 HashMap<Integer, String> map= actionOnMap(group, index);		 
+		 for(String str: map.values()) {
+			 for(Permutation perm: group2.all()) {
+				 for(Permutation perm2: group2.all()) {
+					 perm.multiply(perm2); // Group action on strings ?	 
+				 }
+			 } 
+		 }
+	 }
+	 
+	 public static void actionOnStrings(ArrayList<String> set, PermutationGroup group) {
+		 
+	 }
+	 
+	 
+	 /**
+	  * Generating the double cosets in gluing lemma. 
+	  * @param group a permutation group
+	  * @return
+	  */
+	 public static String gluingLemmaDoubleCosets(int index){
+		 String out="";
+		 
+		 return out;
 		 
 	 }
 	 
@@ -2192,7 +2240,7 @@ public class PermutationGroupFunctions {
 	     acon.addBond(8, 9, Order.DOUBLE);
 	     acon.addBond(9, 10, Order.SINGLE);
 	     acon.addBond(10, 11, Order.DOUBLE);
-	     depict(acon,"C:\\Users\\mehme\\Desktop\\fuck.png");
+	     depict(acon,"C:\\Users\\mehme\\Desktop\\tst.png");
 	     PermutationGroup autG = refiner.getAutomorphismGroup(acon);
 	     PermutationGroup G= PermutationGroup.makeSymN(4);
 	     PermutationGroup H= PermutationGroup.makeSymN(4);
