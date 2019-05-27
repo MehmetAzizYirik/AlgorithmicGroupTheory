@@ -3,6 +3,7 @@ package Orbits;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -2139,6 +2140,36 @@ public class PermutationGroupFunctions {
 		 return perm;
 	 }
 	 
+	 /**
+	  * Direct Product of List of Permutation Groups
+	  * @param groups list of permutation groups
+	  * @return the direct produtct of the groups
+	  */
+	 
+	 public static ArrayList<ArrayList<Permutation>> directProductGroups(ArrayList<PermutationGroup> groups) {
+		 groups.iterator();
+		 ArrayList<ArrayList<Permutation>> product=groupDirectProduct(groups.get(0),groups.get(1)); 
+		 for(int i=2;i<groups.size();i++) {
+			 product=productListGroup(product,groups.get(i));
+		 }
+		 return product;
+	 }
+	 
+	 
+	 public static ArrayList<ArrayList<Permutation>> productListGroup(ArrayList<ArrayList<Permutation>> list, PermutationGroup group) {
+		 ArrayList<ArrayList<Permutation>> out= new ArrayList<ArrayList<Permutation>>();
+		 for(Permutation perm: group.all()) {
+			 for(ArrayList<Permutation> pair: list) {
+				 ArrayList<Permutation> l= new ArrayList<Permutation>();
+				 l.addAll(pair);
+				 l.add(perm);
+				 out.add(l);
+			 }	 
+		 }
+		 return out;
+	 }
+	 
+	 
 	 public static String fixedMapDioxine(int index) {
 		 String atom="";
 		 if(0<=index && index<=3) { //How did we numerated these free valences?
@@ -2183,8 +2214,74 @@ public class PermutationGroupFunctions {
 		 }
 	 }
 	 
-	 public static void actionOnStrings(ArrayList<String> set, PermutationGroup group) {
+	 /**
+	  * Generating the groups acting on the sublists
+	  * @param set list of strings
+	  * @return map of sublist and their acting groups
+	  */
+	 
+	 public static HashMap<List<String>, PermutationGroup> actionGroupsOnStrings(ArrayList<String> set) {
+		 HashMap<List<String>, PermutationGroup> map= new HashMap<List<String>, PermutationGroup>();
+		 ArrayList<List<String>> sublists=subListGenerator(set);
+		 for(List<String> list: sublists) {
+			 map.put(list, PermutationGroup.makeSymN(list.size()));
+		 }
+		 return map;
+	 }
+	 
+	 /**
+	  * Group action on the sublist of a list of strings
+	  * @param set list of strings
+	  * @param group 
+	  */
+	 public static void actionOnStrings(ArrayList<String> set) {
+		 HashMap<List<String>, PermutationGroup> map= actionGroupsOnStrings(set);
+		 ArrayList<PermutationGroup> groups = new ArrayList<>(map.values());
+		 ArrayList<ArrayList<Permutation>>  directProduct=directProductGroups(groups);
+		 ArrayList<List<String>> list= subListGenerator(set);
+		 for(ArrayList<Permutation> perm: directProduct) {
+			 for(List<String> l:list) {
+				 
+			 }
+		 }
 		 
+	 }
+	 
+	 /**
+	  * Check at which indices the string element is changed. 
+	  * @param set list of String elements
+	  * @return the list of indices where the next element is changed. 
+	  */
+	 
+	 public static ArrayList<Integer> splitIndices(ArrayList<String> set) {
+		 ArrayList<Integer> indices= new ArrayList<Integer>();
+		 for(int i=0;i<set.size()-1;i++) {
+			 if(set.get(i)!=set.get(i+1)) {
+				 indices.add(i+1);
+			 }
+		 }
+		 return indices;
+	 }
+	 
+	 /**
+	  * Groups the equivalent strings and generates the sublists.
+	  * @param list list of strings
+	  * @return list of sublists
+	  */
+	 
+	 public static ArrayList<List<String>> subListGenerator(ArrayList<String> list){
+		 Collections.sort(list);
+		 ArrayList<List<String>> subsets= new ArrayList<List<String>>();
+		 ArrayList<Integer> indices= splitIndices(list);
+		 int start=0;
+		 for(Integer index: indices) {
+			 List<String> set= list.subList(start, index);
+			 subsets.add(set);
+			 start=index;
+		 }
+		 List<String> set= list.subList(start, list.size());
+		 subsets.add(set);
+		 return subsets;
 	 }
 	 
 	 
@@ -2195,63 +2292,10 @@ public class PermutationGroupFunctions {
 	  */
 	 public static String gluingLemmaDoubleCosets(int index){
 		 String out="";
-		 
+		 //TODO: Direct product of more than 2 groups should be described and its action.
 		 return out;
 		 
 	 }
 	 
-	 public static void main(String[] args) throws CloneNotSupportedException, CDKException, IOException {   
-		 IAtomContainer ac= MolecularFormulaManipulator.getAtomContainer("C3H3", builder);
-		 AtomContainerDiscretePartitionRefiner refiner = PartitionRefinement.forAtoms().create();
-	     //PermutationGroup autG = refiner.getAutomorphismGroup(ac);
-	     //System.out.println(autG.order());
-	     
-	     
-	     IChemObjectBuilder builder =  SilentChemObjectBuilder.getInstance();
-	     IAtomContainer acon = builder.newInstance(IAtomContainer.class); 
-	     acon.addAtom(builder.newInstance(IAtom.class, "C"));
-	     acon.addAtom(builder.newInstance(IAtom.class, "C"));
-	     acon.addAtom(builder.newInstance(IAtom.class, "C"));
-	     acon.addAtom(builder.newInstance(IAtom.class, "C"));
-	     acon.addAtom(builder.newInstance(IAtom.class, "C"));
-	     acon.addAtom(builder.newInstance(IAtom.class, "C"));
-	     acon.addAtom(builder.newInstance(IAtom.class, "C"));
-	     acon.addAtom(builder.newInstance(IAtom.class, "C"));
-	     acon.addAtom(builder.newInstance(IAtom.class, "C"));
-	     acon.addAtom(builder.newInstance(IAtom.class, "C"));
-	     acon.addAtom(builder.newInstance(IAtom.class, "C"));
-	     acon.addAtom(builder.newInstance(IAtom.class, "C"));
-	     acon.addAtom(builder.newInstance(IAtom.class, "O"));
-	     acon.addAtom(builder.newInstance(IAtom.class, "O"));
-
-	     acon.addBond(0, 1, Order.SINGLE);
-	     acon.addBond(1, 2, Order.DOUBLE);
-	     acon.addBond(2, 3, Order.SINGLE);
-	     acon.addBond(3, 4, Order.DOUBLE);
-	     acon.addBond(4, 5, Order.SINGLE);
-	     acon.addBond(0, 5, Order.DOUBLE);
-	     acon.addBond(2, 12, Order.SINGLE);
-	     acon.addBond(12, 6, Order.SINGLE);
-	     acon.addBond(3, 13, Order.SINGLE);
-	     acon.addBond(13, 11, Order.SINGLE);
-	     acon.addBond(6, 11, Order.SINGLE);
-	     acon.addBond(6, 7, Order.DOUBLE);
-	     acon.addBond(7, 8, Order.SINGLE);
-	     acon.addBond(8, 9, Order.DOUBLE);
-	     acon.addBond(9, 10, Order.SINGLE);
-	     acon.addBond(10, 11, Order.DOUBLE);
-	     depict(acon,"C:\\Users\\mehme\\Desktop\\tst.png");
-	     PermutationGroup autG = refiner.getAutomorphismGroup(acon);
-	     PermutationGroup G= PermutationGroup.makeSymN(4);
-	     PermutationGroup H= PermutationGroup.makeSymN(4);
-	     ArrayList<ArrayList<Permutation>> s4= groupDirectProduct(G,G);
-	     for (Permutation auto: autG.all()) {
-			System.out.println(auto.toCycleString());
-	     }
-	     //TODO: How two multiply two permutations from different bases.
-	     System.out.println(getFreeValences(acon));
-	     Partition autP = refiner.getAutomorphismPartition(acon);
-	     //System.out.println(autP);
-	 }
 	 
 }
