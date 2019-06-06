@@ -50,6 +50,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.IntStream;
 
+import org.openscience.cdk.DefaultChemObjectBuilder;
 import org.openscience.cdk.depict.DepictionGenerator;
 import org.openscience.cdk.exception.CDKException;
 import org.openscience.cdk.group.AtomContainerDiscretePartitionRefiner;
@@ -63,7 +64,9 @@ import org.openscience.cdk.interfaces.IBond;
 import org.openscience.cdk.interfaces.IBond.Order;
 import org.openscience.cdk.interfaces.IChemObjectBuilder;
 import org.openscience.cdk.silent.SilentChemObjectBuilder;
+import org.openscience.cdk.smiles.SmilesParser;
 import org.openscience.cdk.tools.SaturationChecker;
+import org.openscience.cdk.tools.manipulator.AtomContainerManipulator;
 import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
 import com.google.common.collect.ArrayListMultimap;
@@ -287,6 +290,22 @@ public class PermutationGroupFunctions {
 	    }
 	};
 	
+	
+	public static void arrAsc(int[] a) {
+		int temp;
+		for (int i = 0; i < a.length; i++) 
+        {
+            for (int j = i + 1; j < a.length; j++) 
+            {
+                if (a[i] > a[j]) 
+                {
+                    temp = a[i];
+                    a[i] = a[j];
+                    a[j] = temp;
+                }
+            }
+        }
+	}
 	public static final Comparator<ArrayList<Integer>> ASC_ORDER2 = new Comparator<ArrayList<Integer>>() {
 		
 		public int compare(ArrayList<Integer> l1, ArrayList<Integer> l2) { 
@@ -932,6 +951,27 @@ public class PermutationGroupFunctions {
 	}
 	
 	/**
+	 * Orbits of a group by the group action.
+	 * @param group a permutation group
+	 * @param group2 a permutation group
+	 * @return the list of orbits. 
+	 */
+	
+	public static ArrayList<ArrayList<Permutation>> getOrbits(PermutationGroup group, PermutationGroup group2){
+		ArrayList<ArrayList<Permutation>> orbits = new ArrayList<ArrayList<Permutation>>();
+		for(Permutation p:group.all()){
+			ArrayList<Permutation> orbit = new ArrayList<Permutation>();
+			for(Permutation p2 :group2.all()) {
+				orbit.add(p.multiply(p2));
+			}
+			if(!orbits.contains(orbit)) {
+				orbits.add(orbit);
+			}
+		}
+		return orbits;
+	}
+	
+	/**
 	 * From the list of orbits, getting the minimum ones from the lexicographical order.
 	 * @param group a permutation group 
 	 * @param set an integer set
@@ -1049,7 +1089,9 @@ public class PermutationGroupFunctions {
 	
 	public static void depict(IAtomContainer molecule, String path) throws CloneNotSupportedException, CDKException, IOException{
 		DepictionGenerator depiction = new DepictionGenerator();
-		depiction.withCarbonSymbols().withSize(200, 200).withZoom(4).depict(molecule).writeTo(path);
+		//depiction.withSize(200, 200).withZoom(4).depict(molecule).writeTo(path);
+		
+		depiction.withAtomColors().withSize(1000, 1000).withZoom(20).depict(molecule).writeTo(path);
 	}
 	
 	
@@ -1121,7 +1163,7 @@ public class PermutationGroupFunctions {
 	public static PermutationGroup generateGroup(ArrayList<Permutation> list) {
 		List<Permutation> generators = new ArrayList<Permutation>();
         generators.addAll(list);
-        return new PermutationGroup(size, generators);
+        return new PermutationGroup(8, generators); // TODO: Size should be automatically given not manual
 	}
 	
 	/**
@@ -2100,7 +2142,6 @@ public class PermutationGroupFunctions {
 	public static SaturationChecker saturation;
 	 public static ArrayList<Integer> getFreeValences(IAtomContainer ac) throws CloneNotSupportedException, CDKException, IOException {
 		 ArrayList<Integer> freeV= new ArrayList<Integer>();
-		 System.out.println(ac.getAtomCount());
 		 for(int i=0;i<ac.getAtomCount();i++) {
 			 if(!saturationChecker(ac,i)) {
 				 freeV.add(i);
@@ -2332,6 +2373,193 @@ public class PermutationGroupFunctions {
 		 //TODO: Direct product of more than 2 groups should be described and its action.
 		 return out;
 		 
+	 }
+	 
+	 public static ArrayList<Permutation> asc_order(Permutation first, Permutation second) {
+		 ArrayList<Permutation>  perms= new ArrayList<Permutation>();
+		 int size1= first.getValues().length;
+		 int size2= second.getValues().length;
+		 if(size1<size2) {
+			 perms.add(first);
+			 perms.add(second);
+		 }else{
+			 perms.add(second);
+			 perms.add(first);
+		 }
+		 return perms;
+	 }
+	 
+	 /**
+	  * Multiplygen is the general version of permutation multiplication.
+	  * In the CDK Group package, only the same size permutations can be multiplied.
+	  * That is why we neeed this function also. 
+	  * 
+	  * @param first a permutation
+	  * @param second a permutation
+	  * @return multiplication of these permutations. 
+	  */
+	 
+	 public static Permutation multiplyGen(Permutation first, Permutation second) {
+		 ArrayList<Permutation> perms= asc_order(first,second);
+		 int[] firstValues= perms.get(0).getValues();
+		 int[] secondValues= perms.get(1).getValues();
+		 Permutation newPerm = new Permutation(perms.get(1));
+	     for (int i = 0; i < firstValues.length; i++) {
+	    	 newPerm.getValues()[i] = secondValues[firstValues[i]];
+	     }
+	     return newPerm;
+	 }
+	 
+	 public static boolean ascCheck(ArrayList<Integer> list) {
+		 boolean check= true;
+		 for(int i=0;i<list.size()-1;i++) {
+			 if(list.get(i)>list.get(i+1)) {
+				 check=false;
+				 break;
+			 }
+		 }
+		 return check;
+	 }
+	 
+	 public static int[] getTabloid(Permutation perm) {
+		 int[] arr= new int[perm.size()/2];
+	     for(int i=0;i<(perm.size()/2);i++){
+		     arr[i]=perm.get(i);
+		 }
+		 return arr;
+	 }
+	 
+	 public static boolean ascCheck(Permutation perm) {
+		 boolean check=true;
+		 for(int i=0;i<(perm.size()/2)-1;i++) {
+			 if(perm.get(i)>perm.get(i+1)) {
+				 check=false;
+				 break;
+			 }
+		 }
+		 return check;
+	 }
+	 
+	 public static boolean inTheList(ArrayList<int[]> list, int[] arr) {
+		 boolean check= false;
+		 for(int i=0;i<list.size();i++) {
+			 if(Arrays.equals(list.get(i), arr)) {
+				 check=true;
+				 break;
+			 }
+		 }
+		 return check;
+	 }
+	 
+	 public static boolean inTheList(HashSet<ArrayList<Integer>> list, ArrayList<Integer> arr) {
+		 boolean check= false;
+		 for(ArrayList<Integer> l:list) {
+			 if(l.equals(arr)) {
+				 check=true;
+				 break;
+			 }
+		 }
+		 return check;
+	 }
+	 
+	 public static boolean inList(HashSet<HashSet<ArrayList<Integer>>> list, HashSet<ArrayList<Integer>> arr) {
+		 boolean check= false;
+		 for(HashSet<ArrayList<Integer>> l: list) {
+			 if(l.equals(arr)) {
+				 check=true;
+				 break;
+			 }
+		 }
+		 return check;
+	 }
+	 
+	 /**
+	  * Implementation of Orbit Fundamental Lemma. Molgen Book Example page 168.
+	  * @param group a permutation group
+	  * @param group2 a permutation group
+	  * @return truncated tabloids for the orbits.
+	  */
+	 
+	 public static  ArrayList<int[]> truncatedTabloids(PermutationGroup group, PermutationGroup group2) {
+		 ArrayList<int[]> arrl= new ArrayList<int[]>();
+	     //ArrayList<Permutation> lp= new ArrayList<Permutation>();
+	     for(Permutation permutation: group.all()) {
+	    	 for(Permutation permutation2:group2.all()) {
+	    		 Permutation p=permutation.multiply(permutation2);
+	    		 if(ascCheck(permutation)) {
+	    			 int[] h= getTabloid(permutation);
+	    			 if(!inTheList(arrl,h)) {
+	    				 arrl.add(h);
+	    				 //lp.add(permutation);
+	    			 } 
+	    		 }
+	    	 } 
+	     }
+	     return arrl;
+	 }
+	 
+	 
+	 /**
+	  * Gneerating list of unique orbits for the list of truncated tabloids
+	  * and the acting group.
+	  * 
+	  * @param truncated truncated tabloids for the acting group
+	  * @param group a permutation group 
+	  * @return list of unique orbits
+	  */
+	 
+	 public static HashSet<HashSet<ArrayList<Integer>>> fundamentalLemma(PermutationGroup group, PermutationGroup group2, ArrayList<Permutation> group3) {
+		 HashSet<HashSet<ArrayList<Integer>>> orbits= new HashSet<HashSet<ArrayList<Integer>>>(); 
+		 ArrayList<int[]> truncated= truncatedTabloids(group, group2);
+		 for(int j=0;j<truncated.size();j++) {
+		    HashSet<ArrayList<Integer>> orbit= new HashSet<ArrayList<Integer>>();
+		    for(Permutation perm: group3) {
+		    	ArrayList<Integer> l= new ArrayList<Integer>();
+		    	for(int k=0;k<truncated.get(j).length;k++) {
+		    		l.add(perm.get(truncated.get(j)[k]));
+		    	}
+		    	l.sort(ASC_ORDER);
+		    	if(!inTheList(orbit,l)) {
+		    		orbit.add(l);
+		    	}
+		    }
+		    System.out.println(orbit);
+		    if(!inList(orbits,orbit)) {
+		    	orbits.add(orbit);
+		    }
+		  }
+		 return orbits;
+	 }
+	 
+	 public static void main(String[] args) throws CloneNotSupportedException, CDKException, IOException {   
+		 
+	     ArrayList<Permutation> R= new ArrayList<Permutation>();
+	     Permutation perm1 = new Permutation(3,2,1,0,7,6,5,4);
+	     Permutation perm2 = new Permutation(0,1,2,3,4,5,6,7);
+	     Permutation perm3 = new Permutation(4,5,6,7,0,1,2,3);
+	     Permutation perm4 = new Permutation(7,6,5,4,3,2,1,0);
+	     R.add(perm1);
+	     R.add(perm2);
+	     R.add(perm3);
+	     R.add(perm4);
+	     
+	     PermutationGroup s8= PermutationGroup.makeSymN(8);
+	     
+	     ArrayList<Permutation> gen= new ArrayList<Permutation>();
+	     
+	     Permutation gen1= new Permutation(1,2,3,0,4,5,6,7);
+	     Permutation gen2= new Permutation(1,0,2,3,4,5,6,7);
+	     Permutation gen3= new Permutation(0,1,2,3,5,6,7,4);
+	     Permutation gen4= new Permutation(0,1,2,3,5,4,6,7);
+	     gen.add(gen1);
+	     gen.add(gen2);
+	     gen.add(gen3);
+	     gen.add(gen4);
+	     
+	     
+	     PermutationGroup s4s4=generateGroup(gen);
+	     System.out.println(fundamentalLemma(s8,s4s4,R).size());
+	     
 	 }
 	 
 	 
