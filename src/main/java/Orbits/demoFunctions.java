@@ -243,6 +243,67 @@ public class demoFunctions {
 		}
 	}
 	
+	public static int[] multiply(int[] perm1, int[] perm2){
+		int size=perm1.length;
+		int[] newperm = new int[size];
+		for(int i=0;i<size;i++) {
+			newperm[i]=perm1[perm2[i]];
+		}
+		return newperm;
+	}
+	
+	public static int[] identity(int size) {
+		int[] identity= new int[size];
+		for(int i=0;i<size;i++) {
+			identity[i]=i;
+		}
+		return identity;
+	}
+	public static int[] powerOf(int[] perm,int n) {
+		if(n==0) {
+			return identity(perm.length);
+		}else if(n==1) {
+			return perm;
+		}else {
+			int[] power=identity(perm.length);
+			while(n!=0) {
+				power=multiply(power,perm);
+				--n;
+			}
+			return power;
+		}
+	}
+	
+	public static int[] generator(int n) {
+		int[] perm= new int[n];
+		perm[n-1]=0;
+		for(int i=0;i<n-1;i++) {
+			perm[i]=i+1;
+		}
+		return perm;
+	}
+	
+	public static int[] transposition(int n) {
+		int[] perm= new int[n];
+		perm[0]=1;
+		perm[1]=0;
+		for(int i=2;i<n;i++) {
+			perm[i]=i;
+		}
+		return perm;
+	}
+	public static List<int[]> permutationGroup(int n){
+		List<int[]> permutations = new ArrayList<int[]>();
+		int[] transposition = transposition(n);
+		int[] generator= generator(n);
+		for(int i=0; i<n;i++) {
+			int[] add= powerOf(generator,i);
+			permutations.add(add);
+			permutations.add(multiply(add,transposition));
+		}
+		return permutations;
+	}
+	
 	public static void SetPerm(int k,int[] A,Permutation g){
 		int i,j,n;
 		n=size;

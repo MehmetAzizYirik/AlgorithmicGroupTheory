@@ -2531,6 +2531,112 @@ public class PermutationGroupFunctions {
 		 return orbits;
 	 }
 	 
+	 /**
+	  * Existence criteria for graphs from Grund's Thesis.
+	  */
+	 
+	 /**
+	  * In the existence criteria we need the degree list in descending order. 
+	  * @param degrees list of degrees of a graphs
+	  */
+	 
+	 public static void descendingOrder(ArrayList<Integer> degrees) {
+		 degrees.sort(DES_ORDER);
+	 }
+	 
+	 /**
+	  * Checks whether the given degree list satisfies the existence criteria of graphs
+	  * @param edges the number of edges.
+	  * @param degrees the list of vertex degrees.
+	  * @return true if satisfies the existence criteria.
+	  */
+	 public static boolean existenceCriteria(int edges, ArrayList<Integer> degrees) {
+		 boolean check= false;
+		 descendingOrder(degrees);
+		 if(sum(degrees)==(2*edges) && degrees.get(0)<=edges){
+			 check=true;
+		 }
+		 return check;
+	 }
+	 
+	 
+	 /**
+	  * Graph connectivity
+	  * @param vertices number of vertices
+	  * @param edges number of edges
+	  * @return true if connected; satisfying the criteria.
+	  */
+	 
+	 public static boolean graphConnectivity(int vertices, int edges) {
+		 boolean check= false;
+		 if(edges>=vertices-1) {
+			 check=true;
+		 }
+		 return check;
+	 }
+	 
+	 /**
+	  * Component Based Graph Existence Criteria from Grund's Thesis 2.1.6.
+	  * @param components number of components
+	  * @param vertices number of vertices
+	  * @param edges number of edges
+	  * @return true the graph exists with the degree distribution and (components-1) components
+	  */
+	 
+	 public static boolean componentCriteria(int components, int vertices, int edges) {
+		 boolean check=false;
+		 if(components>1 && edges> vertices- components) {
+			 check=true;
+		 }
+		 return check;
+	 }
+	 
+	 /**
+	  * Multigraph existence criteria
+	  * @param degrees the list of degrees
+	  * @return true if satisfies the multigraph existence criteria 
+	  */
+	 public static boolean multiGraphExistence(ArrayList<Integer> degrees) {
+		 boolean check=false;
+		 if(sum(degrees)>=2*(degrees.size()-1)) {
+			 check=true;
+		 }
+		 return check;
+	 }
+	 
+	 /**
+	  * Simple graph existence criteria
+	  * @param degrees the list of degrees
+	  * @param edges number of edges
+	  * @return true if satisfies the criteria.
+	  */
+	 
+	 //TODO: Why if any they said in that theorem. Grund thesis 2.1.9. 
+	 public static boolean simpleGraphExistence(ArrayList<Integer> degrees, int edges) {
+		 boolean check= false;
+		 if(sum(degrees)==(2*edges) || )
+		 return check;
+	 }
+	 
+	 public static boolean criteria4siple(ArrayList<Integer> degrees) {
+		 boolean check=true;
+		 int sum=sum(degrees);
+		 for(int i=0;i<degrees.size();i++) {
+			 if(sum>i*(i-1)+minimalSum(degrees,i)) {
+				 check=false;
+				 break;
+			 }
+		 }
+		 return check;
+	 }
+	 
+	 public static int minimalSum(ArrayList<Integer> degrees, int j) {
+		 int sum=0;
+		 for(int i=j+1;i<degrees.size();i++) {
+			 sum=sum+Math.min(j, degrees.get(i));
+		 }
+		 return sum;
+	 }
 	 public static void main(String[] args) throws CloneNotSupportedException, CDKException, IOException {   
 		 
 	     ArrayList<Permutation> R= new ArrayList<Permutation>();
