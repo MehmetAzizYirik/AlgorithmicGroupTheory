@@ -2614,11 +2614,13 @@ public class PermutationGroupFunctions {
 	 //TODO: Why if any they said in that theorem. Grund thesis 2.1.9. 
 	 public static boolean simpleGraphExistence(ArrayList<Integer> degrees, int edges) {
 		 boolean check= false;
-		 if(sum(degrees)==(2*edges) || )
+		 if(sum(degrees)==(2*edges) && criteria4simple(degrees)) {
+			 check=true;
+		 }
 		 return check;
 	 }
 	 
-	 public static boolean criteria4siple(ArrayList<Integer> degrees) {
+	 public static boolean criteria4simple(ArrayList<Integer> degrees) {
 		 boolean check=true;
 		 int sum=sum(degrees);
 		 for(int i=0;i<degrees.size();i++) {
@@ -2637,6 +2639,19 @@ public class PermutationGroupFunctions {
 		 }
 		 return sum;
 	 }
+	 
+	 //Grund Thesis 2.1.10; existence of a simple graph. 
+	 
+	 public static boolean existenceCriteriaSimple(ArrayList<Integer> degrees) {
+		 boolean check= false;
+		 int sum=sum(degrees);
+		 if(sum>=2*(degrees.size()-1)) {
+			 check=true;
+		 }
+		 return check;
+	 }
+	 
+	 
 	 public static void main(String[] args) throws CloneNotSupportedException, CDKException, IOException {   
 		 
 	     ArrayList<Permutation> R= new ArrayList<Permutation>();
