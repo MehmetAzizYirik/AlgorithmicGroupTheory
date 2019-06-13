@@ -2651,7 +2651,71 @@ public class PermutationGroupFunctions {
 		 return check;
 	 }
 	 
+	 //Grund thesis 2.2.6, the second criteria is coded. 
+	 //TODO: We need also 2.2.8 satz from chapter 2. 
+	 //TODO: Can be better, understand why we need V1 and other for this summation.
+	 public static int multVectorSum(ArrayList<int[]> mults) {
+		 int[] v1= buildMultArray(mults,1);
+		 int[] v2= buildMultArray(mults,2);
+		 int[] v3= buildMultArray(mults,3);
+		 int sum=0;
+		 for(int i=0;i<mults.size();i++) {
+			 sum=sum+v1[i]+v2[i]+v3[i];
+		 }
+		 return sum;
+	 }
 	 
+	 public static boolean multVectorCriteria1(ArrayList<int[]> mults) {
+		 boolean check=false;
+		 if(multVectorSum(mults)>=2*(mults.size()-1)) {
+			 check=true;
+		 }
+		 return check;
+	 }
+	 
+	 /**
+	  * This array types are build for Lemma 2.2.6. An example is given
+	  * in 2.2.4 
+	  * @param arr list of multiplicities of vertices
+	  * @param index the index requested for this array types. 
+	  * @return multiplicity based arrays
+	  */
+	 public static int[] buildMultArray(ArrayList<int[]> arr, int index) {
+		 int [] res= new int[arr.size()];
+		 for(int i=0; i<arr.size();i++) {
+			 res[i]=arr.get(i)[index];
+		 }
+		 return res;
+	 }
+	 
+	 //TODO: How can we check the simple graphic criteria for these generated arrays ?
+	 //TODO: 2.2.5 is not clear. Understand it.
+	 public static void multVectorCriteria2(ArrayList<int[]> arr) {
+		 int[] V1= buildMultArray(arr,1);
+		 int[] V2= buildMultArray(arr,2);
+		 int[] V3= buildMultArray(arr,3);
+		 int[] V1V2 = sumArray(V1,V2);
+		 int[] V1V3 = sumArray(V1,V3);
+	 }
+	 
+	 public static boolean multVectorCriteria3(ArrayList<int[]> arr) {
+		 boolean check=true;
+		 int[] V1= buildMultArray(arr,1);
+		 int[] V3= buildMultArray(arr,3);
+		 for(int i=0;i<arr.size();i++) {
+			 if(!(V1[i]==0 && V3[i]==0)) {
+				 check=false;
+				 break;
+			 }
+		 }
+		 return check;
+	 }
+	 
+	 //Grund Thesis 2.2.8
+	 //TODO: First build 1.1.16
+	 public static void multiplicityVectorEquality(ArrayList<int[]> arr, ArrayList<int[]> arr2) {
+		 
+	 }
 	 public static void main(String[] args) throws CloneNotSupportedException, CDKException, IOException {   
 		 
 	     ArrayList<Permutation> R= new ArrayList<Permutation>();
