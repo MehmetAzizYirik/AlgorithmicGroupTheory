@@ -2711,6 +2711,46 @@ public class PermutationGroupFunctions {
 		 return check;
 	 }
 	 
+	 
+	 //Grund Thesis 1.1.16
+	 /**
+	  * Building the partitioning of the atom symbol occurences.
+	  * @param list occurences of the atom symbols in the formula.
+	  */
+	 
+	 public static ArrayList<Set<Integer>> blockSets(ArrayList<Integer> list) {
+		 ArrayList<Set<Integer>> sets= new ArrayList<Set<Integer>>(); 
+		 for(int i=0;i<list.size();i++) {
+			 Set<Integer> set= new HashSet<Integer>();
+			 System.out.println(i+" "+blockSum1(list,i)+" "+blockSum2(list,i));
+			 set.add(blockSum1(list,i));
+			 set.add(blockSum2(list,i));
+			 sets.add(set);
+		 }
+		 return sets;
+	 }
+	 
+	 public static int blockSum1(ArrayList<Integer> list, int index) {
+		 int sum=1;
+		 
+		 if((index-1)==-1) {
+			 sum=1;					 
+		 }else {
+			 for(int i=0;i<index-1;i++) {
+				 sum=sum+list.get(i);
+			 }
+		 }
+		 return sum;
+	 }
+	 
+	 public static int blockSum2(ArrayList<Integer> list, int index) {
+		 int sum=0;
+		 for(int i=0;i<index;i++) {
+			 sum=sum+list.get(i);
+		 }
+		 return sum;
+	 }
+	 
 	 //Grund Thesis 2.2.8
 	 //TODO: First build 1.1.16
 	 public static void multiplicityVectorEquality(ArrayList<int[]> arr, ArrayList<int[]> arr2) {
@@ -2743,7 +2783,13 @@ public class PermutationGroupFunctions {
 	     
 	     
 	     PermutationGroup s4s4=generateGroup(gen);
-	     System.out.println(fundamentalLemma(s8,s4s4,R).size());
+	     //System.out.println(fundamentalLemma(s8,s4s4,R).size());
+	     ArrayList<Integer> n= new ArrayList<Integer>();
+	     n.add(1);
+	     n.add(1);
+	     n.add(1);
+	     n.add(2);
+	     System.out.println(blockSets(n));
 	     
 	 }
 	 
