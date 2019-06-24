@@ -2856,6 +2856,16 @@ public class PermutationGroupFunctions {
 		 return C;
 	 }
 	 
+	 // Algorithm 3.2.3
+	 
+	 public static int[][] canonicalMatrix(ArrayList<Integer> degrees){
+		 int size= degrees.size();
+		 int[][] max= maximalMatrix(degrees);
+		 int[][] L  = upperTriangularL(degrees);
+		 int[][] C  = upperTriangularC(degrees);
+		 int[][] A  = new int[size][size]; // TODO: Zeros matrix is better.
+		 return A;
+	 }
 	 //TODO: Grund Thesis 2.2.8
 	 public static void multiplicityVectorEquality(ArrayList<int[]> arr, ArrayList<int[]> arr2) {
 		 
