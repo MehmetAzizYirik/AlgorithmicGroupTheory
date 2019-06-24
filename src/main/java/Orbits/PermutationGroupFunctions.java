@@ -2814,6 +2814,16 @@ public class PermutationGroupFunctions {
 		 return sum;
 	 }
 	 
+	 
+	 //Page 35, the bottom upper triangular matrices.
+	 public static int Lsum2(int[][] A, int i, int j) {
+		 int sum=0;
+		 for(int k=0;k<j;k++) {
+			 sum=sum+A[i][k];
+		 }
+		 return sum;
+	 }
+	 
 	 public static int Csum(int[][] max, int i, int j, int size) {
 		 int sum=0;
 		 for(int k=i;k<size;k++) {
@@ -2821,6 +2831,17 @@ public class PermutationGroupFunctions {
 		 }
 		 return sum;
 	 }
+	 
+	 
+	//Page 35, the bottom upper triangular matrices.
+	 public static int Csum2(int[][] A, int i, int j) {
+		 int sum=0;
+		 for(int k=0;k<i;k++) {
+			 sum=sum+A[k][j];
+		 }
+		 return sum;
+	 }
+	 
 	 
 	 /**
 	  * L; upper triangular matrix like given in 3.2.1.
@@ -2834,6 +2855,23 @@ public class PermutationGroupFunctions {
 		 for(int i=0;i<size;i++) {
 			 for(int j=i+1;j<size;j++) {
 				 L[i][j]= Math.min(degrees.get(i), Lsum(max,i,j+1,size));
+			 }
+		 }
+		 return L;
+	 }
+	 
+	 
+	 /**
+	  * L; upper triangular matrix like given at the bottom of page 35.
+	  * @param degrees
+	  * @return upper triangular matrix
+	  */
+	 public static int[][] upperTriangularL2(ArrayList<Integer> degrees, int[][] A){
+		 int size= degrees.size();
+		 int[][] L= new int[size][size]; //TODO: Maybe zeros matrix ?	
+		 for(int i=0;i<size;i++) {
+			 for(int j=i+1;j<size;j++) {
+				 L[i][j]= (degrees.get(i) - Lsum2(A,i,j));
 			 }
 		 }
 		 return L;
@@ -2856,6 +2894,32 @@ public class PermutationGroupFunctions {
 		 return C;
 	 }
 	 
+	 /**
+	  * C; upper triangular matrix like given in 3.2.1.
+	  * @param degrees
+	  * @return upper triangular matrix
+	  */
+	 public static int[][] upperTriangularC2(ArrayList<Integer> degrees, int[][]A){
+		 int size= degrees.size();
+		 int[][] C= new int[size][size]; 	
+		 for(int i=0;i<size;i++) {
+			 for(int j=i+1;j<size;j++) {
+				 C[i][j]= (degrees.get(j) - Csum2(A,i,j));
+			 }
+		 }
+		 return C;
+	 }
+	 //Set diagonal to zeros.
+	 public static void zeroDiagonal(int[][] mat) {
+		 for(int i=0; i<mat.length;i++) {
+			 for(int j=0;j<mat.length;j++) {
+				 if(i==j) {
+					 mat[i][j]=0;
+				 }
+			 }
+		 }
+	 }
+	 
 	 // Algorithm 3.2.3
 	 
 	 public static int[][] canonicalMatrix(ArrayList<Integer> degrees){
@@ -2863,7 +2927,8 @@ public class PermutationGroupFunctions {
 		 int[][] max= maximalMatrix(degrees);
 		 int[][] L  = upperTriangularL(degrees);
 		 int[][] C  = upperTriangularC(degrees);
-		 int[][] A  = new int[size][size]; // TODO: Zeros matrix is better.
+		 int[][] A  = new int[size][size]; 
+		 zeroDiagonal(A);
 		 return A;
 	 }
 	 //TODO: Grund Thesis 2.2.8
