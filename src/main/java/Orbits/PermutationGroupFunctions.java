@@ -538,6 +538,14 @@ public class PermutationGroupFunctions {
 		return modifiedSet;
 	}
 	
+	public static Set<Integer> act(Set<Integer> set, Permutation p) {
+		Set<Integer> modifiedSet = new HashSet<Integer>();
+		for(Integer element:set) {
+			modifiedSet.add(p.get(element-1)+1);
+		}
+		return modifiedSet;
+	}
+	
 	
 	
 	/**
@@ -2722,7 +2730,6 @@ public class PermutationGroupFunctions {
 		 ArrayList<Set<Integer>> sets= new ArrayList<Set<Integer>>(); 
 		 for(int i=0;i<list.size();i++) {
 			 Set<Integer> set= new HashSet<Integer>();
-			 System.out.println(i+" "+blockSum1(list,i)+" "+blockSum2(list,i));
 			 set.add(blockSum1(list,i));
 			 set.add(blockSum2(list,i));
 			 sets.add(set);
@@ -2734,9 +2741,9 @@ public class PermutationGroupFunctions {
 		 int sum=1;
 		 
 		 if((index-1)==-1) {
-			 sum=1;					 
+			return sum;				 
 		 }else {
-			 for(int i=0;i<index-1;i++) {
+			 for(int i=0;i<=index-1;i++) {
 				 sum=sum+list.get(i);
 			 }
 		 }
@@ -2745,14 +2752,111 @@ public class PermutationGroupFunctions {
 	 
 	 public static int blockSum2(ArrayList<Integer> list, int index) {
 		 int sum=0;
-		 for(int i=0;i<index;i++) {
+		 for(int i=0;i<=index;i++) {
 			 sum=sum+list.get(i);
 		 }
 		 return sum;
 	 }
 	 
-	 //Grund Thesis 2.2.8
-	 //TODO: First build 1.1.16
+	 public static boolean stabParts(ArrayList<Set<Integer>> parts, Permutation perm) {
+		 boolean check= true;
+		 for(Set<Integer> part: parts) {
+			 if(!act(part,perm).equals(part)) {
+				 check=false;
+				 break;
+			 }
+		 }
+		 return check;
+	 }
+	 
+	 public static ArrayList<Permutation> partitionYoungGroup(ArrayList<Integer> list) {
+		 ArrayList<Permutation> perms= new ArrayList<Permutation>();
+		 PermutationGroup grp= PermutationGroup.makeSymN(sum(list));
+		 ArrayList<Set<Integer>> parts= blockSets(list);
+		 for(Permutation perm: grp.all()) {
+			 if(stabParts(parts,perm)) {
+				 perms.add(perm);
+			 }
+		 }
+		 return perms;
+	 }
+	 
+	 /**
+	  * Theorem 3.2.1
+	  * @param degrees degree sequence
+	  */
+	 public static int[][] maximalMatrix(ArrayList<Integer> degrees) {
+		 int[][] maxMatrix= new int[degrees.size()][degrees.size()];
+		 for(int i=0;i<degrees.size();i++) {
+			 for(int j=0; j<degrees.size();j++) {
+				 int di= degrees.get(i);
+				 int dj= degrees.get(j);
+				 if(i==j) {
+					 maxMatrix[i][j]=0;
+				 }else {
+					 if(di!=dj) {
+						 maxMatrix[i][j]=Math.min(di, dj);
+					 }else {
+						 maxMatrix[i][j]=di-1;
+					 }
+				 }
+			 }
+		 }
+		 return maxMatrix;
+	 }
+	 
+	 
+	 public static int Lsum(int[][] max, int i, int j, int size) {
+		 int sum=0;
+		 for(int k=j;k<size;k++) {
+			 sum=sum+max[i][k];
+		 }
+		 return sum;
+	 }
+	 
+	 public static int Csum(int[][] max, int i, int j, int size) {
+		 int sum=0;
+		 for(int k=i;k<size;k++) {
+			 sum=sum+max[k][j];
+		 }
+		 return sum;
+	 }
+	 
+	 /**
+	  * L; upper triangular matrix like given in 3.2.1.
+	  * @param degrees
+	  * @return upper triangular matrix
+	  */
+	 public static int[][] upperTriangularL(ArrayList<Integer> degrees){
+		 int size= degrees.size();
+		 int[][] L= new int[size][size]; //TODO: Maybe zeros matrix ?	
+		 int[][] max= maximalMatrix(degrees);
+		 for(int i=0;i<size;i++) {
+			 for(int j=i+1;j<size;j++) {
+				 L[i][j]= Math.min(degrees.get(i), Lsum(max,i,j+1,size));
+			 }
+		 }
+		 return L;
+	 }
+	 
+	 /**
+	  * C; upper triangular matrix like given in 3.2.1.
+	  * @param degrees
+	  * @return upper triangular matrix
+	  */
+	 public static int[][] upperTriangularC(ArrayList<Integer> degrees){
+		 int size= degrees.size();
+		 int[][] C= new int[size][size]; //TODO: Maybe zeros matrix ?	
+		 int[][] max= maximalMatrix(degrees);
+		 for(int i=0;i<size;i++) {
+			 for(int j=i+1;j<size;j++) {
+				 C[i][j]= Math.min(degrees.get(j), Csum(max,i+1,j,size));
+			 }
+		 }
+		 return C;
+	 }
+	 
+	 //TODO: Grund Thesis 2.2.8
 	 public static void multiplicityVectorEquality(ArrayList<int[]> arr, ArrayList<int[]> arr2) {
 		 
 	 }
@@ -2783,14 +2887,11 @@ public class PermutationGroupFunctions {
 	     
 	     
 	     PermutationGroup s4s4=generateGroup(gen);
-	     //System.out.println(fundamentalLemma(s8,s4s4,R).size());
 	     ArrayList<Integer> n= new ArrayList<Integer>();
 	     n.add(1);
 	     n.add(1);
 	     n.add(1);
-	     n.add(2);
-	     System.out.println(blockSets(n));
-	     
+	     n.add(2);	     
 	 }
 	 
 	 
