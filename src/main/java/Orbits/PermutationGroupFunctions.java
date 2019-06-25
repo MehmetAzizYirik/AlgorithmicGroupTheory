@@ -2877,6 +2877,7 @@ public class PermutationGroupFunctions {
 		 return L;
 	 }
 	 
+	 //TODO: Thesis or my code is wrong. I modified by minus 1.
 	 /**
 	  * C; upper triangular matrix like given in 3.2.1.
 	  * @param degrees
@@ -2884,11 +2885,11 @@ public class PermutationGroupFunctions {
 	  */
 	 public static int[][] upperTriangularC(ArrayList<Integer> degrees){
 		 int size= degrees.size();
-		 int[][] C= new int[size][size]; //TODO: Maybe zeros matrix ?	
+		 int[][] C= new int[size][size]; 	
 		 int[][] max= maximalMatrix(degrees);
 		 for(int i=0;i<size;i++) {
 			 for(int j=i+1;j<size;j++) {
-				 C[i][j]= Math.min(degrees.get(j), Csum(max,i+1,j,size));
+				 C[i][j]= Math.min(degrees.get(j-1), Csum(max,i+1,j,size)); //TODO: WHY -1 I dont know.
 			 }
 		 }
 		 return C;
@@ -2904,7 +2905,7 @@ public class PermutationGroupFunctions {
 		 int[][] C= new int[size][size]; 	
 		 for(int i=0;i<size;i++) {
 			 for(int j=i+1;j<size;j++) {
-				 C[i][j]= (degrees.get(j) - Csum2(A,i,j));
+				 C[i][j]= (degrees.get(j-1) - Csum2(A,i,j));
 			 }
 		 }
 		 return C;
@@ -2921,12 +2922,13 @@ public class PermutationGroupFunctions {
 	 }
 	 
 	 //Filling the adjacency matrices. The criterias are given in 3.2.1.
-	 public static int entry(int[][] max, int[][] L, int[][] C, int[][]L2, int[][]C2, int i, int j) {
+	 public static int entry(int[][] A,int[][] max, int[][] L, int[][] C, int[][]L2, int[][]C2, int i, int j) {
 		 int number=0;
-		 int minimal= Math.min(max[i][j],Math.min(L[i][j],C[i][j]));
+		 int minimal= Math.min(max[i][j],Math.min(L2[i][j],C2[i][j]));
 		 for(int k=minimal;k>=minimal;k--) {
 			 if((L2[i][j]-k<=L[i][j]) && (C2[i][j]-k<=C[i][j])) {
 				 number+=k;
+				 A[i][j]=number;
 				 break;
 			 }
 		 }
@@ -2935,18 +2937,40 @@ public class PermutationGroupFunctions {
 	 
 	 // Algorithm 3.2.3
 	 public static int[][] canonicalMatrix(ArrayList<Integer> degrees){
-		 int size= degrees.size();
-		 int[][] max= maximalMatrix(degrees);
-		 int[][] L  = upperTriangularL(degrees);
-		 int[][] C  = upperTriangularC(degrees);
-		 int[][] A  = new int[size][size]; 
+		 int size    = degrees.size();
+		 int[][] A   = new int[size][size];
+		 int[][] max = maximalMatrix(degrees);
+		 printMatrix(max);
+		 System.out.println("********");
+		 int[][] L   = upperTriangularL(degrees);
+		 printMatrix(L);
+		 System.out.println("********");
+		 int[][] L2  = upperTriangularL2(degrees,A);
+		 int[][] C   = upperTriangularC(degrees);
+		 printMatrix(C);
+		 System.out.println("********");
+		 int[][] C2  = upperTriangularC2(degrees,A);
+		 
 		 zeroDiagonal(A);
+		 System.out.println(entry(A,max, L, C, L2, C2, 0, 2));
+		 for(int i=0;i<size;i++) {
+			 for(int j=i+1;j<size;j++) {
+				 entry(A,max, L, C, L2, C2, i, j);
+			 }
+		 }
 		 return A;
 	 }
 	 //TODO: Grund Thesis 2.2.8
 	 public static void multiplicityVectorEquality(ArrayList<int[]> arr, ArrayList<int[]> arr2) {
 		 
 	 }
+	 
+	 public static void printMatrix(int[][] mat) {
+		for (int[] row : mat) {	 
+			System.out.println(Arrays.toString(row)); 
+	    } 
+	 }
+	 
 	 public static void main(String[] args) throws CloneNotSupportedException, CDKException, IOException {   
 		 
 	     ArrayList<Permutation> R= new ArrayList<Permutation>();
@@ -2975,11 +2999,13 @@ public class PermutationGroupFunctions {
 	     
 	     PermutationGroup s4s4=generateGroup(gen);
 	     ArrayList<Integer> n= new ArrayList<Integer>();
+	     n.add(4);
+	     n.add(4);
+	     n.add(2);
 	     n.add(1);
 	     n.add(1);
-	     n.add(1);
-	     n.add(2);	     
-	 }
-	 
-	 
+	     
+	     int[][] mat=canonicalMatrix(n);
+	     printMatrix(mat);
+	 }	 
 }
