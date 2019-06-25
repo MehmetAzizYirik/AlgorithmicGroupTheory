@@ -2920,8 +2920,20 @@ public class PermutationGroupFunctions {
 		 }
 	 }
 	 
-	 // Algorithm 3.2.3
+	 //Filling the adjacency matrices. The criterias are given in 3.2.1.
+	 public static int entry(int[][] max, int[][] L, int[][] C, int[][]L2, int[][]C2, int i, int j) {
+		 int number=0;
+		 int minimal= Math.min(max[i][j],Math.min(L[i][j],C[i][j]));
+		 for(int k=minimal;k>=minimal;k--) {
+			 if((L2[i][j]-k<=L[i][j]) && (C2[i][j]-k<=C[i][j])) {
+				 number+=k;
+				 break;
+			 }
+		 }
+		 return number;
+	 }
 	 
+	 // Algorithm 3.2.3
 	 public static int[][] canonicalMatrix(ArrayList<Integer> degrees){
 		 int size= degrees.size();
 		 int[][] max= maximalMatrix(degrees);
