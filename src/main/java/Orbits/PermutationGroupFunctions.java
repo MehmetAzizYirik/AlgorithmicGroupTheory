@@ -2950,58 +2950,79 @@ public class PermutationGroupFunctions {
 		 printMatrix(C);
 		 System.out.println("********");
 		 int[][] C2  = upperTriangularC2(degrees,A);
-		 
+		 ArrayList<Integer> indices= new ArrayList<Integer>();
+		 indices.add(0);
+		 indices.add(1);
 		 zeroDiagonal(A);
-		 System.out.println(entry(A,max, L, C, L2, C2, 0, 2));
-		 for(int i=0;i<size;i++) {
-			 for(int j=i+1;j<size;j++) {
-				 entry(A,max, L, C, L2, C2, i, j);
-			 }
-		 }
+		 forward(A,max,L2,C2,L,C,indices);
 		 return A;
 	 }
 	 
 	 //3.2.3. Step forward
-	 public static void forward(int[][] A, int[][]max, int[][]L2, int[][]C2, int[][]L, int[][]C, int i, int j) {
+	 public static void forward(int[][] A, int[][]max, int[][]L2, int[][]C2, int[][]L, int[][]C, ArrayList<Integer> indices) {
+		 int i=indices.get(0);
+		 int j=indices.get(1);
 		 int minimal= Math.min(max[i][j],Math.min(L2[i][j],C2[i][j]));
 		 if((L2[i][j]-minimal<=L[i][j]) && (C2[i][j]-minimal<=C[i][j])) {
 			 A[i][j]=minimal;
+			 if(i==(max.length-1) && j==(max.length)) {
+				 backward(A, max, L2, C2, L, C, indices);
+			 }else {
+				 ArrayList<Integer> modified=successor(indices,max.length);
+				 forward(A, max, L2, C2, L, C, modified);
+			 }
 		 }	 
 	 }
 	 
 	 //3.2.3 Step backward
-	 public static void backward(int[][] A, int[][]max, int[][]L2, int[][]C2, int[][]L, int[][]C, int i, int j) {
-		 predecessor(i,j, max.length);
-		 int x= A[i][j];
-		 if(x>0 && (L2[i][j]-x<=L[i][j]) && (C2[i][j]-x<=C[i][j])) {
-			 A[i][j]=x-1;
-			 successor(i,j,max.length);
-		 }
-	 }
-	 
-	 public static void successor(int i, int j, int size) {
-		 if(i!=size-1 && j!=size) {
-			 if(j==size) {
-				 i+=1;
-				 j=2;
+	 public static void backward(int[][] A, int[][]max, int[][]L2, int[][]C2, int[][]L, int[][]C, ArrayList<Integer> indices) {
+		 int i0=indices.get(0);
+		 int i1=indices.get(1);
+		 if(i0==0 && i1==1) {
+			 System.out.println("finish");
+		 }else {
+			 ArrayList<Integer> modified=predecessor(indices, max.length);
+			 i0= modified.get(0);
+			 i1= modified.get(1);
+			 int x= A[i0][i1];
+			 if(x>0 && (L2[i0][i1]-x<=L[i0][i1]) && (C2[i0][i1]-x<=C[i0][i1])) {
+				 A[i0][i1]=x-1;
+				 ArrayList<Integer> modified2=successor(modified,max.length);
+				 forward(A, max, L2, C2, L, C, modified2);
 			 }else {
-				 j++;
+				 backward(A, max, L2, C2, L, C, modified);
 			 }
 		 }
 	 }
 	 
-	 public static void predecessor(int i,int j,int size) {
-		 if(i==j-1) {
-			 j=size;
-			 i=i-1;
-		 }else {
-			 j=j-1;
+	 public static ArrayList<Integer> successor(ArrayList<Integer> indices, int size) {
+		 int i0= indices.get(0);
+		 int i1= indices.get(1);
+		 ArrayList<Integer> modified= new ArrayList<Integer>();
+		 if(i0!=size-1 && i1!=size) {
+			 if(i1==size) {
+				 modified.add(i0+1);
+				 modified.add(1);
+			 }else {
+				 modified.add(i0);
+				 modified.add(i1+1);
+			 }
 		 }
+		 return modified;
 	 }
 	 
-	 //TODO: Grund Thesis 2.2.8
-	 public static void multiplicityVectorEquality(ArrayList<int[]> arr, ArrayList<int[]> arr2) {
-		 
+	 public static ArrayList<Integer> predecessor(ArrayList<Integer> indices, int size) {
+		 int i0= indices.get(0);
+		 int i1= indices.get(1);
+		 ArrayList<Integer> modified= new ArrayList<Integer>();
+		 if(i0==i1-1) {
+			 indices.add(i0-1);
+			 indices.add(size);
+		 }else {
+			 indices.add(i0);
+			 indices.add(i1-1);
+		 }
+		 return modified;
 	 }
 	 
 	 public static void printMatrix(int[][] mat) {
@@ -3043,7 +3064,6 @@ public class PermutationGroupFunctions {
 	     n.add(2);
 	     n.add(1);
 	     n.add(1);
-	     
 	     int[][] mat=canonicalMatrix(n);
 	     printMatrix(mat);
 	 }	 
