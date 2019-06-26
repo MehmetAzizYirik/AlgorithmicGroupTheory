@@ -2960,6 +2960,45 @@ public class PermutationGroupFunctions {
 		 }
 		 return A;
 	 }
+	 
+	 //3.2.3. Step forward
+	 public static void forward(int[][] A, int[][]max, int[][]L2, int[][]C2, int[][]L, int[][]C, int i, int j) {
+		 int minimal= Math.min(max[i][j],Math.min(L2[i][j],C2[i][j]));
+		 if((L2[i][j]-minimal<=L[i][j]) && (C2[i][j]-minimal<=C[i][j])) {
+			 A[i][j]=minimal;
+		 }	 
+	 }
+	 
+	 //3.2.3 Step backward
+	 public static void backward(int[][] A, int[][]max, int[][]L2, int[][]C2, int[][]L, int[][]C, int i, int j) {
+		 predecessor(i,j, max.length);
+		 int x= A[i][j];
+		 if(x>0 && (L2[i][j]-x<=L[i][j]) && (C2[i][j]-x<=C[i][j])) {
+			 A[i][j]=x-1;
+			 successor(i,j,max.length);
+		 }
+	 }
+	 
+	 public static void successor(int i, int j, int size) {
+		 if(i!=size-1 && j!=size) {
+			 if(j==size) {
+				 i+=1;
+				 j=2;
+			 }else {
+				 j++;
+			 }
+		 }
+	 }
+	 
+	 public static void predecessor(int i,int j,int size) {
+		 if(i==j-1) {
+			 j=size;
+			 i=i-1;
+		 }else {
+			 j=j-1;
+		 }
+	 }
+	 
 	 //TODO: Grund Thesis 2.2.8
 	 public static void multiplicityVectorEquality(ArrayList<int[]> arr, ArrayList<int[]> arr2) {
 		 
