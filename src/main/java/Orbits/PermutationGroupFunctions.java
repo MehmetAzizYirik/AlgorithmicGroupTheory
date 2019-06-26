@@ -2964,14 +2964,19 @@ public class PermutationGroupFunctions {
 		 int j=indices.get(1);
 		 int minimal= Math.min(max[i][j],Math.min(L2[i][j],C2[i][j]));
 		 if((L2[i][j]-minimal<=L[i][j]) && (C2[i][j]-minimal<=C[i][j])) {
-			 A[i][j]=minimal;
-			 if(i==(max.length-1) && j==(max.length)) {
+			 System.out.println(minimal);
+			 A[i][j]=A[j][i]=minimal;
+			 printMatrix(A);
+			 System.out.println("--------");
+			 if(i==(max.length-2) && j==(max.length-1)) {
 				 backward(A, max, L2, C2, L, C, indices);
 			 }else {
 				 ArrayList<Integer> modified=successor(indices,max.length);
 				 forward(A, max, L2, C2, L, C, modified);
 			 }
-		 }	 
+		 }else {
+			 backward(A, max, L2, C2, L, C, indices);
+		 }
 	 }
 	 
 	 //3.2.3 Step backward
@@ -2985,8 +2990,11 @@ public class PermutationGroupFunctions {
 			 i0= modified.get(0);
 			 i1= modified.get(1);
 			 int x= A[i0][i1];
-			 if(x>0 && (L2[i0][i1]-x<=L[i0][i1]) && (C2[i0][i1]-x<=C[i0][i1])) {
-				 A[i0][i1]=x-1;
+			 if(x>0 && (L2[i0][i1]-(x-1)<=L[i0][i1]) && (C2[i0][i1]-(x-1)<=C[i0][i1])) {
+				 System.out.println(x-1);
+				 A[i0][i1]=A[i1][i0]=x-1;
+				 printMatrix(A);
+				 System.out.println("-----");
 				 ArrayList<Integer> modified2=successor(modified,max.length);
 				 forward(A, max, L2, C2, L, C, modified2);
 			 }else {
@@ -2999,7 +3007,7 @@ public class PermutationGroupFunctions {
 		 int i0= indices.get(0);
 		 int i1= indices.get(1);
 		 ArrayList<Integer> modified= new ArrayList<Integer>();
-		 if(i0!=size-1 && i1!=size) {
+		 if(i0!=size-1 && i1!=size-1) {
 			 if(i1==size) {
 				 modified.add(i0+1);
 				 modified.add(1);
@@ -3016,11 +3024,11 @@ public class PermutationGroupFunctions {
 		 int i1= indices.get(1);
 		 ArrayList<Integer> modified= new ArrayList<Integer>();
 		 if(i0==i1-1) {
-			 indices.add(i0-1);
-			 indices.add(size);
+			 modified.add(i0-1);
+			 modified.add(size-1);
 		 }else {
-			 indices.add(i0);
-			 indices.add(i1-1);
+			 modified.add(i0);
+			 modified.add(i1-1);
 		 }
 		 return modified;
 	 }
