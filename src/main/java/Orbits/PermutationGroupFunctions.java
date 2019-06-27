@@ -2946,10 +2946,14 @@ public class PermutationGroupFunctions {
 		 printMatrix(L);
 		 System.out.println("********");
 		 int[][] L2  = upperTriangularL2(degrees,A);
+		 printMatrix(L2);
+		 System.out.println("********");
 		 int[][] C   = upperTriangularC(degrees);
 		 printMatrix(C);
 		 System.out.println("********");
 		 int[][] C2  = upperTriangularC2(degrees,A);
+		 printMatrix(C2);
+		 System.out.println("********");
 		 ArrayList<Integer> indices= new ArrayList<Integer>();
 		 indices.add(0);
 		 indices.add(1);
