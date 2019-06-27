@@ -2910,6 +2910,24 @@ public class PermutationGroupFunctions {
 		 }
 		 return C;
 	 }
+	 //Page 35 l inverse and c inverse formulas.
+	 public static int LInverse(ArrayList<Integer> degrees, int i, int j, int[][]A) {
+		 int sum=0;
+		 for(int s=0;s<j;s++) {
+			 sum=sum+A[i][s];
+		 }
+		 return degrees.get(i)-sum;
+	 }
+	 
+	 public static int CInverse(ArrayList<Integer> degrees, int i, int j, int[][]A) {
+		 int sum=0;
+		 for(int s=0;s<i;s++) {
+			 sum=sum+A[s][j];
+		 }
+		 return degrees.get(j)-sum;
+	 }
+	 
+	 
 	 //Set diagonal to zeros.
 	 public static void zeroDiagonal(int[][] mat) {
 		 for(int i=0; i<mat.length;i++) {
@@ -2958,51 +2976,56 @@ public class PermutationGroupFunctions {
 		 indices.add(0);
 		 indices.add(1);
 		 zeroDiagonal(A);
-		 forward(A,max,L2,C2,L,C,indices);
+		 forward(degrees,A,max,L,C,indices);
 		 return A;
 	 }
 	 
 	 //3.2.3. Step forward
-	 public static void forward(int[][] A, int[][]max, int[][]L2, int[][]C2, int[][]L, int[][]C, ArrayList<Integer> indices) {
+	 public static void forward(ArrayList<Integer> degrees,int[][] A, int[][]max, int[][]L, int[][]C, ArrayList<Integer> indices) {
 		 int i=indices.get(0);
 		 int j=indices.get(1);
-		 int minimal= Math.min(max[i][j],Math.min(L2[i][j],C2[i][j]));
-		 if((L2[i][j]-minimal<=L[i][j]) && (C2[i][j]-minimal<=C[i][j])) {
+		 int l2= LInverse(degrees,i,j,A);
+		 int c2= CInverse(degrees,i,j,A);
+ 		 int minimal= Math.min(max[i][j],Math.min(l2,c2));
+		 if((l2-minimal<=L[i][j]) && (c2-minimal<=C[i][j])) {
 			 System.out.println(minimal);
 			 A[i][j]=A[j][i]=minimal;
 			 printMatrix(A);
 			 System.out.println("--------");
 			 if(i==(max.length-2) && j==(max.length-1)) {
-				 backward(A, max, L2, C2, L, C, indices);
+				 backward(degrees,A, max,L, C, indices);
 			 }else {
 				 ArrayList<Integer> modified=successor(indices,max.length);
-				 forward(A, max, L2, C2, L, C, modified);
+				 System.out.println(modified);
+				 forward(degrees,A, max, L, C, modified);
 			 }
 		 }else {
-			 backward(A, max, L2, C2, L, C, indices);
+			 backward(degrees,A, max, L, C, indices);
 		 }
 	 }
 	 
 	 //3.2.3 Step backward
-	 public static void backward(int[][] A, int[][]max, int[][]L2, int[][]C2, int[][]L, int[][]C, ArrayList<Integer> indices) {
-		 int i0=indices.get(0);
-		 int i1=indices.get(1);
-		 if(i0==0 && i1==1) {
+	 public static void backward(ArrayList<Integer> degrees,int[][] A, int[][]max, int[][]L, int[][]C, ArrayList<Integer> indices) {
+		 int i=indices.get(0);
+		 int j=indices.get(1);
+		 int l2= LInverse(degrees,i,j,A);
+		 int c2= CInverse(degrees,i,j,A);
+		 if(i==0 && j==1) {
 			 System.out.println("finish");
 		 }else {
 			 ArrayList<Integer> modified=predecessor(indices, max.length);
-			 i0= modified.get(0);
-			 i1= modified.get(1);
-			 int x= A[i0][i1];
-			 if(x>0 && (L2[i0][i1]-(x-1)<=L[i0][i1]) && (C2[i0][i1]-(x-1)<=C[i0][i1])) {
+			 i= modified.get(0);
+			 j= modified.get(1);
+			 int x= A[i][j];
+			 if(x>0 && (l2-(x-1)<=L[i][j]) && (c2-(x-1)<=C[i][j])) {
 				 System.out.println(x-1);
-				 A[i0][i1]=A[i1][i0]=x-1;
+				 A[i][j]=A[i][j]=x-1;
 				 printMatrix(A);
 				 System.out.println("-----");
 				 ArrayList<Integer> modified2=successor(modified,max.length);
-				 forward(A, max, L2, C2, L, C, modified2);
+				 forward(degrees,A, max, L, C, modified2);
 			 }else {
-				 backward(A, max, L2, C2, L, C, modified);
+				 backward(degrees, A, max, L, C, modified);
 			 }
 		 }
 	 }
@@ -3011,15 +3034,15 @@ public class PermutationGroupFunctions {
 		 int i0= indices.get(0);
 		 int i1= indices.get(1);
 		 ArrayList<Integer> modified= new ArrayList<Integer>();
-		 if(i0!=size-1 && i1!=size-1) {
-			 if(i1==size) {
+		 //if(i0!=size-1 && i1!=size-1) {
+			 if(i1==size-1) {
 				 modified.add(i0+1);
-				 modified.add(1);
-			 }else {
+				 modified.add(i0+2);
+			 }else if(i1<size-1) {
 				 modified.add(i0);
 				 modified.add(i1+1);
 			 }
-		 }
+		 //}
 		 return modified;
 	 }
 	 
