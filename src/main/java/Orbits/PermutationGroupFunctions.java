@@ -2958,20 +2958,10 @@ public class PermutationGroupFunctions {
 		 int size    = degrees.size();
 		 int[][] A   = new int[size][size];
 		 int[][] max = maximalMatrix(degrees);
-		 printMatrix(max);
-		 System.out.println("********");
 		 int[][] L   = upperTriangularL(degrees);
-		 printMatrix(L);
-		 System.out.println("********");
 		 int[][] L2  = upperTriangularL2(degrees,A);
-		 printMatrix(L2);
-		 System.out.println("********");
 		 int[][] C   = upperTriangularC(degrees);
-		 printMatrix(C);
-		 System.out.println("********");
 		 int[][] C2  = upperTriangularC2(degrees,A);
-		 printMatrix(C2);
-		 System.out.println("********");
 		 ArrayList<Integer> indices= new ArrayList<Integer>();
 		 indices.add(0);
 		 indices.add(1);
@@ -2988,15 +2978,11 @@ public class PermutationGroupFunctions {
 		 int c2= CInverse(degrees,i,j,A);
  		 int minimal= Math.min(max[i][j],Math.min(l2,c2));
 		 if((l2-minimal<=L[i][j]) && (c2-minimal<=C[i][j])) {
-			 System.out.println(minimal);
 			 A[i][j]=A[j][i]=minimal;
-			 printMatrix(A);
-			 System.out.println("--------");
 			 if(i==(max.length-2) && j==(max.length-1)) {
 				 backward(degrees,A, max,L, C, indices);
 			 }else {
 				 ArrayList<Integer> modified=successor(indices,max.length);
-				 System.out.println(modified);
 				 forward(degrees,A, max, L, C, modified);
 			 }
 		 }else {
@@ -3012,16 +2998,14 @@ public class PermutationGroupFunctions {
 		 int c2= CInverse(degrees,i,j,A);
 		 if(i==0 && j==1) {
 			 System.out.println("finish");
+			 printMatrix(A);
 		 }else {
 			 ArrayList<Integer> modified=predecessor(indices, max.length);
 			 i= modified.get(0);
 			 j= modified.get(1);
 			 int x= A[i][j];
 			 if(x>0 && (l2-(x-1)<=L[i][j]) && (c2-(x-1)<=C[i][j])) {
-				 System.out.println(x-1);
-				 A[i][j]=A[i][j]=x-1;
-				 printMatrix(A);
-				 System.out.println("-----");
+				 A[i][j]=A[j][i]=x-1;
 				 ArrayList<Integer> modified2=successor(modified,max.length);
 				 forward(degrees,A, max, L, C, modified2);
 			 }else {
@@ -3034,7 +3018,7 @@ public class PermutationGroupFunctions {
 		 int i0= indices.get(0);
 		 int i1= indices.get(1);
 		 ArrayList<Integer> modified= new ArrayList<Integer>();
-		 //if(i0!=size-1 && i1!=size-1) {
+		 //if(i0!=size-2 && i1!=size-1) {
 			 if(i1==size-1) {
 				 modified.add(i0+1);
 				 modified.add(i0+2);
@@ -3100,6 +3084,6 @@ public class PermutationGroupFunctions {
 	     n.add(1);
 	     n.add(1);
 	     int[][] mat=canonicalMatrix(n);
-	     printMatrix(mat);
+	     
 	 }	 
 }
