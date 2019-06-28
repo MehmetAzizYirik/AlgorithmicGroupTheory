@@ -2977,18 +2977,20 @@ public class PermutationGroupFunctions {
 		 int l2= LInverse(degrees,i,j,A);
 		 int c2= CInverse(degrees,i,j,A);
  		 int minimal= Math.min(max[i][j],Math.min(l2,c2));
-		 if((l2-minimal<=L[i][j]) && (c2-minimal<=C[i][j])) {
-			 A[i][j]=A[j][i]=minimal;
-			 System.out.println("forward"+" "+i+" "+j+" "+A[i][j]);
-			 if(i==(max.length-2) && j==(max.length-1)) {
-				 backward(degrees,A, max,L, C, indices);
-			 }else {
-				 ArrayList<Integer> modified=successor(indices,max.length);
-				 forward(degrees,A, max, L, C, modified);
-			 }
-		 }else {
-			 backward(degrees,A, max, L, C, indices);
-		 }
+ 		 for(int h=minimal;h>=0;h--) {
+ 			if((l2-h<=L[i][j]) && (c2-h<=C[i][j])) {
+ 				 A[i][j]=A[j][i]=h;
+ 				 System.out.println("forward"+" "+i+" "+j+" "+A[i][j]);
+ 				 if(i==(max.length-2) && j==(max.length-1)) {
+ 					 backward(degrees,A, max,L, C, indices);
+ 				 }else {
+ 					 ArrayList<Integer> modified=successor(indices,max.length);
+ 					 forward(degrees,A, max, L, C, modified);
+ 				 }
+ 			 }else {
+ 				 backward(degrees,A, max, L, C, indices);
+ 			 }
+ 		 }
 	 }
 	 
 	 //3.2.3 Step backward
