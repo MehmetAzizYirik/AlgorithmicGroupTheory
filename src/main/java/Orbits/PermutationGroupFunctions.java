@@ -2979,6 +2979,7 @@ public class PermutationGroupFunctions {
  		 int minimal= Math.min(max[i][j],Math.min(l2,c2));
 		 if((l2-minimal<=L[i][j]) && (c2-minimal<=C[i][j])) {
 			 A[i][j]=A[j][i]=minimal;
+			 System.out.println("forward"+" "+i+" "+j+" "+A[i][j]);
 			 if(i==(max.length-2) && j==(max.length-1)) {
 				 backward(degrees,A, max,L, C, indices);
 			 }else {
@@ -2996,9 +2997,10 @@ public class PermutationGroupFunctions {
 		 int j=indices.get(1);
 		 int l2= LInverse(degrees,i,j,A);
 		 int c2= CInverse(degrees,i,j,A);
-		 if(i==0 && j==1) {
+		 if(i==size-1 && j==size) {
 			 System.out.println("finish");
 			 printMatrix(A);
+			 System.out.println("finish");
 		 }else {
 			 ArrayList<Integer> modified=predecessor(indices, max.length);
 			 i= modified.get(0);
@@ -3006,6 +3008,7 @@ public class PermutationGroupFunctions {
 			 int x= A[i][j];
 			 if(x>0 && (l2-(x-1)<=L[i][j]) && (c2-(x-1)<=C[i][j])) {
 				 A[i][j]=A[j][i]=x-1;
+				 System.out.println("back"+" "+i+" "+j+" "+A[i][j]);
 				 ArrayList<Integer> modified2=successor(modified,max.length);
 				 forward(degrees,A, max, L, C, modified2);
 			 }else {
