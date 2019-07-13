@@ -37,6 +37,8 @@
 
 package Orbits;
 
+import java.io.BufferedWriter;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -50,6 +52,13 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.IntStream;
 
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.ParseException;
+import org.apache.commons.cli.CommandLineParser;
+import org.apache.commons.cli.DefaultParser;
+import org.apache.commons.cli.HelpFormatter;
+import org.apache.commons.cli.Option;
+import org.apache.commons.cli.Options;
 import org.openscience.cdk.DefaultChemObjectBuilder;
 import org.openscience.cdk.depict.DepictionGenerator;
 import org.openscience.cdk.exception.CDKException;
@@ -63,6 +72,7 @@ import org.openscience.cdk.interfaces.IAtomContainer;
 import org.openscience.cdk.interfaces.IBond;
 import org.openscience.cdk.interfaces.IBond.Order;
 import org.openscience.cdk.interfaces.IChemObjectBuilder;
+import org.openscience.cdk.silent.AtomContainer;
 import org.openscience.cdk.silent.SilentChemObjectBuilder;
 import org.openscience.cdk.smiles.SmilesParser;
 import org.openscience.cdk.tools.SaturationChecker;
@@ -78,6 +88,10 @@ public class PermutationGroupFunctions {
 	public static int order=(int)group.order();
 	public static int size=4;
 	public static Map<String, Integer> valences; 
+	public static boolean verbose = false;
+	static String filedir = null;
+	static String molecularFormula= null;
+	static BufferedWriter fileWriter;
 	static {
 		//The atom valences from CDK.
 		valences = new HashMap<String, Integer>();
@@ -319,8 +333,12 @@ public class PermutationGroupFunctions {
 	    }
 	};
 	
+	public static Comparator<String> DES_STRING_ORDER= new Comparator<String>() {
+		public int compare(String o1, String o2) {
+	        return -Integer.valueOf(valences.get(o1)).compareTo(Integer.valueOf(valences.get(o2)));
+	    }
+	};
 	
-		
 	public static int[] addElement(int[] a, int e) {
         a  = Arrays.copyOf(a, a.length + 1);
         a[a.length - 1] = e;
@@ -2954,7 +2972,7 @@ public class PermutationGroupFunctions {
 	 }
 	 
 	 // Algorithm 3.2.3
-	 public static int[][] canonicalMatrix(ArrayList<Integer> degrees){
+	 public static void canonicalMatrix(ArrayList<Integer> degrees) throws IOException{
 		 int size    = degrees.size();
 		 int[][] A   = new int[size][size];
 		 int[][] max = maximalMatrix(degrees);
@@ -2967,11 +2985,10 @@ public class PermutationGroupFunctions {
 		 indices.add(1);
 		 zeroDiagonal(A);
 		 forward(degrees,A,max,L,C,indices);
-		 return A;
 	 }
 	 
 	 //3.2.3. Step forward
-	 public static void forward(ArrayList<Integer> degrees,int[][] A, int[][]max, int[][]L, int[][]C, ArrayList<Integer> indices) {
+	 public static void forward(ArrayList<Integer> degrees,int[][] A, int[][]max, int[][]L, int[][]C, ArrayList<Integer> indices) throws IOException {
 		 int i=indices.get(0);
 		 int j=indices.get(1);
 		 int l2= LInverse(degrees,i,j,A);
@@ -2980,7 +2997,8 @@ public class PermutationGroupFunctions {
  		 for(int h=minimal;h>=0;h--) {
  			if((l2-h<=L[i][j]) && (c2-h<=C[i][j])) {
  				 A[i][j]=A[j][i]=h;
- 				 System.out.println("forward"+" "+i+" "+j+" "+A[i][j]);
+ 				 //System.out.println(h);
+ 				 //System.out.println("forward"+" "+i+" "+j+" "+A[i][j]);
  				 if(i==(max.length-2) && j==(max.length-1)) {
  					 backward(degrees,A, max,L, C, indices);
  				 }else {
@@ -2993,28 +3011,30 @@ public class PermutationGroupFunctions {
  		 }
 	 }
 	 
+	 public static int count=0;
 	 //3.2.3 Step backward
-	 public static void backward(ArrayList<Integer> degrees,int[][] A, int[][]max, int[][]L, int[][]C, ArrayList<Integer> indices) {
+	 public static void backward(ArrayList<Integer> degrees,int[][] A, int[][]max, int[][]L, int[][]C, ArrayList<Integer> indices) throws IOException {
 		 int i=indices.get(0);
 		 int j=indices.get(1);
 		 int l2= LInverse(degrees,i,j,A);
 		 int c2= CInverse(degrees,i,j,A);
-		 if(i==size-1 && j==size) {
-			 System.out.println("finish");
-			 printMatrix(A);
-			 System.out.println("finish");
-		 }else {
+		 if(i==max.length-2 && j==max.length-1) {
+			 count++;
+			 writeMatrix(A);
+		 }else{
 			 ArrayList<Integer> modified=predecessor(indices, max.length);
 			 i= modified.get(0);
 			 j= modified.get(1);
-			 int x= A[i][j];
-			 if(x>0 && (l2-(x-1)<=L[i][j]) && (c2-(x-1)<=C[i][j])) {
-				 A[i][j]=A[j][i]=x-1;
-				 System.out.println("back"+" "+i+" "+j+" "+A[i][j]);
-				 ArrayList<Integer> modified2=successor(modified,max.length);
-				 forward(degrees,A, max, L, C, modified2);
-			 }else {
-				 backward(degrees, A, max, L, C, modified);
+			 if(i>0 && j-i==1) {
+				 int x= A[i][j];
+				 if(x>0 && (l2-(x-1)<=L[i][j]) && (c2-(x-1)<=C[i][j])) {
+					 A[i][j]=A[j][i]=x-1;
+					 //System.out.println("back"+" "+i+" "+j+" "+A[i][j]);
+					 ArrayList<Integer> modified2=successor(modified,max.length);
+					 forward(degrees,A, max, L, C, modified2);
+				 }else {
+					 backward(degrees, A, max, L, C, modified);
+				 }
 			 }
 		 }
 	 }
@@ -3055,40 +3075,114 @@ public class PermutationGroupFunctions {
 	    } 
 	 }
 	 
+	 public static void writeMatrix(int[][] mat) throws IOException {
+		 fileWriter.write(String.format("Adjacency matrix - %d", count));
+		 fileWriter.newLine();
+		 for (int i = 0; i < mat.length; i++) {
+			 for (int j = 0; j < mat[i].length; j++) {
+				 fileWriter.write(mat[i][j] + ((j == mat[i].length-1) ? "" : ","));
+			 }
+			 fileWriter.newLine();
+		 }
+		 fileWriter.write("----------");
+		 fileWriter.newLine();
+		 fileWriter.flush();
+	 }
+	 
+	 public static ArrayList<String> atomList(String molecularFormula) {
+		 ArrayList<String> symbols= new ArrayList<String>();
+		 String[] atoms = molecularFormula.split("(?=[A-Z])");
+	     for (int i=0;i<atoms.length;i++) {
+	    	 String[] info = atoms[i].split("(?=[0-9])", 2);
+	         for(int k=0;k<(info.length > 1 ? Integer.parseInt(info[1]):1);k++) {
+	        	 symbols.add(info[0]);
+	         }
+	     }
+	     symbols.sort(DES_STRING_ORDER);
+	     return symbols;
+	 }
+	 
+	 
+	 public static ArrayList<Integer> degrees(ArrayList<String> atomList) {
+		 ArrayList<Integer> degrees= new ArrayList<Integer>();
+		 for(String atom: atomList) {
+			 degrees.add(valences.get(atom));
+		 }
+	     return degrees;
+	 }
+	 
+	 public static void generate (String molecularFormula, String filedir) throws IOException {
+		 ArrayList<Integer> degrees= degrees(atomList(PermutationGroupFunctions.molecularFormula));
+		 if(verbose) System.out.println("Generating adjacency matrices for"+" "+PermutationGroupFunctions.molecularFormula+" "+"...");
+		 canonicalMatrix(degrees);
+		 if(verbose) System.out.println(count+" "+"adjacency matrices were generated and written to the given file.");
+	 }
+	 
+	 public static void setFileWriter() throws IOException {
+		 PermutationGroupFunctions.fileWriter = new BufferedWriter(new FileWriter(filedir));
+	 }
+	 
+	 //TODO: Adjacency matrix to atomcontainer.
+	 private void parseArgs(String[] args) throws ParseException, IOException{
+		 Options options = setupOptions(args);	
+		 CommandLineParser parser = new DefaultParser();
+		 try {
+			 CommandLine cmd = parser.parse(options, args);
+			 PermutationGroupFunctions.molecularFormula = cmd.getOptionValue("molecularFormula");
+			 PermutationGroupFunctions.filedir = cmd.getOptionValue("filedir");
+			 setFileWriter();
+			 if (cmd.hasOption("verbose")) PermutationGroupFunctions.verbose = true;
+		  } catch (ParseException e) {
+			  // TODO Auto-generated catch block
+			  HelpFormatter formatter = new HelpFormatter();
+			  formatter.setOptionComparator(null);
+			  String header = "\nGenerates structures for a given molecular information."
+						+ " The input is the string of atom symbols with their number of implicit hydrogen."
+						+ "For example 'C3C3C3' means three carbon atoms each of which has three implicit hydrogens."
+						+ "Besides this molecular information, the directory is needed to be specified for the output"
+						+ "file. \n\n";
+			  String footer = "\nPlease report issues at https://github.com/MehmetAzizYirik/HMD";
+			  formatter.printHelp( "java -jar AlgorithmicGroupfunctions.jar", header, options, footer, true );
+			  throw new ParseException("Problem parsing command line");
+		   }
+		}
+		
+		private Options setupOptions(String[] args){
+			Options options = new Options();
+			Option molecularFormula = Option.builder("f")
+				     .required(true)
+				     .hasArg()
+				     .longOpt("molecularFormula")
+				     .desc("Molecular formula as a string (required)")
+				     .build();
+			options.addOption(molecularFormula);
+			Option verbose = Option.builder("v")
+				     .required(false)
+				     .longOpt("verbose")
+				     .desc("Print messages about matrix generation")
+				     .build();
+			options.addOption(verbose);	
+			Option filedir = Option.builder("d")
+				     .required(false)
+				     .hasArg()
+				     .longOpt("filedir")
+				     .desc("Creates and store the output txt file in the directory (required)")
+				     .build();
+			options.addOption(filedir);
+			return options;
+	 }
+		
 	 public static void main(String[] args) throws CloneNotSupportedException, CDKException, IOException {   
-		 
-	     ArrayList<Permutation> R= new ArrayList<Permutation>();
-	     Permutation perm1 = new Permutation(3,2,1,0,7,6,5,4);
-	     Permutation perm2 = new Permutation(0,1,2,3,4,5,6,7);
-	     Permutation perm3 = new Permutation(4,5,6,7,0,1,2,3);
-	     Permutation perm4 = new Permutation(7,6,5,4,3,2,1,0);
-	     R.add(perm1);
-	     R.add(perm2);
-	     R.add(perm3);
-	     R.add(perm4);
-	     
-	     PermutationGroup s8= PermutationGroup.makeSymN(8);
-	     
-	     ArrayList<Permutation> gen= new ArrayList<Permutation>();
-	     
-	     Permutation gen1= new Permutation(1,2,3,0,4,5,6,7);
-	     Permutation gen2= new Permutation(1,0,2,3,4,5,6,7);
-	     Permutation gen3= new Permutation(0,1,2,3,5,6,7,4);
-	     Permutation gen4= new Permutation(0,1,2,3,5,4,6,7);
-	     gen.add(gen1);
-	     gen.add(gen2);
-	     gen.add(gen3);
-	     gen.add(gen4);
-	     
-	     
-	     PermutationGroup s4s4=generateGroup(gen);
-	     ArrayList<Integer> n= new ArrayList<Integer>();
-	     n.add(4);
-	     n.add(4);
-	     n.add(2);
-	     n.add(1);
-	     n.add(1);
-	     int[][] mat=canonicalMatrix(n);
-	     
-	 }	 
+		 // TODO Auto-generated method stub		 
+		 PermutationGroupFunctions gen = null;
+		 //String[] args1= {"-f","C2H2O", "-v","-d", "C:\\Users\\mehme\\Desktop\\output.txt"};
+		 try {
+			 gen = new PermutationGroupFunctions();
+			 gen.parseArgs(args);
+			 PermutationGroupFunctions.generate(PermutationGroupFunctions.molecularFormula, PermutationGroupFunctions.filedir);
+		 } catch (Exception e) {
+		 // We don't do anything here. Apache CLI will print a usage text.
+			 if (PermutationGroupFunctions.verbose) e.getCause(); 
+		 }
+	 }
 }
