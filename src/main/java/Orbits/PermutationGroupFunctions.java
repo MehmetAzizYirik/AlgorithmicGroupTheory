@@ -3172,13 +3172,13 @@ public class PermutationGroupFunctions {
 			return options;
 	 }
 		
-	 public static void main(String[] argss) throws CloneNotSupportedException, CDKException, IOException {   
+	 public static void main(String[] args) throws CloneNotSupportedException, CDKException, IOException {   
 		 // TODO Auto-generated method stub		 
 		 PermutationGroupFunctions gen = null;
 		 //String[] args1= {"-f","C2H2O", "-v","-d", "C:\\Users\\mehme\\Desktop\\output.txt"};
 		 try {
 			 gen = new PermutationGroupFunctions();
-			 gen.parseArgs(argss);
+			 gen.parseArgs(args);
 			 PermutationGroupFunctions.generate(PermutationGroupFunctions.molecularFormula, PermutationGroupFunctions.filedir);
 		 } catch (Exception e) {
 		 // We don't do anything here. Apache CLI will print a usage text.
