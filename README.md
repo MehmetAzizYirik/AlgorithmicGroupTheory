@@ -40,18 +40,16 @@ The definitions of the arguments are given below:
 ```
 usage: java -jar AlgorithmicGroupTheory.jar -i <arg> [-v] -d <arg>
 
-Generates structures for a given molecular information. The input is the
-string of atom symbols with their number of implicit hydrogen.For example
-'C3C3C3' means three carbon atoms each of which has three implicit
-hydrogens.Besides this molecular information, the directory is needed to
-be specified for the outputfile.
+Generates adjacency matrices for a given molecular formula. The input is 
+a molecular formula string. For example 'C2H2O'. Besides this formula, the
+directory is needed to be specified for the output file.
 
- -i,--molecularinfo <arg>   String of atoms with their implicit hydrogen
-                            information (required)
- -v,--verbose               Print messages about the duration time of the
-                            generator
- -d,--filedir <arg>         Creates and store the output sdf file in the
-                            directory (required)
+ -f,--molecularFormula <arg>   Molecular formula as a string (required)
+ 
+ -v,--verbose                  Print messages about matrix generation
+ 
+ -d,--filedir <arg>            Creates and store the output txt file 
+                               in the directory (required)
 
 Please report issues at https://github.com/MehmetAzizYirik/AlgorithmicGroupTheory
 ```
