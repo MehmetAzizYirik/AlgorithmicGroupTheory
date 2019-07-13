@@ -1,6 +1,6 @@
 # AlgorithmicGroupTheory
 
-Copyright 2018 Mehmet Aziz Yirik
+Copyright 2019 Mehmet Aziz Yirik
 
 ## Introduction
 
