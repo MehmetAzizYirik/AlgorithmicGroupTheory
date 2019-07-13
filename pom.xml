@@ -162,7 +162,7 @@
           				<mainClass>Orbits/PermutationGroupFunctions</mainClass>
         			</manifest>
       			</archive>
-        		<finalName>PermutationGroupFunctions</finalName>   
+        		<finalName>AlgorithmicGroupTheory</finalName>   
         		<descriptorRefs>
         			<descriptorRef>jar-with-dependencies</descriptorRef>
       			</descriptorRefs>               

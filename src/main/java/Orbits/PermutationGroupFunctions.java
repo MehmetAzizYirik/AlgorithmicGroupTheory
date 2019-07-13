@@ -3122,13 +3122,13 @@ public class PermutationGroupFunctions {
 			  // TODO Auto-generated catch block
 			  HelpFormatter formatter = new HelpFormatter();
 			  formatter.setOptionComparator(null);
-			  String header = "\nGenerates structures for a given molecular information."
-						+ " The input is the string of atom symbols with their number of implicit hydrogen."
-						+ "For example 'C3C3C3' means three carbon atoms each of which has three implicit hydrogens."
-						+ "Besides this molecular information, the directory is needed to be specified for the output"
+			  String header = "\nGenerates adjacency matrices for a given molecular formula."
+						+ " The input is a molecular formula string."
+						+ "For example 'C2H2O'."
+						+ "Besides this formula, the directory is needed to be specified for the output"
 						+ "file. \n\n";
-			  String footer = "\nPlease report issues at https://github.com/MehmetAzizYirik/HMD";
-			  formatter.printHelp( "java -jar AlgorithmicGroupfunctions.jar", header, options, footer, true );
+			  String footer = "\nPlease report issues at https://github.com/MehmetAzizYirik/AlgorithmicGroupTheory";
+			  formatter.printHelp( "java -jar AlgorithmicGroupTheory.jar", header, options, footer, true );
 			  throw new ParseException("Problem parsing command line");
 		   }
 		}
