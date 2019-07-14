@@ -2864,6 +2864,115 @@ public class PermutationGroupFunctions {
 		 return L;
 	 }
 	 
+	 /**
+	  * 3.2.7. Multiplicity matrix
+	  * @param A  adjacency matrix
+	  * @return
+	  */
+	 
+	 public static int[][] multiplicityMat(int[][] A, int m){
+		 int size = A.length; 
+		 int[][] mult= new int[size][m];
+		 for(int i=0;i<size;i++) {
+			 for(int j=0;j<m;j++) {
+				 mult[i][j]= countMult(A,i,j);
+			 }
+		 }
+		 return mult;
+	 }
+	 
+	 public static int countMult(int[][] A, int i, int j) {
+		 int count=0;
+		 int size= A.length;
+		 for(int k=0;k<size;k++) {
+			 if(A[i][k]==j) {
+				 count++;
+			 }
+		 }
+		 return count;
+	 }
+	 
+	 
+	 /**
+	  * 3.2.7 E matrix
+	  * @param A adjacency matrix
+	  * @param m maximal multiplicity
+	  * @return e matrix as described in 3.2.7
+	  */
+	 public static ArrayList[][] eMatrix(int[][] A, int m){
+		 int size= A.length;
+		 int[][] mult=multiplicityMat(A,m);
+		 ArrayList[][] eMatrix=TwoDimArrayList(size);
+		 for(int i=0;i<size;i++) {
+			 for(int j=i;j<size;j++) {
+				 for(int k=0;k<m;k++) {
+					 eMatrix[i][j].add(eMatrixEntry(A,m,i,j,k));
+				 }
+			 }
+		 }
+		 return eMatrix;
+		 
+	 }
+	 
+	 /**
+	  * 3.2.7. E matrix entry
+	  */
+	 
+	 public static int eMatrixEntry(int[][] A, int m,int i, int j, int k) {
+		 int size= A.length;
+		 int[][] mult=multiplicityMat(A,m);
+		 if(mult[i][k]>0 && mult[j][k]>0) {
+			 return 1;
+		 }else {
+			 return 0;
+		 }
+	 }
+	 
+	 
+	 /** 
+	  * Initialize 2D ArrayList.
+	  */
+	 
+	 public static ArrayList[][] TwoDimArrayList(int size){
+		 ArrayList[][] e= new ArrayList[size][size];
+		 for(int i=0;i<size;i++) {
+			 for(int j=0;j<size;j++) {
+				 e[i][j]=new ArrayList<Integer>();
+			 }
+		 }
+		 return e;
+	 }
+	 
+	 /**
+	  * Print 2D ArrayList
+	  */
+	 
+	 public static void print2DArrayList(ArrayList[][] list) {
+		 int size= list[0].length;
+		 for(int i=0;i<size;i++) {
+			 for(int j=0;j<size;j++) {
+				 System.out.println(list[i][j]);
+			 }
+		 }
+	 }
+	 
+	 
+	 /**
+	  * Maximal matrix based on E matrix entries for multiplicities. 3.2.7
+	  */
+	 
+	 public static int[][] maximalMultiplicityMatrix(int[][] A, int m){
+		 int size= A.length;
+		 ArrayList[][] eMat= eMatrix(A,m);
+		 int[][] max= new int[size][size];
+		 for(int i=0;i<size;i++) {
+			 for(int j=i;j<size;j++) {
+				 max[i][j]=(int)Collections.max(eMat[i][j]);
+			 }
+		 }
+		 return max;
+	 }
+	 
 	 
 	 /**
 	  * L; upper triangular matrix like given at the bottom of page 35.
@@ -3104,6 +3213,16 @@ public class PermutationGroupFunctions {
 		 if(verbose) System.out.println(count+" "+"adjacency matrices were generated and written to the given file.");
 	 }
 	 
+	 
+	 //Definition 3.2.7
+	 public static int indicatorFunction(int x, int k) {
+		 if(x==k) {
+			return 1; 
+		 }else {
+			return 0;
+		 }
+	 }
+	 
 	 public static void setFileWriter() throws IOException {
 		 PermutationGroupFunctions.fileWriter = new BufferedWriter(new FileWriter(filedir));
 	 }
@@ -3160,7 +3279,7 @@ public class PermutationGroupFunctions {
 		
 	 public static void main(String[] args) throws CloneNotSupportedException, CDKException, IOException {   
 		 // TODO Auto-generated method stub		 
-		 PermutationGroupFunctions gen = null;
+		 /**PermutationGroupFunctions gen = null;
 		 //String[] args1= {"-f","C2H2O", "-v","-d", "C:\\Users\\mehme\\Desktop\\output.txt"};
 		 try {
 			 gen = new PermutationGroupFunctions();
@@ -3169,6 +3288,6 @@ public class PermutationGroupFunctions {
 		 } catch (Exception e) {
 		 // We don't do anything here. Apache CLI will print a usage text.
 			 if (PermutationGroupFunctions.verbose) e.getCause(); 
-		 }
+		 }**/
 	 }
 }
