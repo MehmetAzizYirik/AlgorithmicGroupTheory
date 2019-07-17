@@ -3279,7 +3279,7 @@ public class PermutationGroupFunctions {
 		
 	 public static void main(String[] args) throws CloneNotSupportedException, CDKException, IOException {   
 		 // TODO Auto-generated method stub		 
-		 /**PermutationGroupFunctions gen = null;
+		 PermutationGroupFunctions gen = null;
 		 //String[] args1= {"-f","C2H2O", "-v","-d", "C:\\Users\\mehme\\Desktop\\output.txt"};
 		 try {
 			 gen = new PermutationGroupFunctions();
@@ -3288,6 +3288,6 @@ public class PermutationGroupFunctions {
 		 } catch (Exception e) {
 		 // We don't do anything here. Apache CLI will print a usage text.
 			 if (PermutationGroupFunctions.verbose) e.getCause(); 
-		 }**/
+		 }
 	 }
 }
