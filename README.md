@@ -21,7 +21,7 @@ $ git clone https://github.com/MehmetAzizYirik/AlgorithmicGroupTheory.git
 ```
 ## Compiling
 
-To compile HMD, Apache Maven and Java 1.8 (or later) are required.
+To compile AlgorithmicGroupTheory, Apache Maven and Java 1.8 (or later) are required.
 ```
 AlgorithmicGroupTheory/$ mvn package
 ```
@@ -30,10 +30,6 @@ This command will create jar file named specifically as "jar-with-dependencies" 
 ## Usage
 
 AlgorithmicGroupTheory.jar can be run from command line with the specified arguments. An example command is given below.
-
-```
-java -jar AlgorithmicGroupTheory.jar -i C2H2O -v -d C:\Users\UserName\Desktop\AlgorithmicGroupTheory
-```
 
 The definitions of the arguments are given below:
 
@@ -52,6 +48,10 @@ directory is needed to be specified for the output file.
                                in the directory (required)
 
 Please report issues at https://github.com/MehmetAzizYirik/AlgorithmicGroupTheory
+```
+
+```
+java -jar AlgorithmicGroupTheory.jar -f C2H2O -v -d C:\Users\UserName\Desktop\AlgorithmicGroupTheory
 ```
 
 ## Running the Tests
