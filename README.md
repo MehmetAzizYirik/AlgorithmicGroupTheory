@@ -34,7 +34,7 @@ AlgorithmicGroupTheory.jar can be run from command line with the specified argum
 The definitions of the arguments are given below:
 
 ```
-usage: java -jar AlgorithmicGroupTheory.jar -i <arg> [-v] -d <arg>
+usage: java -jar AlgorithmicGroupTheory.jar -f <arg> [-v] -d <arg>
 
 Generates adjacency matrices for a given molecular formula. The input is 
 a molecular formula string. For example 'C2H2O'. Besides this formula, the
