@@ -51,7 +51,7 @@ Please report issues at https://github.com/MehmetAzizYirik/AlgorithmicGroupTheor
 ```
 
 ```
-java -jar AlgorithmicGroupTheory.jar -f C2H2O -v -d C:\Users\UserName\Desktop\AlgorithmicGroupTheory
+java -jar AlgorithmicGroupTheory.jar -f C2H2O -v -d C:\Users\UserName\Desktop\AlgorithmicGroupTheory/output.txt
 ```
 
 ## Running the Tests
