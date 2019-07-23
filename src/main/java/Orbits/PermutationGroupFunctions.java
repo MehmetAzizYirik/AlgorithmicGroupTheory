@@ -58,6 +58,7 @@ import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
+import org.openscience.cdk.AtomContainer;
 import org.openscience.cdk.depict.DepictionGenerator;
 import org.openscience.cdk.exception.CDKException;
 import org.openscience.cdk.group.AtomContainerDiscretePartitionRefiner;
@@ -67,6 +68,7 @@ import org.openscience.cdk.group.Permutation;
 import org.openscience.cdk.group.PermutationGroup;
 import org.openscience.cdk.interfaces.IAtomContainer;
 import org.openscience.cdk.interfaces.IBond;
+import org.openscience.cdk.interfaces.IBond.Order;
 import org.openscience.cdk.interfaces.IChemObjectBuilder;
 import org.openscience.cdk.silent.SilentChemObjectBuilder;
 import org.openscience.cdk.tools.SaturationChecker;
@@ -2990,6 +2992,130 @@ public class PermutationGroupFunctions {
 		 return L;
 	 }
 	 
+	 /**
+	  * 3.2.7 L matrix entry.
+	  */
+	 
+	 public static int multLEntry(int i, int j, int k, ArrayList[][] eMatrix, int[][] mult) {
+		 int count=0;
+		 int size= eMatrix.length;
+		 for(int s=j+1;s<=size;s++) {
+			 count=count+(int)eMatrix[i][s].get(k);
+		 }
+		 return Math.min(mult[i][k], count);
+	 }
+	 
+
+	 /**
+	  * 3.2.7 L matrix entry.
+	  */
+	 
+	 public static int multCEntry(int i, int j, int k, ArrayList[][] eMatrix, int[][] mult) {
+		 int count=0;
+		 int size= eMatrix.length;
+		 for(int s=i+1;s<=size;s++) {
+			 count=count+(int)eMatrix[s][j].get(k);
+		 }
+		 return Math.min(mult[j][k], count);
+	 }
+	 
+	 /**
+	  * 3.2.7 L matrix
+	  */
+	 public static ArrayList[][] multLMatrix(int[][]A, int m){
+		 int size= A.length;
+		 int[][] mult=multiplicityMat(A,m);
+		 ArrayList[][] eMatrix=eMatrix(A,m);
+		 ArrayList[][] LMatrix=TwoDimArrayList(size);
+		 for(int i=0;i<size;i++) {
+			 for(int j=i;j<size;j++) {
+				 for(int k=0;k<m;k++) {
+					 LMatrix[i][j].add(multLEntry(i, j, k, eMatrix, mult));
+				 }
+			 }
+		 }
+		 return LMatrix;
+	 }
+	 
+	 /**
+	  * 3.2.7 Linverse entry
+	  */
+	 
+	 public static int multL2Entry(int i, int j, int k , int[][]A, int[][]mult) {
+		 int count=0;
+		 for(int s=0; s<j;s++) {
+			 count=count+indicatorFunction(A[i][s],k);
+		 }
+		 return mult[i][k]-count;
+	 }
+	 
+	 /**
+	  * 3.2.7 L Inverse Matrix 
+	  */
+	 
+	 public static ArrayList[][] multL2Matrix(int[][]A, int m){
+		 int size= A.length;
+		 int[][] mult=multiplicityMat(A,m);
+		 ArrayList[][] L2Matrix=TwoDimArrayList(size);
+		 for(int i=0;i<size;i++) {
+			 for(int j=i;j<size;j++) { //TODO: i+1 ?
+				 for(int k=0;k<m;k++) {
+					 L2Matrix[i][j].add(multL2Entry(i, j, k, A, mult));
+				 }
+			 }
+		 }
+		 return L2Matrix;
+	 }
+	 
+	 /**
+	  * 3.2.7 C matrix
+	  */
+	 public static ArrayList[][] multCMatrix(int[][]A, int m){
+		 int size= A.length;
+		 int[][] mult=multiplicityMat(A,m);
+		 ArrayList[][] eMatrix= eMatrix(A,m);
+		 ArrayList[][] CMatrix=TwoDimArrayList(size);
+		 for(int i=0;i<size;i++) {
+			 for(int j=i;j<size;j++) { //TODO: i+1 ?
+				 for(int k=0;k<m;k++) {
+					 CMatrix[i][j].add(multCEntry(i, j, k, eMatrix, mult));
+				 }
+			 }
+		 }
+		 return CMatrix;
+	 }
+	 
+	 /**
+	  * 3.2.7 Cinverse entry
+	  */
+	 
+	 public static int multC2Entry(int i, int j, int k , int[][]A, int[][]mult) {
+		 int count=0;
+		 for(int s=0; s<i;s++) {
+			 count=count+indicatorFunction(A[s][j],k);
+		 }
+		 return mult[j][k]-count;
+	 }
+	 
+	 /**
+	  * 3.2.7 C2 matrix
+	  */
+	 public static ArrayList[][] multC2Matrix(int[][]A, int m){
+		 int size= A.length;
+		 int[][] mult=multiplicityMat(A,m);
+		 ArrayList[][] C2Matrix=TwoDimArrayList(size);
+		 for(int i=0;i<size;i++) {
+			 for(int j=i;j<size;j++) { //TODO: i+1 ?
+				 for(int k=0;k<m;k++) {
+					 C2Matrix[i][j].add(multC2Entry(i, j, k, A, mult));
+				 }
+			 }
+		 }
+		 return C2Matrix;
+	 }
+	 
+	 
+	 
 	 //TODO: Thesis or my code is wrong. I modified by minus 1.
 	 /**
 	  * C; upper triangular matrix like given in 3.2.1.
@@ -3279,11 +3405,31 @@ public class PermutationGroupFunctions {
 		
 	 public static void main(String[] args) throws CloneNotSupportedException, CDKException, IOException {   
 		 // TODO Auto-generated method stub		 
+		 /**IAtomContainer ac = new AtomContainer();
+	     ac.addAtom(new org.openscience.cdk.Atom("C"));
+	     ac.addAtom(new org.openscience.cdk.Atom("C"));
+	     ac.addAtom(new org.openscience.cdk.Atom("H"));
+	     ac.addAtom(new org.openscience.cdk.Atom("H"));
+	     ac.addAtom(new org.openscience.cdk.Atom("H"));
+	     ac.addAtom(new org.openscience.cdk.Atom("H"));
+	     ac.addAtom(new org.openscience.cdk.Atom("N"));
+	     ac.addAtom(new org.openscience.cdk.Atom("H"));
+	     ac.addBond(0, 2, Order.SINGLE);
+	     ac.addBond(1, 3, Order.SINGLE);
+	     ac.addBond(0, 4, Order.SINGLE);
+	     ac.addBond(1, 5, Order.SINGLE);
+	     ac.addBond(6, 7, Order.SINGLE);
+	     AtomContainerDiscretePartitionRefiner refiner = PartitionRefinement.forAtoms().create();
+		 PermutationGroup autoGroup = refiner.getAutomorphismGroup(ac);
+		 for(Permutation perm: autoGroup.all()) {
+			 System.out.println(perm.toCycleString());
+		 }
+		 autoGroup**/
 		 PermutationGroupFunctions gen = null;
-		 //String[] args1= {"-f","C2H2O", "-v","-d", "C:\\Users\\mehme\\Desktop\\output.txt"};
+		 String[] args1= {"-f","C2H2O", "-v","-d", "C:\\Users\\mehme\\Desktop\\output.txt"};
 		 try {
 			 gen = new PermutationGroupFunctions();
-			 gen.parseArgs(args);
+			 gen.parseArgs(args1);
 			 PermutationGroupFunctions.generate(PermutationGroupFunctions.molecularFormula, PermutationGroupFunctions.filedir);
 		 } catch (Exception e) {
 		 // We don't do anything here. Apache CLI will print a usage text.
