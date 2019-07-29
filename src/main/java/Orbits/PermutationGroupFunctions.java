@@ -263,6 +263,19 @@ public class PermutationGroupFunctions {
 		return sum;
 	}
 	
+	/**
+	 * Sum values until an index
+	 * @param list
+	 * @param i
+	 */
+	public static int sum(ArrayList<Integer> list, int index) {
+		int sum=0;
+		for(int i=0;i<=index;i++) {
+			sum=sum+list.get(i);
+		}
+		return sum;
+	}
+	
 	public static int count(ArrayList<Integer> list, int i) {
 		int count=0;
 		for(Integer k:list) {
@@ -2894,6 +2907,18 @@ public class PermutationGroupFunctions {
 		 return count;
 	 }
 	 
+	//Set diagonal to zeros.
+	public static void zeroDiagonal(ArrayList[][] mat,int m) {
+		for(int i=0; i<mat.length;i++) {
+			for(int j=0;j<mat.length;j++) {
+				if(i==j) {
+					for(int k=0;k<m;k++) {
+						mat[i][j].add(0);
+					}
+				}
+			}
+		}
+	}
 	 
 	 /**
 	  * 3.2.7 E matrix
@@ -2901,14 +2926,15 @@ public class PermutationGroupFunctions {
 	  * @param m maximal multiplicity
 	  * @return e matrix as described in 3.2.7
 	  */
-	 public static ArrayList[][] eMatrix(int[][] A, int m){
-		 int size= A.length;
-		 int[][] mult=multiplicityMat(A,m);
+	 public static ArrayList[][] eMatrix(int[][] mult, int m){
+		 int size= mult.length;
 		 ArrayList[][] eMatrix=TwoDimArrayList(size);
+		 zeroDiagonal(eMatrix,m);
 		 for(int i=0;i<size;i++) {
-			 for(int j=i;j<size;j++) {
+			 for(int j=i+1;j<size;j++) {
 				 for(int k=0;k<m;k++) {
-					 eMatrix[i][j].add(eMatrixEntry(A,m,i,j,k));
+					 eMatrix[i][j].add(eMatrixEntry(mult,i,j,k));
+					 eMatrix[j][i].add(eMatrixEntry(mult,i,j,k));
 				 }
 			 }
 		 }
@@ -2920,9 +2946,7 @@ public class PermutationGroupFunctions {
 	  * 3.2.7. E matrix entry
 	  */
 	 
-	 public static int eMatrixEntry(int[][] A, int m,int i, int j, int k) {
-		 int size= A.length;
-		 int[][] mult=multiplicityMat(A,m);
+	 public static int eMatrixEntry(int[][] mult,int i, int j, int k) {
 		 if(mult[i][k]>0 && mult[j][k]>0) {
 			 return 1;
 		 }else {
@@ -2958,18 +2982,50 @@ public class PermutationGroupFunctions {
 		 }
 	 }
 	 
+	 /**
+	  * Check a multiplicity arraylist has any non zero entry
+	  */
+	 
+	 public static boolean zeroCheck(ArrayList<Integer> list) {
+		 boolean check=true;
+		 for(int i=0;i<list.size();i++) {
+			 if(list.get(i)!=0) {
+				 check=false;
+				 break;
+			 }
+		 }
+		 return check;
+	 }
+	 
+	 /**
+	  * Maximal Multiplicity
+	  */
+	 public static int maxMult(ArrayList<Integer> list) {
+		 int index=0;
+		if(zeroCheck(list)) {
+			return index;
+		}else {
+			for(int i=(list.size())-1;i>=0;i--) {
+				 if(list.get(i)!=0) {
+					 index=index+i;
+					 break;
+				 }
+			 }
+			 return index+1;
+		}
+	 }
 	 
 	 /**
 	  * Maximal matrix based on E matrix entries for multiplicities. 3.2.7
 	  */
 	 
-	 public static int[][] maximalMultiplicityMatrix(int[][] A, int m){
-		 int size= A.length;
-		 ArrayList[][] eMat= eMatrix(A,m);
+	 public static int[][] maximalMultiplicityMatrix(int[][] mult, int m){
+		 int size= mult.length;
+		 ArrayList[][] eMat= eMatrix(mult,m);
 		 int[][] max= new int[size][size];
 		 for(int i=0;i<size;i++) {
-			 for(int j=i;j<size;j++) {
-				 max[i][j]=(int)Collections.max(eMat[i][j]);
+			 for(int j=i+1;j<size;j++) {
+				 max[i][j]=max[j][i]=maxMult(eMat[i][j]);
 			 }
 		 }
 		 return max;
@@ -2999,7 +3055,7 @@ public class PermutationGroupFunctions {
 	 public static int multLEntry(int i, int j, int k, ArrayList[][] eMatrix, int[][] mult) {
 		 int count=0;
 		 int size= eMatrix.length;
-		 for(int s=j+1;s<=size;s++) {
+		 for(int s=j+1;s<size;s++) {
 			 count=count+(int)eMatrix[i][s].get(k);
 		 }
 		 return Math.min(mult[i][k], count);
@@ -3013,7 +3069,7 @@ public class PermutationGroupFunctions {
 	 public static int multCEntry(int i, int j, int k, ArrayList[][] eMatrix, int[][] mult) {
 		 int count=0;
 		 int size= eMatrix.length;
-		 for(int s=i+1;s<=size;s++) {
+		 for(int s=i+1;s<size;s++) {
 			 count=count+(int)eMatrix[s][j].get(k);
 		 }
 		 return Math.min(mult[j][k], count);
@@ -3022,15 +3078,15 @@ public class PermutationGroupFunctions {
 	 /**
 	  * 3.2.7 L matrix
 	  */
-	 public static ArrayList[][] multLMatrix(int[][]A, int m){
-		 int size= A.length;
-		 int[][] mult=multiplicityMat(A,m);
-		 ArrayList[][] eMatrix=eMatrix(A,m);
+	 public static ArrayList[][] multLMatrix(int[][]mult, int m){
+		 int size= mult.length;
+		 ArrayList[][] eMatrix=eMatrix(mult,m);
 		 ArrayList[][] LMatrix=TwoDimArrayList(size);
 		 for(int i=0;i<size;i++) {
-			 for(int j=i;j<size;j++) {
+			 for(int j=i+1;j<size;j++) {
 				 for(int k=0;k<m;k++) {
 					 LMatrix[i][j].add(multLEntry(i, j, k, eMatrix, mult));
+					 LMatrix[j][i].add(multLEntry(i, j, k, eMatrix, mult));
 				 }
 			 }
 		 }
@@ -3058,7 +3114,7 @@ public class PermutationGroupFunctions {
 		 int[][] mult=multiplicityMat(A,m);
 		 ArrayList[][] L2Matrix=TwoDimArrayList(size);
 		 for(int i=0;i<size;i++) {
-			 for(int j=i;j<size;j++) { //TODO: i+1 ?
+			 for(int j=i+1;j<size;j++) { //TODO: i+1 ?
 				 for(int k=0;k<m;k++) {
 					 L2Matrix[i][j].add(multL2Entry(i, j, k, A, mult));
 				 }
@@ -3070,13 +3126,12 @@ public class PermutationGroupFunctions {
 	 /**
 	  * 3.2.7 C matrix
 	  */
-	 public static ArrayList[][] multCMatrix(int[][]A, int m){
-		 int size= A.length;
-		 int[][] mult=multiplicityMat(A,m);
-		 ArrayList[][] eMatrix= eMatrix(A,m);
-		 ArrayList[][] CMatrix=TwoDimArrayList(size);
+	 public static ArrayList[][] multCMatrix(int[][] mult, int m){
+		 int size= mult.length;
+		 ArrayList[][] eMatrix= eMatrix(mult,m);
+		 ArrayList[][] CMatrix= TwoDimArrayList(size);
 		 for(int i=0;i<size;i++) {
-			 for(int j=i;j<size;j++) { //TODO: i+1 ?
+			 for(int j=i+1;j<size;j++) { //TODO: i+1 ?
 				 for(int k=0;k<m;k++) {
 					 CMatrix[i][j].add(multCEntry(i, j, k, eMatrix, mult));
 				 }
@@ -3105,7 +3160,7 @@ public class PermutationGroupFunctions {
 		 int[][] mult=multiplicityMat(A,m);
 		 ArrayList[][] C2Matrix=TwoDimArrayList(size);
 		 for(int i=0;i<size;i++) {
-			 for(int j=i;j<size;j++) { //TODO: i+1 ?
+			 for(int j=i+1;j<size;j++) { //TODO: i+1 ?
 				 for(int k=0;k<m;k++) {
 					 C2Matrix[i][j].add(multC2Entry(i, j, k, A, mult));
 				 }
@@ -3260,7 +3315,101 @@ public class PermutationGroupFunctions {
 		 }
 	 }
 	 
-	 public static ArrayList<Integer> successor(ArrayList<Integer> indices, int size) {
+	 
+	// Algorithm 3.2.9
+    public static void canonicalMatrix2(int[][] mult,int m) throws IOException{
+    	int size    = mult.length;
+    	int[][] A   = new int[size][size];
+    	ArrayList[][] eMat= eMatrix(mult,m);
+    	int[][] max = maximalMultiplicityMatrix(mult,m);
+		ArrayList[][] L   = multLMatrix(mult,m);
+		ArrayList[][] L2   = multLMatrix(A,m);
+		ArrayList[][] C   = multCMatrix(mult,m);
+		ArrayList[][] C2   = multCMatrix(A,m);
+		ArrayList<Integer> indices= new ArrayList<Integer>();
+		indices.add(0);
+		indices.add(1);
+		zeroDiagonal(A);
+		forward2(mult,A,max,L,C,indices,m);
+	}
+		
+    /**
+     * 3.2.9 Forward criteria 
+     */
+    
+    public static boolean forBackCriteria(int h,int l, int c, int l2, int c2, int m) {
+    	boolean check=true;
+    	if(!(l2>0 && c2>0)) {
+    		check=false;
+    	}else {
+    		for(int k=1;k<m;k++) {
+        		if(!(l2-indicatorFunction(h,k)<=l && c2-indicatorFunction(h,k)<=c)) {
+        			check=false;
+        			break;
+        		}
+        	}
+    	}
+    	return check;
+    }
+    
+	//3.2.9. Step forward
+	public static void forward2(int[][] mult,int[][] A, int[][]max, ArrayList[][]L, ArrayList[][]C, ArrayList<Integer> indices, int m) throws IOException {
+		int i=indices.get(0);
+		int j=indices.get(1);
+		int maximum= max[i][j];
+	 	for(int h=maximum;h>0;h--) {
+	 		int l2= multL2Entry(i,j,h,A,mult);
+			int c2= multC2Entry(i,j,h,A,mult);
+			int l = (int)L[i][j].get(h);
+			int c = (int)C[i][j].get(h);
+	 		if(forBackCriteria(h,l,c,l2,c2,m)) {
+	 			A[i][j]=A[j][i]=h;
+	 			if(i==(max.length-2) && j==(max.length-1)) {
+	 				backward2(mult,A, max,L, C, indices,m);
+	 			}else {
+	 				ArrayList<Integer> modified=successor(indices,max.length);
+	 				forward2(mult,A, max, L, C, modified,m);
+	 			}
+	 		}else {
+	 			backward2(mult,A, max, L, C, indices,m);
+	 		}
+	 	}
+	}
+		 
+	//3.2.9 Step backward
+	public static void backward2(int[][] mult,int[][] A, int[][]max, ArrayList[][]L, ArrayList[][]C, ArrayList<Integer> indices, int m) throws IOException {
+		int i=indices.get(0);
+		int j=indices.get(1);
+		if(i==max.length-2 && j==max.length-1) {
+			count++;
+			writeMatrix(A);
+		}else{
+			ArrayList<Integer> modified=predecessor(indices, max.length);
+			i= modified.get(0);
+			j= modified.get(1);
+			if(i>0 && j-i==1) {
+				int maximal= A[i][j];
+				if(maximal>0) {
+					for(int h=maximal;h>0;h--) {
+						int l2= multL2Entry(i,j,h,A,mult);
+						int c2= multC2Entry(i,j,h,A,mult);
+						int l = (int)L[i][j].get(h);
+						int c = (int)C[i][j].get(h);
+						if(forBackCriteria(h,l,c,l2,c2,m)) {
+							ArrayList<Integer> modified2=successor(modified,max.length);
+							forward2(mult,A, max, L, C, modified2,m);
+						}else {
+							backward2(mult, A, max, L, C, modified,m);
+						}
+					}
+				}
+			}else {
+				backward2(mult,A,max,L,C,indices,m);
+			}
+		}
+	}
+	 
+	public static ArrayList<Integer> successor(ArrayList<Integer> indices, int size) {
 		 int i0= indices.get(0);
 		 int i1= indices.get(1);
 		 ArrayList<Integer> modified= new ArrayList<Integer>();
@@ -3295,6 +3444,13 @@ public class PermutationGroupFunctions {
 			System.out.println(Arrays.toString(row)); 
 	    } 
 	 }
+	 
+	 
+	 /**
+	  * Algorithm 3.1.6: Canonical Generation Algorithm
+	  */
+	 
+	 
 	 
 	 public static void writeMatrix(int[][] mat) throws IOException {
 		 fileWriter.write(String.format("Adjacency matrix - %d", count));
@@ -3349,6 +3505,153 @@ public class PermutationGroupFunctions {
 		 }
 	 }
 	 
+	 
+	 
+	 /**
+	  * Canonization functions Chapter 3.3
+	  */
+	 
+	 /**
+	  * Example 3.3.9. Permutation action on a vector
+	  */
+	 public static int[] permutationAction(int[] vector, Permutation perm) {
+		 int[] v2= new int[vector.length];
+		 for(int i=0;i<vector.length;i++) {
+			 v2[i]=vector[perm.get(i)];
+		 }
+		 return v2;
+	 }
+	 
+	 /**
+	  * Definition 3.3.2
+	  * Partition generation
+	  */
+	 //TODO: It should be a depth first method. user should give the first partition and any degree.
+	 public static ArrayList<Integer> partitionRule(ArrayList<Integer> partEx, int degree){
+		 ArrayList<Integer> partNew = new ArrayList<Integer>();
+		 if(partEx.get(degree-1)>1) {
+			 addOnes(partNew,degree);
+			 partNew.add(partEx.get(degree-1)-1);
+			 for(int k=degree;k<partEx.size();k++) {
+				 partNew.add(partEx.get(k));
+			 }
+		 }else if(partEx.get(degree-1)==1) {
+			 addOnes(partNew,degree);
+			 for(int k=degree;k<partEx.size();k++) {
+				 partNew.add(partEx.get(k));
+			 }
+		 }
+		 return partNew;
+	 }
+	 
+	 public static ArrayList<Integer> partition(ArrayList<Integer> part, int degree){
+		 for(int i=1;i<=degree;i++) {
+			 part=partitionRule(part,i);
+		 }
+		 return part;
+	 }
+	 /**
+	  * add number of 1s into a ArrayList
+	  */
+	 
+	 public static void addOnes(ArrayList<Integer> list, int number) {
+		 for(int i=0;i<number;i++) {
+			 list.add(1);
+		 }
+	 }
+	 
+	 public static ArrayList<Integer> decreaseOne(ArrayList<Integer> list) {
+		 ArrayList<Integer> list2= new ArrayList<Integer>();
+		 for(int i=0;i<list.size();i++) {
+			 list2.add(list.get(i)-1);
+		 }
+		 return list2;
+	 }
+	 /**
+	  * Definition 3.3.3
+	  * Calculating l(i)
+	  */
+	 
+	 public static int LValue(ArrayList<Integer> partEx, int degree) {
+		 return (sum(partEx,degree-1)-degree+1); 
+	 }
+	 
+	 /**
+	  * Definition 1.1.16
+	  * 
+	  */
+	 
+	 public static ArrayList<Integer> subPartition(ArrayList<Integer> partition, int index){
+		 ArrayList<Integer> sub= new ArrayList<Integer>();
+		 int former = sum(partition,index-1)+1;
+		 int latter = sum(partition,index);
+		 if(former==latter) {
+			 sub.add(former);
+		 }else {
+			 for(int i=former;i<=latter;i++) {
+				 sub.add(i);
+			 }
+		 }
+		 return sub;
+	 }
+	 
+	 public static ArrayList<ArrayList<Integer>> subPartitions(ArrayList<Integer> partition){
+		 ArrayList<ArrayList<Integer>> parts = new ArrayList<ArrayList<Integer>>();
+		 for(int i=0;i<partition.size();i++) {
+			parts.add(subPartition(partition,i)); 
+		 }
+		 return parts;
+	 }
+	 
+	 public static boolean automorphismPermutationCheck(Permutation perm, ArrayList<Integer> part) {
+		 boolean check=true;
+		 for(ArrayList<Integer> list: subPartitions(part)) {
+			 list=decreaseOne(list);
+			 if(!list.containsAll(act(list,perm))) {
+				 check=false;
+				 break;
+			 }
+		 }
+		 return check;
+	 }
+	 
+	 /**
+	  * 3.3.8 Canonizor Permutations
+	  */
+	 
+	 public static ArrayList<Permutation> group4Partition(ArrayList<Integer> part, int[] w){
+		 ArrayList<Permutation> perms= new ArrayList<Permutation>();
+		 PermutationGroup group= PermutationGroup.makeSymN(sum(part));
+		 for(Permutation perm: group.all()) {
+			 if(automorphismPermutationCheck(perm,part)) {
+				 perms.add(perm);
+			 }
+		 }
+		 return perms;
+	 }
+	 
+	 /**
+	  * Descending order check for two arrays
+	  */
+	 
+	 public static boolean desOrderCheck(int[] arr1, int[] arr2) {
+		 boolean check=true;
+		 int size= arr1.length;
+		 for(int i=0;i<size;i++) {
+			 if(arr1[i]<arr2[i]) {
+				 check=false;
+				 break;
+			 }
+		 }
+		 return check;
+	 }
+	 
+	 
+	 /**
+	  * 3.3.11. Getting second degree partitioning of the second degree partition
+	  */
+	 
+	 public static 
 	 public static void setFileWriter() throws IOException {
 		 PermutationGroupFunctions.fileWriter = new BufferedWriter(new FileWriter(filedir));
 	 }
@@ -3404,7 +3707,45 @@ public class PermutationGroupFunctions {
 	 }
 		
 	 public static void main(String[] args) throws CloneNotSupportedException, CDKException, IOException {   
-		 // TODO Auto-generated method stub		 
+		 // TODO Auto-generated method stub	
+		 int[][] mat= new int[5][2];
+		 mat[0][0]=2;
+		 mat[0][1]=1;
+		 mat[1][0]=2;
+		 mat[1][1]=1;
+		 mat[2][0]=2;
+		 mat[2][1]=0;
+		 mat[3][0]=1;
+		 mat[3][1]=0;
+		 mat[4][0]=1;
+		 mat[4][1]=0;
+		 
+		 ArrayList<Integer> list= new ArrayList();
+		 list.add(2);
+		 list.add(1);
+		 list.add(2);
+		 
+		 int[] w= new int[10];
+		 w[0]=0;
+		 w[1]=2;
+		 w[2]=1;
+		 w[3]=0;
+		 w[4]=3;
+		 w[5]=1;
+		 w[6]=0;
+		 w[7]=1;
+		 w[8]=0;
+		 w[9]=1;
+		 
+		 
+		 ArrayList<Integer> partition= partition(list,4);
+		 System.out.println(partition);
+		 //System.out.println(LValue(list,4));
+	
+
+		 
+		 //canonicalMatrix2(mat,2);
+		 
 		 /**IAtomContainer ac = new AtomContainer();
 	     ac.addAtom(new org.openscience.cdk.Atom("C"));
 	     ac.addAtom(new org.openscience.cdk.Atom("C"));
@@ -3425,7 +3766,7 @@ public class PermutationGroupFunctions {
 			 System.out.println(perm.toCycleString());
 		 }
 		 autoGroup**/
-		 PermutationGroupFunctions gen = null;
+		 /**PermutationGroupFunctions gen = null;
 		 String[] args1= {"-f","C2H2O", "-v","-d", "C:\\Users\\mehme\\Desktop\\output.txt"};
 		 try {
 			 gen = new PermutationGroupFunctions();
@@ -3434,6 +3775,6 @@ public class PermutationGroupFunctions {
 		 } catch (Exception e) {
 		 // We don't do anything here. Apache CLI will print a usage text.
 			 if (PermutationGroupFunctions.verbose) e.getCause(); 
-		 }
+		 }**/
 	 }
 }
