@@ -3523,6 +3523,19 @@ public class PermutationGroupFunctions {
 	 }
 	 
 	 /**
+	  * 3.3.11 Permutation Group Action on a Matrix Row
+	  */
+	 public static boolean groupActionVectors(int[] a, ArrayList<Permutation> perms) {
+		 boolean check=true;
+		 for(Permutation perm:perms) {
+			 if(!desOrderCheck(a,permutationAction(a,perm))) {
+				 check=false;
+				 break;
+			 }
+		 }
+		 return check;
+	 }
+	 /**
 	  * Definition 3.3.2
 	  * Partition generation
 	  */
@@ -3616,10 +3629,21 @@ public class PermutationGroupFunctions {
 	 }
 	 
 	 /**
+	  * 3.3.7
+	  */
+	 
+	 public static void leftClassRep(PermutationGroup group, int i, int[][]A, int index, ArrayList<Integer> part) {
+		 List<Permutation> perms=group.getLeftTransversal(i);
+		 int[][] Ar= matrixStrip(A,index,part);
+		 for(Permutation perm: perms) {
+			 
+		 }
+	 }
+	 /**
 	  * 3.3.8 Canonizor Permutations
 	  */
 	 
-	 public static ArrayList<Permutation> group4Partition(ArrayList<Integer> part, int[] w){
+	 public static ArrayList<Permutation> group4Partition(ArrayList<Integer> part){
 		 ArrayList<Permutation> perms= new ArrayList<Permutation>();
 		 PermutationGroup group= PermutationGroup.makeSymN(sum(part));
 		 for(Permutation perm: group.all()) {
@@ -3651,7 +3675,83 @@ public class PermutationGroupFunctions {
 	  * 3.3.11. Getting second degree partitioning of the second degree partition
 	  */
 	 
-	 public static 
+	 public static ArrayList<Integer> lineCriteria(ArrayList<Integer> part, int degree){
+		 ArrayList<Integer> newPart= partition(part,degree-1);
+		 return partition(newPart, 2);
+	 }
+	 
+	 /**
+	  * Canonical Test 3.3.11
+	  */
+	 
+	 public static boolean canonicalTest(int[][] A, ArrayList<Integer> part) {
+		 boolean check=true;
+		 for(int i=1;i<A.length;i++) {
+			 ArrayList<Permutation> perms=group4Partition(lineCriteria(part, i-1));
+			 if(!groupActionVectors(A[i],perms)) {
+				 check=false;
+				 break;
+			 }
+		 }
+		 return check;
+	 }
+	 
+	 /**
+	  * 3.1.1. A matrix strip 
+	  */
+	 
+	 public static int[][] matrixStrip(int[][] A , int index, ArrayList<Integer> parts){
+		 int size= A.length;
+		 int[][] mat= new int[size][size];
+		 ArrayList<Integer> subPart= subPartition(parts,index);
+		 for(Integer i: subPart) {
+			 mat[i]= A[i];
+		 }
+		 return A;
+	 }
+	 
+	 /**
+	  * 3.1.5 Automorphism group of a matrix strip
+	  */
+	 	 
+	 public static ArrayList<Permutation> stripAuto(int[][] A, int index, ArrayList<Integer> part){
+		 ArrayList<Permutation> perms= new ArrayList<Permutation>();
+		 for(Permutation perm:group4Partition(part)) {
+			 if(autoCheckMatStrip(A,index,perm)) {
+				 perms.add(perm);
+			 }
+		 }
+		 return perms;
+	 }
+	 
+	 public static boolean autoCheckMatStrip(int[][] A, int index,Permutation perm) {
+		 boolean check=true;
+		 for(int i=0;i<index;i++) {
+			 if(!A[i].equals(permutationAction(A[i],perm))) {
+				 check=false;
+				 break;
+			 }
+		 }
+		 return check;
+	 }
+	 
+	 /**
+	  * Canonical strips - 3.3.14
+	  */
+	 
+	 public static int xValue(ArrayList<Integer> part) {
+		 int count=sum(part);
+		 return count-part.get(part.size());
+	 }
+	 
+	 public static int yValue(ArrayList<Integer> part) {
+		 return xValue(part)+1;
+	 }
+	 
+	 public static int zValue(ArrayList<Integer> part) {
+		 return sum(part);
+	 }
+	 
 	 public static void setFileWriter() throws IOException {
 		 PermutationGroupFunctions.fileWriter = new BufferedWriter(new FileWriter(filedir));
 	 }
