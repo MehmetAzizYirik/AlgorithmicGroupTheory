@@ -3511,6 +3511,24 @@ public class PermutationGroupFunctions {
 	  * Canonization functions Chapter 3.3
 	  */
 	 
+	 
+	 /**
+	  * 3.3.1. Permutation tree
+	  */
+	 
+	 public static ArrayList<Permutation> permTreeRep(ArrayList<Integer> part, int degree){
+		 ArrayList<Permutation> out= new ArrayList<Permutation>();
+		 int l=LValue(partition(part,degree-1),degree);
+		 for(int j=1;j<=l;j++) {
+			 int[] perm= new int[2];
+			 perm[0]=degree;
+			 perm[1]=j+degree-1;
+			 out.add(new Permutation(perm));
+		 }
+		 return out;
+	 }
+	 
+	 
 	 /**
 	  * Example 3.3.9. Permutation action on a vector
 	  */
@@ -3539,7 +3557,6 @@ public class PermutationGroupFunctions {
 	  * Definition 3.3.2
 	  * Partition generation
 	  */
-	 //TODO: It should be a depth first method. user should give the first partition and any degree.
 	 public static ArrayList<Integer> partitionRule(ArrayList<Integer> partEx, int degree){
 		 ArrayList<Integer> partNew = new ArrayList<Integer>();
 		 if(partEx.get(degree-1)>1) {
@@ -3629,16 +3646,25 @@ public class PermutationGroupFunctions {
 	 }
 	 
 	 /**
-	  * 3.3.7
+	  * 3.3.7 Left Coset indices J(i) for vij values. 
 	  */
 	 
-	 public static void leftClassRep(PermutationGroup group, int i, int[][]A, int index, ArrayList<Integer> part) {
+	 public static ArrayList<Integer> leftClassRep(PermutationGroup group, int i, int[][]A, int index, ArrayList<Integer> part) {
+		 ArrayList<Integer> vReps= new ArrayList<Integer>();
 		 List<Permutation> perms=group.getLeftTransversal(i);
 		 int[][] Ar= matrixStrip(A,index,part);
-		 for(Permutation perm: perms) {
+		 ArrayList<Permutation> reps=permTreeRep(part,index);
+		 for(int j=0;j<perms.size();j++) {
+			 for(int k=0;k<reps.size();k++) {
+				 if(autoCheckMatStrip(Ar,perms.get(j).multiply(reps.get(k)))) {
+					 vReps.add(j);
+				 }
+			 }
 			 
 		 }
+		 return vReps;
 	 }
+	 
 	 /**
 	  * 3.3.8 Canonizor Permutations
 	  */
@@ -3716,17 +3742,29 @@ public class PermutationGroupFunctions {
 	 	 
 	 public static ArrayList<Permutation> stripAuto(int[][] A, int index, ArrayList<Integer> part){
 		 ArrayList<Permutation> perms= new ArrayList<Permutation>();
-		 for(Permutation perm:group4Partition(part)) {
-			 if(autoCheckMatStrip(A,index,perm)) {
-				 perms.add(perm);
-			 }
+		 for(int deg=1; deg<=index;deg++) {
+			 int[][] strip= matrixStrip(A,deg,part);
+			 for(Permutation perm:group4Partition(part)) {
+				 if(autoCheckMatStrip(strip,perm)) {
+					 perms.add(perm);
+				 }
+			 } 
 		 }
 		 return perms;
 	 }
 	 
-	 public static boolean autoCheckMatStrip(int[][] A, int index,Permutation perm) {
+	 /**
+	  * Actin g a permutation on matrix strips.
+	  * @param A
+	  * @param index
+	  * @param perm
+	  * @return
+	  */
+	 
+	 public static boolean autoCheckMatStrip(int[][] A,Permutation perm) {
 		 boolean check=true;
-		 for(int i=0;i<index;i++) {
+		 int size=A.length;
+		 for(int i=0;i<size;i++) {
 			 if(!A[i].equals(permutationAction(A[i],perm))) {
 				 check=false;
 				 break;
