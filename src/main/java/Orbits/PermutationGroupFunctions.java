@@ -3649,7 +3649,7 @@ public class PermutationGroupFunctions {
 	  * 3.3.7 Left Coset indices J(i) for vij values. 
 	  */
 	 
-	 public static ArrayList<Integer> leftClassRep(PermutationGroup group, int i, int[][]A, int index, ArrayList<Integer> part) {
+	 public static ArrayList<Integer> leftClassRepIndices(PermutationGroup group, int i, int[][]A, int index, ArrayList<Integer> part) {
 		 ArrayList<Integer> vReps= new ArrayList<Integer>();
 		 List<Permutation> perms=group.getLeftTransversal(i);
 		 int[][] Ar= matrixStrip(A,index,part);
@@ -3661,6 +3661,26 @@ public class PermutationGroupFunctions {
 				 }
 			 }
 			 
+		 }
+		 return vReps;
+	 }
+	 
+	 /**
+	  * 3.3.7 Left Coset indices vij permutations. 
+	  */
+	 
+	 public static ArrayList<Permutation> leftClassRepPerms(PermutationGroup group, int i, int[][]A, int index, ArrayList<Integer> part) {
+		 ArrayList<Permutation> vReps= new ArrayList<Permutation>();
+		 List<Permutation> perms=group.getLeftTransversal(i);
+		 int[][] Ar= matrixStrip(A,index,part);
+		 ArrayList<Permutation> reps=permTreeRep(part,index);
+		 for(int j=0;j<perms.size();j++) {
+			 for(int k=0;k<reps.size();k++) {
+				 Permutation v= perms.get(j).multiply(reps.get(k));
+				 if(autoCheckMatStrip(Ar,v)) {
+					 vReps.add(v);
+				 }
+			 }
 		 }
 		 return vReps;
 	 }
