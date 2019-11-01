@@ -26,9 +26,9 @@
 /**
  * This class is the re-implementation of MOLGEN project. For more details;
  * please check Mathematical Chemistry and Cheminformatics book[1]. Chapter 1
- * and Chapter 5 for molecular structure generation.
+ * and gftttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttghhhhhhhhhhhhhhhhhhhhhhhhhhhhherdfbğppppppppppp for molecular structure generation.
  * 
- * [1] Kerber, A., Laue, R., Meringer, M., Rücker, C. and Schymanski, E., 2013.
+ * [1] Kerber, A., Laue, R., Meringer, M., RÃ¼cker, C. and Schymanski, E., 2013.
  * Mathematical chemistry and chemoinformatics: structure generation, elucidation
  * and quantitative structure-property relationships. Walter de Gruyter.
  * 
@@ -347,6 +347,18 @@ public class PermutationGroupFunctions {
 	    }
 	};
 	
+	public static boolean desOrderCheck(int[] line) {
+		boolean check=true;
+		int length=line.length;
+		for(int i=0;i<length-1;i++) {
+			if(line[i]<line[i+1]) {
+				check=false;
+				break;
+			}
+		}
+		return check;
+	}
+	
 	public static int[] addElement(int[] a, int e) {
         a  = Arrays.copyOf(a, a.length + 1);
         a[a.length - 1] = e;
@@ -562,6 +574,15 @@ public class PermutationGroupFunctions {
 			modifiedSet.add(p.get(element));
 		}
 		return modifiedSet;
+	}
+	
+	public static int[] act(int[] strip, Permutation p) {
+		int length= strip.length;
+		int[] modified = new int[length];
+		for(int i=0; i<length;i++) {
+			modified[i]=strip[p.get(i)]; 
+		}
+		return modified;
 	}
 	
 	public static Set<Integer> act(Set<Integer> set, Permutation p) {
@@ -2788,6 +2809,11 @@ public class PermutationGroupFunctions {
 		 return check;
 	 }
 	 
+	 /**
+	  * Grund 1.1.16
+	  * @param list
+	  * @return
+	  */
 	 public static ArrayList<Permutation> partitionYoungGroup(ArrayList<Integer> list) {
 		 ArrayList<Permutation> perms= new ArrayList<Permutation>();
 		 PermutationGroup grp= PermutationGroup.makeSymN(sum(list));
@@ -3559,7 +3585,7 @@ public class PermutationGroupFunctions {
 	  */
 	 public static ArrayList<Integer> partitionRule(ArrayList<Integer> partEx, int degree){
 		 ArrayList<Integer> partNew = new ArrayList<Integer>();
-		 if(partEx.get(degree-1)>1) {
+		 if(partEx.get(degree-1)>1) { //Indices starts with zero that is why -1
 			 addOnes(partNew,degree);
 			 partNew.add(partEx.get(degree-1)-1);
 			 for(int k=degree;k<partEx.size();k++) {
@@ -3567,7 +3593,7 @@ public class PermutationGroupFunctions {
 			 }
 		 }else if(partEx.get(degree-1)==1) {
 			 addOnes(partNew,degree);
-			 for(int k=degree;k<partEx.size();k++) {
+			 for(int k=degree+1;k<partEx.size();k++) {
 				 partNew.add(partEx.get(k));
 			 }
 		 }
@@ -3576,7 +3602,8 @@ public class PermutationGroupFunctions {
 	 
 	 public static ArrayList<Integer> partition(ArrayList<Integer> part, int degree){
 		 for(int i=1;i<=degree;i++) {
-			 part=partitionRule(part,i);
+			 ArrayList<Integer> part2=partitionRule(part,i);
+			 part=part2;
 		 }
 		 return part;
 	 }
@@ -3665,6 +3692,24 @@ public class PermutationGroupFunctions {
 		 return vReps;
 	 }
 	 
+	 
+	 /**
+	  * 3.3.7 Must take a matrix strip as the input. The matrix strip function is not needed.
+	  */
+	 
+	 public static ArrayList<Permutation> leftClassRepIndices(PermutationGroup group, int  index, int[] strip) {
+		 ArrayList<Permutation> vReps= new ArrayList<Permutation>();
+		 List<Permutation> perms=group.getLeftTransversal(index);
+		 for(Permutation perm:perms) {
+			for(Permutation perm2:perms) {
+				if(Arrays.equals(strip, act(strip,perm2.multiply(perm)))){
+					vReps.add(perm2);
+				}
+			}
+		 }
+		 return vReps;
+	 }
+	 
 	 /**
 	  * 3.3.7 Left Coset indices vij permutations. 
 	  */
@@ -3699,6 +3744,47 @@ public class PermutationGroupFunctions {
 		 }
 		 return perms;
 	 }
+	 /**
+	  * 3.3.8. The function is not clearly explained and might be wrong. 
+	  * The action should act on a matrix line not the partitioning.
+	  * Should return also a canonical permutation; the one puting the
+	  * row entries in descending order. 
+	  * @param 
+	  * @return
+	  */
+	 
+	 public static ArrayList<Permutation> canonicalPermutation(ArrayList<Permutation> group, int[] array){
+		 ArrayList<Permutation> perms= new ArrayList<Permutation>();
+		 int[] canCheck = new int[array.length];
+		 for(Permutation perm: group) {
+			 canCheck = act(array,perm);
+			 if(desOrderCheck(canCheck)) {
+				 perms.add(perm);
+			 }
+			 break;
+		 }
+		 return perms;
+	 }
+	 
+	 /**
+	  * 3.3.9. Refined partition
+	  */
+	 
+	 public static ArrayList<Integer> refinedPartitioning(ArrayList<Integer> partition, int[] row){
+		 ArrayList<Integer> refined= new ArrayList<Integer>();
+		 int count=1;
+		 for(Integer p:partition) {
+			 for(int i=0;i<p;i++) { //Bu arti bir sknt yaratir.
+				 if(row[i]==row[i+1]) {
+					 count++;
+				 }else {
+					 count=1;
+					 refined.add(count);
+				 }
+			 }
+		 }
+		 return refined;
+	 }
 	 
 	 /**
 	  * Descending order check for two arrays
@@ -3722,8 +3808,8 @@ public class PermutationGroupFunctions {
 	  */
 	 
 	 public static ArrayList<Integer> lineCriteria(ArrayList<Integer> part, int degree){
-		 ArrayList<Integer> newPart= partition(part,degree-1);
-		 return partition(newPart, 2);
+		 ArrayList<Integer> newPart= subPartition(part,degree-1);
+		 return partition(partition(newPart,1), 2);
 	 }
 	 
 	 /**
@@ -3735,6 +3821,23 @@ public class PermutationGroupFunctions {
 		 for(int i=1;i<A.length;i++) {
 			 ArrayList<Permutation> perms=group4Partition(lineCriteria(part, i-1));
 			 if(!groupActionVectors(A[i],perms)) {
+				 check=false;
+				 break;
+			 }
+		 }
+		 return check;
+	 }
+	 
+	 public static boolean canonicalLineTest(int[][] A, ArrayList<Integer> partition) {
+		 boolean check=true;
+		 for(int i=0; i<A[0].length;i++) {
+			 ArrayList<Permutation> perms=partitionYoungGroup(partition);
+			 ArrayList<Permutation> canonicalPerm=canonicalPermutation(perms,A[i]);
+			 if(canonicalPerm.size()!=0) {
+				 A[i]=act(A[i],canonicalPerm.get(0));
+				 partition=partition(refinedPartitioning(partition,A[i]),2);
+				 A[i]=act(A[i],canonicalPerm.get(0));
+			 }else {
 				 check=false;
 				 break;
 			 }
@@ -3879,9 +3982,9 @@ public class PermutationGroupFunctions {
 		 mat[4][1]=0;
 		 
 		 ArrayList<Integer> list= new ArrayList();
-		 list.add(2);
+		 list.add(3);
 		 list.add(1);
-		 list.add(2);
+		 list.add(6);
 		 
 		 int[] w= new int[10];
 		 w[0]=0;
@@ -3895,9 +3998,7 @@ public class PermutationGroupFunctions {
 		 w[8]=0;
 		 w[9]=1;
 		 
-		 
-		 ArrayList<Integer> partition= partition(list,4);
-		 System.out.println(partition);
+		 System.out.println(partition(list,1));
 		 //System.out.println(LValue(list,4));
 	
 
