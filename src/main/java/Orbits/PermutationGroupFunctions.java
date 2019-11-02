@@ -3674,6 +3674,45 @@ public class PermutationGroupFunctions {
 	 }
 	 
 	 /**
+	  * Grund 3.3.3 Group tree cycles for cosets
+	  * @param index i power of the partition
+	  * @param partition partition
+	  * @return List<int[]> list of components as described in Grund Thesis 3.3.3
+	  */
+	 
+	 public static List<int[]> cycleComponents(int index, ArrayList<Integer> partition){
+		 List<int[]> components= new ArrayList<int[]>();
+		 int lValue= LValue(partition,index);
+		 for(int j=1;j<=lValue;j++) {
+			 int[] component=new int[2];
+			 component[0]=index;
+			 component[1]=j+index-1;
+			 components.add(component);
+		 }
+		 return components;
+	 }
+	 
+	 /**
+	  * Grund 3.3.5. Coset components as described for Ui-1/Ui
+	  * Here, the Ui is the left coset of i index in the permutation group.
+	  * It returns the list of permutation components of cosets.
+	  * @param Ui The ith left coset
+	  * @param partition partition
+	  * @param index left coset index 
+	  * @return List<Permutation> list of permutation components.
+	  */
+	 
+	 public static List<Permutation> cosetComponents(List<Permutation> Ui,ArrayList<Integer> partition, int index){
+		 List<Permutation> perms= new ArrayList<Permutation>();
+		 int lValue= LValue(partition,index);
+		 for(int j=2;j<lValue;j++) {
+			 perms.add(Ui.get(j));
+		 }
+		 return perms;
+	 }
+	 
+	 
+	 /**
 	  * Definition 1.1.16
 	  * 
 	  */
