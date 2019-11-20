@@ -347,6 +347,11 @@ public class PermutationGroupFunctions {
 	    }
 	};
 	
+	/**
+	 * (Done)
+	 * @param line
+	 * @return
+	 */
 	public static boolean desOrderCheck(int[] line) {
 		boolean check=true;
 		int length=line.length;
@@ -1243,23 +1248,6 @@ public class PermutationGroupFunctions {
 		return generators;
 	}
 	
-	/**
-	 * Grund 1.1.6 
-	 * Generating the permutation group for a partition.
-	 * Here, the generators of all the symmetry groups are taken. 
-	 * This function returns us the Young subgroup of a partition. 
-	 * @param partition int partition.
-	 * @return PermutationGroup Young subgroup
-	 */
-	
-	public static PermutationGroup getPermutationGroup(ArrayList<Integer> partition, int total) {
-		List<int[]> parts=subPartitions(partition);
-		List<Permutation> generators= new ArrayList<Permutation>();
-		for(int[] part: parts) {
-			generators.addAll(getGenerators(part,total));
-		}
-		return generateGroup(generators,total);
-	}
 	
 	/**
 	 * Counts the number of graphs by the acting of the permutation group
@@ -3221,6 +3209,7 @@ public class PermutationGroupFunctions {
 	 /**
 	  * 3.2.7 C2 matrix
 	  */
+	 
 	 public static ArrayList[][] multC2Matrix(int[][]A, int m){
 		 int size= A.length;
 		 int[][] mult=multiplicityMat(A,m);
@@ -3607,19 +3596,6 @@ public class PermutationGroupFunctions {
 	 }
 	 
 	 /**
-	  * 3.3.11 Permutation Group Action on a Matrix Row
-	  */
-	 public static boolean groupActionVectors(int[] a, ArrayList<Permutation> perms) {
-		 boolean check=true;
-		 for(Permutation perm:perms) {
-			 if(!desOrderCheck(a,permutationAction(a,perm))) {
-				 check=false;
-				 break;
-			 }
-		 }
-		 return check;
-	 }
-	 /**
 	  * Definition 3.3.2
 	  * Partition generation
 	  */
@@ -3640,9 +3616,292 @@ public class PermutationGroupFunctions {
 		 return partNew;
 	 }
 	 
+	 
+	 /**
+	  * Clean and tested functions for Grund Thesis 
+	  */
+	
+	 
+	 /**
+	  *	Grund Thesis 3.3.2 Partitioning criteria (DONE)  
+	  * @param partEx the former partition
+	  * @param degree degree of the partitioning.
+	  * @return
+	  */
+	 
+	 public static ArrayList<Integer> partitionCriteria(ArrayList<Integer> partEx, int degree){
+		 ArrayList<Integer> partNew = new ArrayList<Integer>();
+		 addOnes(partNew,degree);
+		 if(partEx.get(degree-1)>1) {
+			 partNew.add(partEx.get(degree-1)-1);
+			 for(int k=degree;k<partEx.size();k++) {
+				 partNew.add(partEx.get(k));
+			 }
+		 }else if(partEx.get(degree-1)==1){
+			 for(int k=degree;k<partEx.size();k++) {
+				 partNew.add(partEx.get(k));
+			 }
+		 }
+		 return partNew;
+	 }
+	 
+	 /**
+	  * Grund 3.3.2: Repartitioning a partition  (of degree zero) for a given degree.  (DONE)
+	  * @param partEx partition with zero 
+	  * @param degree repartitioning degree
+	  * @return
+	  */
+	 
+	 public static ArrayList<Integer> partitionWDegree(ArrayList<Integer> partEx, int degree){
+		 for(int i=1;i<=degree;i++) {
+			 partEx=partitionCriteria(partEx,i);
+		 }
+		 return partEx;
+	 }
+	 
+	 /**
+	  * Line criteria partitioning to implement on refined partition (DONE)
+	  * @param refinedPartition refined partition based on matrix row.
+	  * @return
+	  */
+	 
+	 public static ArrayList<Integer> partitionLineCriteria(ArrayList<Integer> refinedPartition){
+		 ArrayList<Integer> partNew = new ArrayList<Integer>();
+		 addOnes(partNew,2);
+		 if(refinedPartition.get(1)>1) {
+			 partNew.add(refinedPartition.get(1)-1);
+			 for(int k=2;k<refinedPartition.size();k++) {
+				 partNew.add(refinedPartition.get(k));
+			 }
+		 }else if(refinedPartition.get(1)==1){
+			 for(int k=2;k<refinedPartition.size();k++) {
+				 partNew.add(refinedPartition.get(k));
+			 }
+		 }
+		 return partNew;
+	 }
+	 
+	 /**
+	  * This desCheck is used to check whether the blocks of a row is in
+	  * descending order or not. Rather than creating another function
+	  * this function also returns the descending order check and terminates
+	  * if the block is not in descending order. If the desCheck is not true
+	  * then the matrix is not canonical.
+	  */
+	 
+	 public static boolean desCheck=true; 
+	 
+	 /**
+	  * Refined Partition - Grund 3.3.11
+	  * Create the refined partition from the new row. The occurences of
+	  * the numbers in the blocks of the row. 
+	  * @param partition Partition
+	  * @param row int[] row of a matrix to check canonicality. 
+	  * @return
+	  */
+	 
+	 public static ArrayList<Integer> refinedPartitioning(ArrayList<Integer> partition, int[] row){
+		 ArrayList<Integer> refined= new ArrayList<Integer>();
+		 int index=0;
+		 int count=1;
+		 for(Integer p:partition) {
+			 for(int i=index;i<p+index;i++) {
+				 if(i+1<p+index) {
+					 if(row[i]==row[i+1]) {
+						 count++;
+					 }else if(row[i]>row[i+1]){
+						 refined.add(count);
+						 count=1;
+					 } else {
+						 desCheck=false;
+						 break;
+					 }
+				 }else {
+					 refined.add(count);
+					 count=1;
+				 }
+			 }
+			 index=index+p;
+		 }
+		 return refined;
+	 }
+	 
+	 /**
+	  * (DONE) 3.3.8. Canonical Permutation 
+	  * The action should act on a matrix line based on partitioning
+	  * Should return also a canonical permutation; the one puting the
+	  * row entries in descending order with respoect to the blocks. 
+	  * @param group PermutationGroup created by the partition info
+	  * @param partition Partition
+	  * @param array row of a matrix
+	  * @return
+	  */
+	 
+	 public static ArrayList<Permutation> canonicalPermutation(PermutationGroup group, ArrayList<Integer> partition, int[] array){
+		 ArrayList<Permutation> perms= new ArrayList<Permutation>();
+		 int[] canCheck = new int[array.length];
+		 for(Permutation perm: group.all()) {
+			 canCheck = act(array,perm);
+			 if(desBlockCheck(partition,canCheck)) {
+				 perms.add(perm);
+			 }
+			 break;
+		 }
+		 return perms;
+	 }
+	 
+	 /**
+	  * To check whether the blocks of a row array is in descending order.
+	  * @param partition refined partition 
+	  * @param row row of a matrix
+	  * @return
+	  */
+	 
+	 public static boolean desBlockCheck(ArrayList<Integer> partition, int[] row){
+		 boolean check=true;
+		 int index=0;
+		 for(Integer p:partition) {
+			 for(int i=index;i<p+index;i++) {
+				 if(i+1<p+index) {
+					 if(row[i]<row[i+1]) {
+						 check=false;
+						 break;
+					 }
+				 }
+			 }
+			 index=index+p;
+		 }
+		 return check;
+	 }
+	 
+	 public static boolean desBlockCheck(ArrayList<Integer> partition, int[] row, int[] modified){
+		 boolean check=true;
+		 int index=0;
+		 for(Integer p:partition) {
+			 for(int i=index;i<p+index;i++) {
+				 if(row[i]<modified[i]) {
+					 check=false;
+					 break;
+				 }
+			 }
+			 index=index+p;
+		 }
+		 return check;
+	 }
+	 
+	 
+	 /**
+	  * Grund 1.1.6 (Done)
+	  * Generating the permutation group for a partition.
+	  * Here, the generators of all the symmetry groups are taken. 
+	  * This function returns us the Young subgroup of a partition. 
+	  * @param partition int partition.
+	  * @return PermutationGroup Young subgroup
+	  */
+		
+	public static PermutationGroup getPermutationGroup(ArrayList<Integer> partition, int total) {
+		List<int[]> parts=subPartitions(partition);
+		List<Permutation> generators= new ArrayList<Permutation>();
+		for(int[] part: parts) {
+			generators.addAll(getGenerators(part,total));
+		}
+		return generateGroup(generators,total);
+	}
+	
+	/**
+	* 3.3.11 Canonical Line Test (Done)
+	* @param A int matrix
+	* @param partition given degree partition
+	* @param total sum of degree distribution
+	* @return
+	*/
+	 
+	/**public static boolean canonicalLineTest(int[][] A, ArrayList<Integer> partition, int total) {
+		boolean check=true;
+		for(int i=0; i<A[0].length;i++) {
+			PermutationGroup group=getPermutationGroup(partition,total);
+			ArrayList<Permutation> canonicalPerm=canonicalPermutation(group,A[i]);
+			if(canonicalPerm.size()!=0) {
+				A[i]=act(A[i],canonicalPerm.get(0));
+				partition=partition(refinedPartitioning(partition,A[i]),2);
+				A[i]=act(A[i],canonicalPerm.get(0));
+			}else {
+				check=false;
+				break;
+			}
+		}
+		return check;
+	}**/
+	
+	public static boolean canonicalLineTest(int[][] A, ArrayList<Integer> partition, int total) {
+		boolean check=true;
+		partition=partitionWDegree(partition,2);
+		for(int i=0; i<A[0].length;i++) {
+			PermutationGroup group=getPermutationGroup(partition,total);
+			/**
+			 * We prefered to have ArrayList return since there is no canonical
+			 * permutation for some cases. We check with the list size.
+			 */
+			if(canonicalRowCheck(A[0],group,partition)) {
+				partition=refinedPartitioning(partition,A[i]);
+			}else {
+				check=false;
+				break;
+			}
+		}
+		return check;
+	}
+	 
+	/**
+	 * Grund 3.1.6. Canonical Test Step 5
+	 * 
+	 * As explained in 3.1.6, I should check with all the permutations 
+	 * of the automorphism group. Descending order check is based on partition
+	 * as given in 3.3.8.
+	 * @param row row of a matrix
+	 * @param group Permutation group built with respect to the partition
+	 * @return
+	 */
+	
+	
+	public static boolean canonicalRowCheck(int[] row, PermutationGroup group, ArrayList<Integer> partition) {
+		boolean check=true;
+		for(Permutation perm: group.all()) {
+			if(!desBlockCheck(partition,row,act(row,perm))) {
+				check=false;
+				break;
+			}
+		}
+		return check;
+	}
+	
+	
+	/**
+	* 3.3.11 Canonical Line Test (Done)
+	* @param A int array
+	* @param partition given degree partition
+	* @param total
+	* @return
+	*/
+	 
+	public static boolean canonicalLineTest(int[] A, ArrayList<Integer> partition, int total) {	
+		boolean check=true;
+		PermutationGroup group=getPermutationGroup(partition,total);
+		if(!canonicalRowCheck(A,group,partition)) {
+			check=false;
+		}
+		return check;
+	}
+	
+	
+	/**
+	 * ****************************************************
+	 */
+	
+	
 	 public static ArrayList<Integer> partition(ArrayList<Integer> part, int degree){
 		 for(int i=1;i<=degree;i++) {
-			 ArrayList<Integer> part2=partitionRule(part,i);
+			 ArrayList<Integer> part2 = partitionRule(part,i);
 			 part=part2;
 		 }
 		 return part;
@@ -3713,11 +3972,11 @@ public class PermutationGroupFunctions {
 	 
 	 
 	 /**
-	  * Definition 1.1.16
+	  * Definition 1.1.16 (DONE)
 	  * 
 	  */
 	 
-	 public static int[] subPartition(ArrayList<Integer> partition, int index){
+	 public static ArrayList<Integer> subPartition(ArrayList<Integer> partition, int index){
 		 ArrayList<Integer> sub= new ArrayList<Integer>();
 		 int former = sum(partition,index-1)+1;
 		 int latter = sum(partition,index);
@@ -3728,9 +3987,27 @@ public class PermutationGroupFunctions {
 				 sub.add(i);
 			 }
 		 }
-		 return toIntArray(sub);
+		 return sub;
 	 }
+		
+	 /**
+	  * Definition 1.1.16 (DONE)
+	  * 
+	  */
 	 
+	 public static int[] subPartition(int[] partition, int index){
+		 int[] sub= new int[0];
+		 int former = sum(partition,index-1)+1;
+		 int latter = sum(partition,index);
+		 if(former==latter) {
+			 addElement(sub,former);
+		 }else {
+			 for(int i=former;i<=latter;i++) {
+				 addElement(sub,i);
+			 }
+		 }
+		 return sub;
+	 }
 	 
 	 public static List<int[]> subPartitions(ArrayList<Integer> partition){
 		 List<int[]> parts = new ArrayList<int[]>();
@@ -3747,9 +4024,11 @@ public class PermutationGroupFunctions {
 		 }
 		 return array;
 	 }
+	 
+	 
 	 public static boolean automorphismPermutationCheck(Permutation perm, ArrayList<Integer> part) {
 		 boolean check=true;
-		 for(ArrayList<Integer> list: subPartitions(part)) {
+		 for(int[] list: subPartitions(part)) {
 			 list=decreaseOne(list);
 			 if(!list.containsAll(act(list,perm))) {
 				 check=false;
@@ -3817,62 +4096,7 @@ public class PermutationGroupFunctions {
 		 return vReps;
 	 }
 	 
-	 /**
-	  * 3.3.8 Canonizor Permutations
-	  */
-	 
-	 public static ArrayList<Permutation> group4Partition(ArrayList<Integer> part){
-		 ArrayList<Permutation> perms= new ArrayList<Permutation>();
-		 PermutationGroup group= PermutationGroup.makeSymN(sum(part));
-		 for(Permutation perm: group.all()) {
-			 if(automorphismPermutationCheck(perm,part)) {
-				 perms.add(perm);
-			 }
-		 }
-		 return perms;
-	 }
-	 /**
-	  * 3.3.8. The function is not clearly explained and might be wrong. 
-	  * The action should act on a matrix line not the partitioning.
-	  * Should return also a canonical permutation; the one puting the
-	  * row entries in descending order. 
-	  * @param 
-	  * @return
-	  */
-	 
-	 public static ArrayList<Permutation> canonicalPermutation(PermutationGroup group, int[] array){
-		 ArrayList<Permutation> perms= new ArrayList<Permutation>();
-		 int[] canCheck = new int[array.length];
-		 for(Permutation perm: group.all()) {
-			 canCheck = act(array,perm);
-			 if(desOrderCheck(canCheck)) {
-				 perms.add(perm);
-			 }
-			 break;
-		 }
-		 return perms;
-	 }
-	 
-	 /**
-	  * 3.3.9. Refined partition
-	  */
-	 
-	 public static ArrayList<Integer> refinedPartitioning(ArrayList<Integer> partition, int[] row){
-		 ArrayList<Integer> refined= new ArrayList<Integer>();
-		 int count=1;
-		 for(Integer p:partition) {
-			 for(int i=0;i<p;i++) { //Bu arti bir sknt yaratir.
-				 if(row[i]==row[i+1]) {
-					 count++;
-				 }else {
-					 count=1;
-					 refined.add(count);
-				 }
-			 }
-		 }
-		 return refined;
-	 }
-	 
+	 	 
 	 /**
 	  * Descending order check for two arrays
 	  */
@@ -3891,7 +4115,7 @@ public class PermutationGroupFunctions {
 	 
 	 
 	 /**
-	  * 3.3.11. Getting second degree partitioning of the second degree partition
+	  * 3.3.11. Getting second degree partitioning of the second degree partition (DONE)
 	  */
 	 
 	 public static ArrayList<Integer> lineCriteria(ArrayList<Integer> part, int degree){
@@ -3900,7 +4124,9 @@ public class PermutationGroupFunctions {
 	 }
 	 
 	 /**
-	  * Canonical Test 3.3.11
+	  * Canonical Test 3.3.11 (This is when we have group elements are arrayList.
+	  * But if we keep it as PermutationGroup, it will be easier for us to access
+	  * to the leftTraversals.
 	  */
 	 
 	 public static boolean canonicalTest(int[][] A, ArrayList<Integer> part) {
@@ -3915,16 +4141,28 @@ public class PermutationGroupFunctions {
 		 return check;
 	 }
 	 
-	 public static boolean canonicalLineTest(int[][] A, ArrayList<Integer> partition, int total) {
+	 /**
+	  * 3.3.8 Canonizor Permutations
+	  */
+	 
+	 public static ArrayList<Permutation> group4Partition(ArrayList<Integer> part){
+		 ArrayList<Permutation> perms= new ArrayList<Permutation>();
+		 PermutationGroup group= PermutationGroup.makeSymN(sum(part));
+		 for(Permutation perm: group.all()) {
+			 if(automorphismPermutationCheck(perm,part)) {
+				 perms.add(perm);
+			 }
+		 }
+		 return perms;
+	 }
+	 
+	 /**
+	  * 3.3.11 Permutation Group Action on a Matrix Row
+	  */
+	 public static boolean groupActionVectors(int[] a, ArrayList<Permutation> perms) {
 		 boolean check=true;
-		 for(int i=0; i<A[0].length;i++) {
-			 PermutationGroup group=getPermutationGroup(partition,total);
-			 ArrayList<Permutation> canonicalPerm=canonicalPermutation(group,A[i]);
-			 if(canonicalPerm.size()!=0) {
-				 A[i]=act(A[i],canonicalPerm.get(0));
-				 partition=partition(refinedPartitioning(partition,A[i]),2);
-				 A[i]=act(A[i],canonicalPerm.get(0));
-			 }else {
+		 for(Permutation perm:perms) {
+			 if(!desOrderCheck(a,permutationAction(a,perm))) {
 				 check=false;
 				 break;
 			 }
@@ -4069,27 +4307,26 @@ public class PermutationGroupFunctions {
 		 mat[4][1]=0;
 		 
 		 ArrayList<Integer> list= new ArrayList();
-		 list.add(3);
-		 list.add(1);
-		 list.add(6);
+		 
+		 list.add(2);
+		 list.add(4);
+		 list.add(4);
 		 
 		 int[] w= new int[10];
 		 w[0]=0;
-		 w[1]=2;
+		 w[1]=0;
 		 w[2]=1;
-		 w[3]=0;
-		 w[4]=3;
-		 w[5]=1;
+		 w[3]=1;
+		 w[4]=1;
+		 w[5]=0;
 		 w[6]=0;
-		 w[7]=1;
+		 w[7]=0;
 		 w[8]=0;
-		 w[9]=1;
+		 w[9]=0;
 		 
-		 System.out.println(partition(list,1));
+		System.out.println(desBlockCheck(list,w));
+		 //System.out.println(partition(list,1));
 		 //System.out.println(LValue(list,4));
-	
-
-		 
 		 //canonicalMatrix2(mat,2);
 		 
 		 /**IAtomContainer ac = new AtomContainer();
