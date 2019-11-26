@@ -49,6 +49,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import org.apache.commons.cli.CommandLine;
@@ -1248,10 +1249,169 @@ public class PermutationGroupFunctions {
 		return generators;
 	}
 	
+	/**
+	 * This is the Younggroup for a given partition.
+	 * Here, without generators, we just go through all the permutations in the main group.
+	 * We check for each permutation, whether they keep the partition the same or modify it.
+	 * getYounggroupL indicates list. So output is a List<Permutation>
+	 * 
+	 * @param partition occurences of the atoms as the partition.
+	 * @param total number of atoms
+	 * @return
+	 */
+	
+	public static List<Permutation> getYoungGroupL(ArrayList<Integer> partition,int total){
+		PermutationGroup group  = PermutationGroup.makeSymN(total);
+		ArrayList<ArrayList<Integer>> parts=subPartitionsList(partition);
+		List<Permutation> perms= new ArrayList<Permutation>();
+		for(Permutation perm:group.all()) {
+			if(actOnPartition(parts,perm)) {
+				perms.add(perm);
+			}
+		}
+		return perms;
+	}
+	
+	public static boolean actOnPartition(ArrayList<ArrayList<Integer>> subParts, Permutation p){
+		ArrayList<Integer> mod= new ArrayList<Integer>();
+		boolean check=true;
+		for(ArrayList<Integer> part: subParts) {
+			mod=act(part,p);
+			mod.sort(DES_ORDER);
+			if(!listEqual(part,mod)) {
+				check=false;
+			}
+		}
+		return check;
+	}
+	
+	public static ArrayList<Integer> listToArr(int[] arr){
+		ArrayList<Integer> list= new ArrayList<Integer>();
+		for(int i=0;i<arr.length;i++) {
+			list.add(arr[i]);
+		}
+		list.sort(DES_ORDER);
+		return list;
+	}
+	
+	public static boolean listEqual(ArrayList<Integer> list, ArrayList<Integer> list2) {
+		boolean check=true;
+		for(int i=0;i<list.size();i++) {
+			if(list.get(i)!=list2.get(i)) {
+				check=false;
+				break;
+			}
+		}
+		return check;
+	}
 	
 	/**
-	 * Counts the number of graphs by the acting of the permutation group
+	 * Example: For a set {5,6,7} we need to get S3. Generators are (12) and (123).
+	 * This 1 2 3 are the indices of the set elements. So we need to replace them 
+	 * with the values. The generators also should start with 0 1 2 until 5. So
+	 * If the size of the total partition is 10; the generators are
 	 * 
+	 * [0,1,2,3,4,6,5,7,8,9]
+	 * [0,1,2,3,4,6,7,5,8,9]
+	 *  
+	 * @param subPart sub partition
+	 * @param total partition size
+	 * @return
+	 */
+	
+	public static List<Permutation> getYoungsubgroupGenerator(ArrayList<Integer> subPart, int total){
+		List<Permutation> perms= new ArrayList<Permutation>();
+		int setSize= subPart.size();
+		int[] id= idValues(total);
+		if(setSize==1) {
+			perms.add(new Permutation(id));
+		}else if(setSize==2) {
+			id[subPart.get(0)]   = subPart.get(0)+1;
+			id[subPart.get(0)+1] = subPart.get(0);
+			perms.add(new Permutation(id));
+		}else {
+			
+			/**
+			 * The first generator with length 2 which is (1,2)
+			 */
+			
+			int firstIndex= subPart.get(0);
+			id[firstIndex]  = firstIndex+1;
+			id[firstIndex+1]= firstIndex;
+			Permutation gen1= new Permutation(id);
+			perms.add(gen1);
+			
+			/**
+			 * The second generator with the full ( 1,2,..,n)
+			 */
+			
+			Permutation gen2= new Permutation(fullValues(total,firstIndex,firstIndex+setSize));
+			perms.add(gen2);
+			
+		}
+		return perms;
+	}
+	
+	/**
+	 * Getting the list of generator permutations for all the sub partitions.
+	 * @param partition Atom partition
+	 * @param total number of atoms
+	 * @return
+	 */
+	
+	public static List<Permutation> getYoungsubgroupGenerators(ArrayList<Integer> partition,int total){
+		ArrayList<ArrayList<Integer>> parts=subPartitionsList(partition);
+		List<Permutation> perms= new ArrayList<Permutation>();
+		for(ArrayList<Integer> part:parts) {
+			perms.addAll(getYoungsubgroupGenerator(part,total));
+		}
+		return perms;
+	}
+	
+	/**
+	 * Youngsubgroup generation based on the generator permutations. These permutations are built for
+	 * each sub partitions
+	 * @param partition atom partition
+	 * @param size number of atoms
+	 * @return
+	 */
+	public static PermutationGroup getYoungGroup(ArrayList<Integer> partition, int size) {
+		return generateGroup(getYoungsubgroupGenerators(partition,size),size); 
+	}
+	
+	/**
+	 * Values for an id permutation for a given size
+	 * @param size 
+	 * @return
+	 */
+	
+	public static int[] idValues(int size) {
+		int[] id= new int[size];
+		for(int i=0;i<size;i++) {
+			id[i]=i;
+		}
+		return id;
+	}
+	
+	/**
+	 * Values for the second generator permutation - with the full ( 1,2,..,n)
+	 * @param id the id values
+	 * @param begin first value in the sub partition
+	 * @param end	the last value in the sub partition
+	 * @return
+	 */
+	
+	public static int[] fullValues(int total, int begin, int end) {
+		int[] id=idValues(total);
+		for(int i=begin;i<end-1;i++) {
+			id[i]=i+1;
+		}
+		id[end-1]=begin;
+		return id;
+	}
+	
+	/**
+	 * Counts the number of graphs by the acting of the permutation group 
 	 * @param group a permutation group
 	 * @param m multiplicity
 	 * @return number of graphs
@@ -1719,6 +1879,7 @@ public class PermutationGroupFunctions {
 	 * @param subSets the list of subsets
 	 * @return the minimal orbit representative of the subsets
 	 */
+	
 	public static ArrayList<Integer> minRep(PermutationGroup group, ArrayList<ArrayList<Integer>> subSets) {
 		ArrayList<Integer> min= new ArrayList<Integer>();
 		for(ArrayList<Integer> set: subSets) {
@@ -3259,23 +3420,6 @@ public class PermutationGroupFunctions {
 		 }
 		 return C;
 	 }
-	 //Page 35 l inverse and c inverse formulas.
-	 public static int LInverse(ArrayList<Integer> degrees, int i, int j, int[][]A) {
-		 int sum=0;
-		 for(int s=0;s<j;s++) {
-			 sum=sum+A[i][s];
-		 }
-		 return degrees.get(i)-sum;
-	 }
-	 
-	 public static int CInverse(ArrayList<Integer> degrees, int i, int j, int[][]A) {
-		 int sum=0;
-		 for(int s=0;s<i;s++) {
-			 sum=sum+A[s][j];
-		 }
-		 return degrees.get(j)-sum;
-	 }
-	 
 	 
 	 //Set diagonal to zeros.
 	 public static void zeroDiagonal(int[][] mat) {
@@ -3302,73 +3446,7 @@ public class PermutationGroupFunctions {
 		 return number;
 	 }
 	 
-	 // Algorithm 3.2.3
-	 public static void canonicalMatrix(ArrayList<Integer> degrees) throws IOException{
-		 int size    = degrees.size();
-		 int[][] A   = new int[size][size];
-		 int[][] max = maximalMatrix(degrees);
-		 int[][] L   = upperTriangularL(degrees);
-		 int[][] L2  = upperTriangularL2(degrees,A);
-		 int[][] C   = upperTriangularC(degrees);
-		 int[][] C2  = upperTriangularC2(degrees,A);
-		 ArrayList<Integer> indices= new ArrayList<Integer>();
-		 indices.add(0);
-		 indices.add(1);
-		 zeroDiagonal(A);
-		 forward(degrees,A,max,L,C,indices);
-	 }
 	 
-	 //3.2.3. Step forward
-	 public static void forward(ArrayList<Integer> degrees,int[][] A, int[][]max, int[][]L, int[][]C, ArrayList<Integer> indices) throws IOException {
-		 int i=indices.get(0);
-		 int j=indices.get(1);
-		 int l2= LInverse(degrees,i,j,A);
-		 int c2= CInverse(degrees,i,j,A);
- 		 int minimal= Math.min(max[i][j],Math.min(l2,c2));
- 		 for(int h=minimal;h>=0;h--) {
- 			if((l2-h<=L[i][j]) && (c2-h<=C[i][j])) {
- 				 A[i][j]=A[j][i]=h;
- 				 //System.out.println(h);
- 				 //System.out.println("forward"+" "+i+" "+j+" "+A[i][j]);
- 				 if(i==(max.length-2) && j==(max.length-1)) {
- 					 backward(degrees,A, max,L, C, indices);
- 				 }else {
- 					 ArrayList<Integer> modified=successor(indices,max.length);
- 					 forward(degrees,A, max, L, C, modified);
- 				 }
- 			 }else {
- 				 backward(degrees,A, max, L, C, indices);
- 			 }
- 		 }
-	 }
-	 
-	 public static int count=0;
-	 //3.2.3 Step backward
-	 public static void backward(ArrayList<Integer> degrees,int[][] A, int[][]max, int[][]L, int[][]C, ArrayList<Integer> indices) throws IOException {
-		 int i=indices.get(0);
-		 int j=indices.get(1);
-		 int l2= LInverse(degrees,i,j,A);
-		 int c2= CInverse(degrees,i,j,A);
-		 if(i==max.length-2 && j==max.length-1) {
-			 count++;
-			 writeMatrix(A);
-		 }else{
-			 ArrayList<Integer> modified=predecessor(indices, max.length);
-			 i= modified.get(0);
-			 j= modified.get(1);
-			 if(i>0 && j-i==1) {
-				 int x= A[i][j];
-				 if(x>0 && (l2-(x-1)<=L[i][j]) && (c2-(x-1)<=C[i][j])) {
-					 A[i][j]=A[j][i]=x-1;
-					 //System.out.println("back"+" "+i+" "+j+" "+A[i][j]);
-					 ArrayList<Integer> modified2=successor(modified,max.length);
-					 forward(degrees,A, max, L, C, modified2);
-				 }else {
-					 backward(degrees, A, max, L, C, modified);
-				 }
-			 }
-		 }
-	 }
 	 
 	 
 	// Algorithm 3.2.9
@@ -3463,37 +3541,7 @@ public class PermutationGroupFunctions {
 			}
 		}
 	}
-	 
-	public static ArrayList<Integer> successor(ArrayList<Integer> indices, int size) {
-		 int i0= indices.get(0);
-		 int i1= indices.get(1);
-		 ArrayList<Integer> modified= new ArrayList<Integer>();
-		 //if(i0!=size-2 && i1!=size-1) {
-			 if(i1==size-1) {
-				 modified.add(i0+1);
-				 modified.add(i0+2);
-			 }else if(i1<size-1) {
-				 modified.add(i0);
-				 modified.add(i1+1);
-			 }
-		 //}
-		 return modified;
-	 }
-	 
-	 public static ArrayList<Integer> predecessor(ArrayList<Integer> indices, int size) {
-		 int i0= indices.get(0);
-		 int i1= indices.get(1);
-		 ArrayList<Integer> modified= new ArrayList<Integer>();
-		 if(i0==i1-1) {
-			 modified.add(i0-1);
-			 modified.add(size-1);
-		 }else {
-			 modified.add(i0);
-			 modified.add(i1-1);
-		 }
-		 return modified;
-	 }
-	 
+	  
 	 public static void printMatrix(int[][] mat) {
 		for (int[] row : mat) {	 
 			System.out.println(Arrays.toString(row)); 
@@ -3621,13 +3669,234 @@ public class PermutationGroupFunctions {
 	  * Clean and tested functions for Grund Thesis 
 	  */
 	
+	/** 
+	 * Grund Thesis - Algorithm 3.2.3 (DONE)
+	 * Simple multigraph generation
+	 * @param degrees atom valences  
+	 * @throws IOException
+	 */
 	 
-	 /**
-	  *	Grund Thesis 3.3.2 Partitioning criteria (DONE)  
-	  * @param partEx the former partition
-	  * @param degree degree of the partitioning.
-	  * @return
-	  */
+	public static void canonicalMatrix(ArrayList<Integer> degrees, ArrayList<Integer> partition) throws IOException{
+		int size    = degrees.size();
+		int[][] A   = new int[size][size];
+		int[][] max = maximalMatrix(degrees);
+		int[][] L   = upperTriangularL(degrees);
+		int[][] L2  = upperTriangularL2(degrees,A);
+		int[][] C   = upperTriangularC(degrees);
+		int[][] C2  = upperTriangularC2(degrees,A);
+		ArrayList<Integer> indices= new ArrayList<Integer>();
+		indices.add(0);
+		indices.add(1);
+		zeroDiagonal(A);
+		forward(degrees,partition,A,max,L,C,indices); //It was originally without partition entry.
+	}
+		 
+	/**
+	 * Forward step in Algorithm 3.2.3 (DONE)
+	 * @param degrees valence
+	 * @param A matrix in the generation process
+	 * @param max maximal matrix
+	 * @param L L Matrix	
+	 * @param C	C Matrix
+	 * @param indices initial indices (0,1)
+	 * @throws IOException
+	 */
+	
+	public static void forward(ArrayList<Integer> degrees,int[][] A, int[][]max, int[][]L, int[][]C, ArrayList<Integer> indices) throws IOException {
+		int i=indices.get(0);
+		int j=indices.get(1);
+		int l2= LInverse(degrees,i,j,A);
+		int c2= CInverse(degrees,i,j,A);
+	 	int minimal= Math.min(max[i][j],Math.min(l2,c2));
+	 	for(int h=minimal;h>=0;h--) {
+	 		if((l2-h<=L[i][j]) && (c2-h<=C[i][j])) {
+	 			A[i][j]=A[j][i]=h;
+	 			if(i==(max.length-2) && j==(max.length-1)) {
+	 				backward(degrees,A, max,L, C, indices);
+	 			}else {
+	 				ArrayList<Integer> modified=successor(indices,max.length);
+	 				System.out.println(Arrays.deepToString(A));
+	 				System.out.println(i+" "+j+" "+modified+" "+"indices forward successor");
+	 				forward(degrees,A, max, L, C, modified);
+	 			}
+	 		}else {
+	 			backward(degrees,A, max, L, C, indices);
+	 		}
+	 	}
+	}
+	
+	public static void forward(ArrayList<Integer> degrees, ArrayList<Integer> partition,int[][] A, int[][]max, int[][]L, int[][]C, ArrayList<Integer> indices) throws IOException {
+		int i=indices.get(0);
+		int j=indices.get(1);
+		int l2= LInverse(degrees,i,j,A);
+		int c2= CInverse(degrees,i,j,A);
+	 	int minimal= Math.min(max[i][j],Math.min(l2,c2));
+	 	for(int h=minimal;h>=0;h--) {
+	 		if((l2-h<=L[i][j]) && (c2-h<=C[i][j])) {
+	 			A[i][j]=A[j][i]=h;
+	 			if(i==(max.length-2) && j==(max.length-1)) {
+	 				backward(degrees,A, max,L, C, indices);
+	 			}else {
+	 				if(j==A.length-1) {
+	 					System.out.println(i+" "+j);
+	 					partition=canonicalPartition(i,partition);
+	 					PermutationGroup group=getPermutationGroup(partition,A.length);
+	 					if(canonicalRowCheck(A[i],group,partition,A.length)) {
+	 						A[i]=canonicalRow(A[i],group,partition); //TODO: Need to check whether it modifies the A matrix really.
+	 						partition=refinedPartitioning(partition,A[i]);
+	 						ArrayList<Integer> modified=successor(indices,max.length);
+	 		 				forward(degrees,partition,A, max, L, C, modified);
+	 					}
+	 				}else {
+	 					ArrayList<Integer> modified=successor(indices,max.length);
+		 				forward(degrees,partition,A, max, L, C, modified);
+	 				}
+	 			}
+	 		}else {
+	 			backward(degrees,A, max, L, C, indices);
+	 		}
+	 	}
+	}
+	
+	/**
+	 * Backward step in Algorithm 3.2.3 (DONE)
+	 * @param degrees valence
+	 * @param A matrix in the generation process
+	 * @param max maximal matrix
+	 * @param L L Matrix	
+	 * @param C	C Matrix
+	 * @param indices initial indices (0,1)
+	 * @throws IOException
+	 **/
+	
+	public static void backward(ArrayList<Integer> degrees,int[][] A, int[][]max, int[][]L, int[][]C, ArrayList<Integer> indices) throws IOException {
+		int i=indices.get(0);
+		int j=indices.get(1);
+		int l2= LInverse(degrees,i,j,A);
+		int c2= CInverse(degrees,i,j,A);
+		if(i==max.length-2 && j==max.length-1) {
+			System.out.println(Arrays.deepToString(A));
+			//writeMatrix(A);
+		}else{
+			ArrayList<Integer> modified=predecessor(indices, max.length);
+			i= modified.get(0);
+			j= modified.get(1);
+			if(i>0 && j-i==1) {
+				int x= A[i][j];
+				if(x>0 && (l2-(x-1)<=L[i][j]) && (c2-(x-1)<=C[i][j])) {
+					A[i][j]=A[j][i]=x-1;
+					ArrayList<Integer> modified2=successor(modified,max.length);
+					forward(degrees,A, max, L, C, modified2);
+				}else {
+					backward(degrees, A, max, L, C, modified);
+				}
+			}
+		}
+	}
+	
+	public static void backward(ArrayList<Integer> degrees,ArrayList<Integer> partition,int[][] A, int[][]max, int[][]L, int[][]C, ArrayList<Integer> indices) throws IOException {
+		int i=indices.get(0);
+		int j=indices.get(1);
+		int l2= LInverse(degrees,i,j,A);
+		int c2= CInverse(degrees,i,j,A);
+		if(i==max.length-2 && j==max.length-1) {
+			System.out.println(Arrays.deepToString(A));
+			//writeMatrix(A);
+		}else{
+			ArrayList<Integer> modified=predecessor(indices, max.length);
+			i= modified.get(0);
+			j= modified.get(1);
+			if(i>0 && j-i==1) {
+				int x= A[i][j];
+				if(x>0 && (l2-(x-1)<=L[i][j]) && (c2-(x-1)<=C[i][j])) {
+					A[i][j]=A[j][i]=x-1;
+					if(j==A.length-1) {
+	 					partition=canonicalPartition(i,partition);
+	 					PermutationGroup group=getPermutationGroup(partition,A.length);
+	 					if(canonicalRowCheck(A[i],group,partition,A.length)) {
+	 						A[i]=canonicalRow(A[i],group,partition); //TODO: Need to check whether it modifies the A matrix really.
+	 						partition=refinedPartitioning(partition,A[i]);
+	 						ArrayList<Integer> modified2=successor(indices,max.length);
+	 		 				forward(degrees,partition,A, max, L, C, modified2);
+	 					}
+	 				}else {
+	 					ArrayList<Integer> modified2=successor(modified,max.length);
+						forward(degrees,partition,A, max, L, C, modified2);
+	 				}
+				}else {
+					backward(degrees,partition, A, max, L, C, modified);
+				}
+			}
+		}
+	}
+	/**
+	 * Grund Thesis 3.2.1 - Page 35 (DONE)
+	 * L and C Inverse formulas given at the bottom of the page.
+	 * @param degrees atom valences
+	 * @param i row index
+	 * @param j column index
+	 * @param A matrix in the generation process
+	 * @return
+	 */
+	
+	public static int LInverse(ArrayList<Integer> degrees, int i, int j, int[][]A) {
+		int sum=0;
+		for(int s=0;s<j;s++) {
+			sum=sum+A[i][s];
+		}
+		return degrees.get(i)-sum;
+	}
+		 
+	public static int CInverse(ArrayList<Integer> degrees, int i, int j, int[][]A) {
+		int sum=0;
+		for(int s=0;s<i;s++) {
+			sum=sum+A[s][j];
+		}
+		return degrees.get(j)-sum;
+	}
+	
+	/**
+	 * Successor and predecessor functions for forward and backward functions. (DONE)
+	 * @param indices indices of the matrix
+	 * @param size matrix dimension
+	 * @return
+	 */
+	
+	public static ArrayList<Integer> successor(ArrayList<Integer> indices, int size) {
+		 int i0= indices.get(0);
+		 int i1= indices.get(1);
+		 ArrayList<Integer> modified= new ArrayList<Integer>();
+		 //if(i0!=size-2 && i1!=size-1) {
+			 if(i1==size-1) {
+				 modified.add(i0+1);
+				 modified.add(i0+2);
+			 }else if(i1<size-1) {
+				 modified.add(i0);
+				 modified.add(i1+1);
+			 }
+		 //}
+		 return modified;
+	 }
+	 
+	 public static ArrayList<Integer> predecessor(ArrayList<Integer> indices, int size) {
+		 int i0= indices.get(0);
+		 int i1= indices.get(1);
+		 ArrayList<Integer> modified= new ArrayList<Integer>();
+		 if(i0==i1-1) {
+			 modified.add(i0-1);
+			 modified.add(size-1);
+		 }else {
+			 modified.add(i0);
+			 modified.add(i1-1);
+		 }
+		 return modified;
+	 }
+	/**
+	 *	Grund Thesis 3.3.2 Partitioning criteria (DONE)  
+	 * @param partEx the former partition
+	 * @param degree degree of the partitioning.
+	 * @return
+	 */
 	 
 	 public static ArrayList<Integer> partitionCriteria(ArrayList<Integer> partEx, int degree){
 		 ArrayList<Integer> partNew = new ArrayList<Integer>();
@@ -3742,12 +4011,23 @@ public class PermutationGroupFunctions {
 		 int[] canCheck = new int[array.length];
 		 for(Permutation perm: group.all()) {
 			 canCheck = act(array,perm);
-			 if(desBlockCheck(partition,canCheck)) {
+			 if(blockBasedEqual(array,canCheck,partition)) {
 				 perms.add(perm);
 			 }
 			 break;
 		 }
 		 return perms;
+	 }
+	 
+	 public static int[] canonicalRow(int[] array,PermutationGroup group, ArrayList<Integer> partition){
+		 int[] canRow = new int[array.length];
+		 for(Permutation perm: group.all()) {
+			 canRow = act(array,perm);
+			 if(desBlockCheck(partition,canRow) && blockBasedEqual(array,canRow,partition)) {
+				 break;
+			 }
+		 }
+		 return canRow;
 	 }
 	 
 	 /**
@@ -3791,7 +4071,7 @@ public class PermutationGroupFunctions {
 	 
 	 
 	 /**
-	  * Grund 1.1.6 (Done)
+	  * Grund 1.1.16 (Done)
 	  * Generating the permutation group for a partition.
 	  * Here, the generators of all the symmetry groups are taken. 
 	  * This function returns us the Young subgroup of a partition. 
@@ -3800,12 +4080,27 @@ public class PermutationGroupFunctions {
 	  */
 		
 	public static PermutationGroup getPermutationGroup(ArrayList<Integer> partition, int total) {
-		List<int[]> parts=subPartitions(partition);
+		int[] part=listToArray(partition);
+		List<int[]> parts=subPartitions(part);
+		for(int[] i:parts) {
+			System.out.println(Arrays.toString(i));
+		}
 		List<Permutation> generators= new ArrayList<Permutation>();
-		for(int[] part: parts) {
-			generators.addAll(getGenerators(part,total));
+		for(int[] p: parts) {
+			System.out.println(getGenerators(p,total));
+			generators.addAll(getGenerators(p,total));
 		}
 		return generateGroup(generators,total);
+	}
+	
+	public static int[] listToArray(ArrayList<Integer> list) {
+		int[] array = new int[list.size()];
+		int count = 0;
+		for(Integer l:list) {
+			array[count]=l.intValue();
+			count++;
+		}
+		return array;
 	}
 	
 	/**
@@ -3833,6 +4128,12 @@ public class PermutationGroupFunctions {
 		return check;
 	}**/
 	
+	
+	//TODO: There should be the canonical permutation not descending but equal
+	// As given in 3.3.9; the vectors are equal with respect to block elements.
+	//In 3.3.11 the canonization permutation is defined with respect to the partition,
+	// I did not understand where I can use that canonical perm equal to the original row.
+	
 	public static boolean canonicalLineTest(int[][] A, ArrayList<Integer> partition, int total) {
 		boolean check=true;
 		partition=partitionWDegree(partition,2);
@@ -3851,7 +4152,70 @@ public class PermutationGroupFunctions {
 		}
 		return check;
 	}
-	 
+	
+	/**
+	 * Grund 3.3.9 
+	 * To check two arrays are equal blockwise.
+	 * We need that check after a canonical perm act on the row.
+	 * @param row row of a matrix
+	 * @param row2 row of a matrix
+	 * @param partition Degree partition
+	 * @return
+	 */
+	
+	public static boolean blockBasedEqual(int[] row, int[] row2, ArrayList<Integer> partition) {
+		boolean check=true;
+		int index=0;
+		for(Integer p:partition) {
+			if(!Arrays.equals(desOrderBlock(row,index,index+p), desOrderBlock(row2,index,index+p))) {
+				check=false;
+				break;
+			}
+			index=index+p;
+		}
+		return check;
+	}
+	
+	public static boolean blockwiseDesOrderCheck(int[] row, ArrayList<Integer> partition) {
+		boolean check=true;
+		int index=0;
+		for(Integer p: partition) {
+			if(!desOrderCheck(row,index,index+p)) {
+				check=false;
+				break;
+			}
+		}
+		return check;
+	}
+	
+	public static boolean desOrderCheck(int[] row, int begin, int end) {
+		boolean check=true;
+		for(int i=begin;i<end-1;i++) {
+			if(row[i]<row[i+1]) {
+				check=false;
+				break;
+			}
+		}
+		return check;
+	}
+	
+	public static Integer [] desOrderBlock(int[] row, int begin, int end) {
+		Integer[] sub=subArray(row,begin,end);
+		Arrays.sort(sub, DES_ORDER);
+		return sub;
+	}
+	
+	public static Set<Integer> subSet(int[] array, int begin, int end) {
+		Set<Integer> sub= new HashSet<Integer>();
+		for(int i=begin;i<end;i++) {
+			sub.add(array[i]);
+		}
+		return sub;
+	}
+	
+	public static Integer[] subArray(int[] array, int begin,int end) {
+		return IntStream.range(begin, end).mapToObj(i->array[i]).toArray(Integer[]::new);
+	}
 	/**
 	 * Grund 3.1.6. Canonical Test Step 5
 	 * 
@@ -3875,6 +4239,24 @@ public class PermutationGroupFunctions {
 		return check;
 	}
 	
+	public static boolean canonicalRowCheck(int[] row,PermutationGroup group, ArrayList<Integer> partition, int total) {
+		boolean check=true;
+		for(Permutation perm: group.all()) {
+			if(!desBlockCheck(partition,row,act(row,perm))) {
+				check=false;
+				break;
+			}
+		}
+		return check;
+	}
+	
+	public static ArrayList<Integer> canonicalPartition(int i, ArrayList<Integer> partition){
+		if(i==0) {
+			return partitionWDegree(partition,2);
+		}else {
+			return partitionWDegree(partition,1);
+		}
+	}
 	
 	/**
 	* 3.3.11 Canonical Line Test (Done)
@@ -3992,25 +4374,34 @@ public class PermutationGroupFunctions {
 		
 	 /**
 	  * Definition 1.1.16 (DONE)
-	  * 
 	  */
 	 
 	 public static int[] subPartition(int[] partition, int index){
 		 int[] sub= new int[0];
 		 int former = sum(partition,index-1)+1;
+		 System.out.println(former+" "+"former");
 		 int latter = sum(partition,index);
+		 System.out.println(latter+" "+"later");
 		 if(former==latter) {
-			 addElement(sub,former);
+			 sub=addElement(sub,former);
 		 }else {
 			 for(int i=former;i<=latter;i++) {
-				 addElement(sub,i);
+				 sub=addElement(sub,i);
 			 }
 		 }
 		 return sub;
 	 }
 	 
-	 public static List<int[]> subPartitions(ArrayList<Integer> partition){
+	 public static List<int[]> subPartitions(int[] partition){
 		 List<int[]> parts = new ArrayList<int[]>();
+		 for(int i=0;i<partition.length;i++) {
+			parts.add(subPartition(partition,i)); 
+		 }
+		 return parts;
+	 }
+	 
+	 public static ArrayList<ArrayList<Integer>> subPartitionsList(ArrayList<Integer> partition){
+		 ArrayList<ArrayList<Integer>> parts = new ArrayList<ArrayList<Integer>>();
 		 for(int i=0;i<partition.size();i++) {
 			parts.add(subPartition(partition,i)); 
 		 }
@@ -4306,25 +4697,59 @@ public class PermutationGroupFunctions {
 		 mat[4][0]=1;
 		 mat[4][1]=0;
 		 
-		 ArrayList<Integer> list= new ArrayList();
+		 ArrayList<Integer> list= new ArrayList<Integer>();
 		 
 		 list.add(2);
-		 list.add(4);
-		 list.add(4);
+		 list.add(3);
+		 //list.add(4);
+		 //list.add(5);
+		 
+		 for(Permutation perm:getYoungsubgroupGenerators(list,6)) {
+			 System.out.println("young"+" "+perm.toCycleString());
+		 }
+		 ArrayList<Integer> list2= new ArrayList<Integer>();
+		 
+		 list2.add(1);
+		 list2.add(1);
+		 list2.add(1);
+		 list2.add(2);
+		 
+		 //PermutationGroup group=getPermutationGroup(list2,5);
+		 //System.out.println(group.getSize());
+		 //canonicalMatrix(list,list2);
+		 
 		 
 		 int[] w= new int[10];
 		 w[0]=0;
-		 w[1]=0;
+		 w[1]=2;
 		 w[2]=1;
-		 w[3]=1;
-		 w[4]=1;
+		 w[3]=0;
+		 w[4]=3;
 		 w[5]=0;
 		 w[6]=0;
-		 w[7]=0;
-		 w[8]=0;
-		 w[9]=0;
+		 w[7]=1;
+		 w[8]=1;
+		 w[9]=1;
 		 
-		System.out.println(desBlockCheck(list,w));
+		 int[] arr= new int[4];
+		 arr[0]=1;
+		 arr[1]=1;
+		 arr[2]=1;
+		 arr[3]=2;
+		 
+		 
+		 int[] v= new int[10];
+		 v[0]=2;
+		 v[1]=1;
+		 v[2]=0;
+		 v[3]=0;
+		 v[4]=3;
+		 v[5]=1;
+		 v[6]=1;
+		 v[7]=1;
+		 v[8]=0;
+		 v[9]=0;
+		//System.out.println(blockBasedEqual(v,w,list));
 		 //System.out.println(partition(list,1));
 		 //System.out.println(LValue(list,4));
 		 //canonicalMatrix2(mat,2);
