@@ -26,7 +26,7 @@
 /**
  * This class is the re-implementation of MOLGEN project. For more details;
  * please check Mathematical Chemistry and Cheminformatics book[1]. Chapter 1
- * and gftttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttghhhhhhhhhhhhhhhhhhhhhhhhhhhhherdfbğppppppppppp for molecular structure generation.
+ * and Chapter 5 for molecular structure generation. Also the referred Grund's thesis.
  * 
  * [1] Kerber, A., Laue, R., Meringer, M., RÃ¼cker, C. and Schymanski, E., 2013.
  * Mathematical chemistry and chemoinformatics: structure generation, elucidation
