@@ -37,6 +37,7 @@
 
 package AlgorithmicGroupTheory;
 
+import java.awt.Color;
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -68,16 +69,22 @@ import org.openscience.cdk.group.PartitionRefinement;
 import org.openscience.cdk.group.Permutation;
 import org.openscience.cdk.group.PermutationGroup;
 import org.openscience.cdk.inchi.InChIGeneratorFactory;
+import org.openscience.cdk.interfaces.IAtom;
 import org.openscience.cdk.interfaces.IAtomContainer;
 import org.openscience.cdk.interfaces.IBond;
 import org.openscience.cdk.interfaces.IBond.Order;
+import org.openscience.cdk.interfaces.IChemObject;
 import org.openscience.cdk.interfaces.IChemObjectBuilder;
+import org.openscience.cdk.silent.Atom;
 import org.openscience.cdk.silent.SilentChemObjectBuilder;
+import org.openscience.cdk.smiles.SmilesParser;
 import org.openscience.cdk.tools.SaturationChecker;
 import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
 import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Multimap;
+import com.google.common.collect.MultimapBuilder;
 
 public class PermutationGroupFunctions {
 	public static PermutationGroup group=PermutationGroup.makeSymN(4);
@@ -1152,10 +1159,17 @@ public class PermutationGroupFunctions {
 	public static void depict(IAtomContainer molecule, String path) throws CloneNotSupportedException, CDKException, IOException{
 		DepictionGenerator depiction = new DepictionGenerator();
 		//depiction.withSize(200, 200).withZoom(4).depict(molecule).writeTo(path);
-		
-		depiction.withAtomColors().withSize(1000, 1000).withZoom(20).depict(molecule).writeTo(path);
+		//depiction.withCarbonSymbols().withAtomValues().withAtomMapNumbers().withAtomColors().withSize(1000, 1000).withZoom(20).depict(molecule).writeTo(path);
+		depiction.withSize(1000, 1000).withZoom(20).depict(molecule).writeTo(path);
+		//depiction.withAtomColors().withSize(1000, 1000).withZoom(20).depict(molecule).writeTo(path);
 	}
 	
+	public static void depictHighlight(IAtomContainer molecule,Iterable<IChemObject> object, String path) throws CloneNotSupportedException, CDKException, IOException{
+		DepictionGenerator depiction = new DepictionGenerator();
+		//depiction.withSize(200, 200).withZoom(4).depict(molecule).writeTo(path);
+		depiction.withHighlight(object, Color.GREEN).withCarbonSymbols().withAtomValues().withAtomMapNumbers().withAtomColors().withSize(1000, 1000).withZoom(20).depict(molecule).writeTo(path);
+		//depiction.withAtomColors().withSize(1000, 1000).withZoom(20).depict(molecule).writeTo(path);
+	}
 	
 	public static HashMap<Integer, Integer> setCycleList(int size){
 		HashMap<Integer, Integer> list = new HashMap<Integer, Integer>(size);
@@ -3570,6 +3584,29 @@ public class PermutationGroupFunctions {
 		 fileWriter.flush();
 	 }
 	 
+	 public static void writeLine(int index, String s, int[][] mat) throws IOException {
+		 fileWriter.write(String.format("Matrix row - %d %s", index, s));
+		 fileWriter.newLine();
+		 for (int i = 0; i < mat.length; i++) {
+			 for (int j = 0; j < mat[i].length; j++) {
+				 fileWriter.write(mat[i][j] + ((j == mat[i].length-1) ? "" : ","));
+			 }
+			 fileWriter.newLine();
+		 }
+		 fileWriter.write("----------");
+		 fileWriter.newLine();
+		 fileWriter.flush();
+	 }
+	 
+	 public static void writePartition(int index, ArrayList<Integer> old, ArrayList<Integer> newPart) throws IOException {
+		 fileWriter.write(String.format("New and old partition - %d", index));
+		 fileWriter.newLine();
+		 fileWriter.write(old +" "+ newPart);
+		 fileWriter.newLine();
+		 fileWriter.write("----------");
+		 fileWriter.newLine();
+		 fileWriter.flush();
+	 }
 	 public static ArrayList<String> atomList(String molecularFormula) {
 		 ArrayList<String> symbols= new ArrayList<String>();
 		 String[] atoms = molecularFormula.split("(?=[A-Z])");
@@ -3743,7 +3780,7 @@ public class PermutationGroupFunctions {
 		indices.add(0);
 		indices.add(1);
 		zeroDiagonal(A);
-		forward(degrees,partition,A,max,L,C,indices); //It was originally without partition entry.
+		forwardCanonical(degrees,partition,A,max,L,C,indices); //It was originally without partition entry.
 	}
 		 
 	/**
@@ -3766,10 +3803,22 @@ public class PermutationGroupFunctions {
 	 	for(int h=minimal;h>=0;h--) {
 	 		if((l2-h<=L[i][j]) && (c2-h<=C[i][j])) {
 	 			A[i][j]=A[j][i]=h;
+	 			System.out.println(Arrays.deepToString(A)+" "+i+" "+j);
+	 			System.out.println("forward"+" "+i+" "+j);
+	 			//TODO: I need to check two things:
+	 			/**
+	 			 * First, I need to check whether I am in the same line or move to next one, sometimes it goes back and no need to check for that case.
+	 			 * Second, this partition check is when we reach the last column and need to move to next row. 
+	 			 */
 	 			if(i==(max.length-2) && j==(max.length-1)) {
 	 				backward(degrees,A, max,L, C, indices);
 	 			}else {
 	 				ArrayList<Integer> modified=successor(indices,max.length);
+	 				System.out.println(modified.get(0)+" "+modified.get(1)+" "+i+" "+j);
+	 				//TODO: 
+	 				/**
+	 				 * if i new > i old and j=the last column; so we finish one row then moved to next one. Then we need to check canonicity.
+	 				 */
 	 				//System.out.println(Arrays.deepToString(A));
 	 				//System.out.println(i+" "+j+" "+modified+" "+"indices forward successor");
 	 				forward(degrees,A, max, L, C, modified);
@@ -3788,18 +3837,48 @@ public class PermutationGroupFunctions {
 	 	int minimal= Math.min(max[i][j],Math.min(l2,c2));
 	 	for(int h=minimal;h>=0;h--) {
 	 		if((l2-h<=L[i][j]) && (c2-h<=C[i][j])) {
+	 			System.out.println("general"+" "+i+" "+j+" "+h+" "+Arrays.deepToString(A));
 	 			A[i][j]=A[j][i]=h;
+	 			System.out.println("generalAfter"+" "+i+" "+j+" "+h+" "+Arrays.deepToString(A));
 	 			if(i==(max.length-2) && j==(max.length-1)) {
-	 				backward(degrees,partition,A, max,L, C, indices);
+	 				backwardDemo(degrees,partition,A, max, L, C, indices);
 	 			}else {
-	 				if(j==A.length-1) {
+	 				ArrayList<Integer> modified=successor(indices,max.length);
+	 				System.out.println("modified"+" "+modified.get(0)+" "+modified.get(1)+" "+i+" "+j+" "+A.length);
+	 				if(modified.get(0)>i && j==A.length-1) { 
+	 					System.out.println("forward"+" "+modified.get(0)+" "+modified.get(1)+" "+i+" "+j);
+	 					System.out.println("partition"+" "+partition);
 	 					partition=canonicalPartition(i,partition); //TODO: Might need to test again
+	 					System.out.println("canonical partition"+" "+partition);
+	 					PermutationGroup group=getYoungGroup(partition,A.length);
+	 					System.out.println("row clean"+" "+Arrays.toString(A[i]));
+	 					A[i]=canonicalRow(group,partition,A[i]);
+	 					System.out.println("row canonical"+" "+Arrays.toString(A[i]));
+	 					System.out.println("canonicalCheck"+" "+canonicalRowCheck(A[i],group,partition,A.length));
+	 					System.out.println("A[i] can"+" "+Arrays.toString(A[i]));
+	 					if(canonicalRowCheck(A[i],group,partition,A.length)) {
+	 						//A[i]=canonicalRow(A[i],group,partition); //TODO: Need to check whether it modifies the A matrix really.
+	 						partition=refinedPartitioning(partition,A[i]);
+	 						System.out.println("refined partition"+" "+partition);
+	 						forward(degrees, partition, A, max, L, C, modified);
+	 					}
+	 				}else {
+	 					forward(degrees, partition, A, max, L, C, modified);
+	 				}
+	 					
+		 			/**if(j==A.length-1) {
+	 					/**partition=canonicalPartition(i,partition); //TODO: Might need to test again
 	 					PermutationGroup group=getYoungGroup(partition,A.length);
 	 					//System.out.println("before canonical"+" "+partition+" "+Arrays.toString(A[i]));
+	 					//System.out.println(Arrays.toString(A[i])+" "+"canBefore"+" "+partition);
+	 					System.out.println("partition"+" "+partition);
+	 					System.out.println(i+" "+Arrays.deepToString(A));
 	 					A[i]=canonicalRow(group,partition,A[i]);
+	 					System.out.println(i+" "+Arrays.deepToString(A)+" "+"after");
+	 					//System.out.println(Arrays.toString(A[i])+" "+"canAfter");
 	 					if(canonicalRowCheck(A[i],group,partition,A.length)) {
 	 						//System.out.println("canonical");
-	 						A[i]=canonicalRow(A[i],group,partition); //TODO: Need to check whether it modifies the A matrix really.
+	 						//A[i]=canonicalRow(A[i],group,partition); //TODO: Need to check whether it modifies the A matrix really.
 	 						partition=refinedPartitioning(partition,A[i]);
 	 						//System.out.println("refined"+" "+partition);
 	 						ArrayList<Integer> modified=successor(indices,max.length);
@@ -3808,10 +3887,55 @@ public class PermutationGroupFunctions {
 	 				}else {
 	 					ArrayList<Integer> modified=successor(indices,max.length);
 		 				forward(degrees,partition,A, max, L, C, modified);
+	 				}**/
+	 			}
+	 		}else {
+	 			backwardDemo(degrees, partition,A, max, L, C, indices);
+	 		}
+	 	}
+	}
+	
+	public static void forwardCanonical(ArrayList<Integer> degrees, ArrayList<Integer> partition,int[][] A, int[][]max, int[][]L, int[][]C, ArrayList<Integer> indices) throws IOException {
+		int i=indices.get(0);
+		int j=indices.get(1);
+		int l2= LInverse(degrees,i,j,A);
+		int c2= CInverse(degrees,i,j,A);
+	 	int minimal= Math.min(max[i][j],Math.min(l2,c2));
+	 	for(int h=minimal;h>=0;h--) {
+	 		if((l2-h<=L[i][j]) && (c2-h<=C[i][j])) {
+	 			System.out.println("general"+" "+i+" "+j+" "+h+" "+Arrays.deepToString(A));
+	 			A[i][j]=A[j][i]=h;
+	 			System.out.println("generalAfter"+" "+i+" "+j+" "+h+" "+Arrays.deepToString(A));
+	 			if(i==(max.length-2) && j==(max.length-1)) {
+	 				backwardCanonical(degrees,partition,A, max, L, C, indices);
+	 			}else {
+	 				ArrayList<Integer> modified=successor(indices,max.length);
+	 				System.out.println("modified"+" "+modified.get(0)+" "+modified.get(1)+" "+i+" "+j+" "+A.length);
+	 				if(modified.get(0)>i && j==A.length-1) { 
+	 					System.out.println("forward"+" "+modified.get(0)+" "+modified.get(1)+" "+i+" "+j);
+	 					System.out.println("row clean"+" "+Arrays.toString(A[i]));
+	 					System.out.println("normal"+" "+Arrays.toString(A[i]));
+	 					//A[i]=canonicalRow(group,partition,A[i]);
+	 					System.out.println("row canonical"+" "+Arrays.toString(A[i]));
+	 					//System.out.println("canonicalCheck"+" "+canonicalRowCheck(A[i],group,partition,A.length));
+	 					System.out.println("A[i] can"+" "+Arrays.toString(A[i]));
+	 					System.out.println("partition"+" "+partition);
+	 					partition=canonicalPartition(i,partition); //TODO: Might need to test again
+	 					System.out.println("canonical partition"+" "+partition);
+	 					if(canonicalRowCheck(A[i],i,partition,A.length)) {
+	 						//A[i]=canonicalRow(A[i],group,partition); //TODO: Need to check whether it modifies the A matrix really.
+	 						System.out.println("refined once part"+" "+partition);
+	 						partition=refinedPartitioning(partition,A[i]);
+	 						System.out.println("refined Array"+" "+Arrays.toString(A[i]));
+	 						System.out.println("refined partition"+" "+partition);
+	 						forwardCanonical(degrees, partition, A, max, L, C, modified);
+	 					}
+	 				}else {
+	 					forwardCanonical(degrees, partition, A, max, L, C, modified);
 	 				}
 	 			}
 	 		}else {
-	 			backward(degrees,partition,A, max, L, C, indices);
+	 			backwardCanonical(degrees, partition,A, max, L, C, indices);
 	 		}
 	 	}
 	}
@@ -3845,8 +3969,9 @@ public class PermutationGroupFunctions {
 					mat2[k][l]=A[k][l];
 				}
 			}
+			//writeLine(111,"b",mat2);
 			System.out.println(Arrays.deepToString(mat2));
-			output.add(mat2);
+			//output.add(mat2);
 			//System.out.println("bu"+" "+Arrays.deepToString(mat2));
 			//System.out.println("bu"+" "+Arrays.deepToString(A));
 			//writeMatrix(A);
@@ -3861,7 +3986,58 @@ public class PermutationGroupFunctions {
 					ArrayList<Integer> modified2=successor(modified,max.length);
 					forward(degrees,A, max, L, C, modified2);
 				}else {
+					//writeLine(i,"b",A);
 					backward(degrees, A, max, L, C, modified);
+				}
+			}
+		}
+	}
+	
+	public static void backwardCanonical(ArrayList<Integer> degrees,ArrayList<Integer> partition,int[][] A, int[][]max, int[][]L, int[][]C, ArrayList<Integer> indices) throws IOException {
+		int i=indices.get(0);
+		int j=indices.get(1);
+		int l2= LInverse(degrees,i,j,A);
+		int c2= CInverse(degrees,i,j,A);
+		if(i==max.length-2 && j==max.length-1) {
+			output.add(A);
+			int[][] mat2= new int[A.length][A.length]; 
+			for(int k=0;k<A.length;k++) {
+				for(int l=0;l<A.length;l++) {
+					mat2[k][l]=A[k][l];
+				}
+			}
+			//writeLine(111,"b",mat2);
+			System.out.println("done");
+			System.out.println(Arrays.deepToString(A));
+			//writeMatrix(A);
+		}else{
+			ArrayList<Integer> modified=predecessor(indices, max.length);
+			i= modified.get(0);
+			j= modified.get(1);
+			if(i>0 && j-i==1) {
+				int x= A[i][j];
+				if(x>0 && (l2-(x-1)<=L[i][j]) && (c2-(x-1)<=C[i][j])) {
+					A[i][j]=A[j][i]=x-1;
+					System.out.println(Arrays.deepToString(A)+" "+"back"+" "+i);
+					ArrayList<Integer> modified2=successor(modified,max.length);
+	 				forwardCanonical(degrees, partition, A, max, L, C, modified2);
+	 				
+					//forward(degrees,partition,A, max, L, C, modified2);
+					/**if(j==A.length-1) {
+	 					partition=canonicalPartition(i,partition);
+	 					PermutationGroup group=getYoungGroup(partition,A.length);
+	 					if(canonicalRowCheck(A[i],group,partition,A.length)) {
+	 						A[i]=canonicalRow(A[i],group,partition); //TODO: Need to check whether it modifies the A matrix really.
+	 						partition=refinedPartitioning(partition,A[i]);
+	 						ArrayList<Integer> modified2=successor(indices,max.length);
+	 		 				forward(degrees,partition,A, max, L, C, modified2);
+	 					}
+	 				}else {
+	 					ArrayList<Integer> modified2=successor(modified,max.length);
+						forward(degrees,partition,A, max, L, C, modified2);
+	 				}**/
+				}else {
+					backwardCanonical(degrees,partition, A, max, L, C, modified);
 				}
 			}
 		}
@@ -3875,6 +4051,13 @@ public class PermutationGroupFunctions {
 		int c2= CInverse(degrees,i,j,A);
 		if(i==max.length-2 && j==max.length-1) {
 			output.add(A);
+			int[][] mat2= new int[A.length][A.length]; 
+			for(int k=0;k<A.length;k++) {
+				for(int l=0;l<A.length;l++) {
+					mat2[k][l]=A[k][l];
+				}
+			}
+			//writeLine(111,"b",mat2);
 			System.out.println("done");
 			System.out.println(Arrays.deepToString(A));
 			//writeMatrix(A);
@@ -3886,7 +4069,23 @@ public class PermutationGroupFunctions {
 				int x= A[i][j];
 				if(x>0 && (l2-(x-1)<=L[i][j]) && (c2-(x-1)<=C[i][j])) {
 					A[i][j]=A[j][i]=x-1;
-					if(j==A.length-1) {
+					System.out.println(Arrays.deepToString(A)+" "+"back"+" "+i);
+					ArrayList<Integer> modified2=successor(modified,max.length);
+					if(modified2.get(1)>j) {
+						System.out.println("backward"+" "+modified2.get(1)+" "+i+" "+j);
+	 					partition=canonicalPartition(i,partition); //TODO: Might need to test again
+	 					PermutationGroup group=getYoungGroup(partition,A.length);
+	 					A[i]=canonicalRow(group,partition,A[i]);
+	 					if(canonicalRowCheck(A[i],group,partition,A.length)) {
+	 						//A[i]=canonicalRow(A[i],group,partition); //TODO: Need to check whether it modifies the A matrix really.
+	 						partition=refinedPartitioning(partition,A[i]);
+	 						forward(degrees, partition, A, max, L, C, modified);
+	 					}
+	 				}else {
+	 					forward(degrees, partition, A, max, L, C, modified2);
+	 				}
+					//forward(degrees,partition,A, max, L, C, modified2);
+					/**if(j==A.length-1) {
 	 					partition=canonicalPartition(i,partition);
 	 					PermutationGroup group=getYoungGroup(partition,A.length);
 	 					if(canonicalRowCheck(A[i],group,partition,A.length)) {
@@ -3898,7 +4097,7 @@ public class PermutationGroupFunctions {
 	 				}else {
 	 					ArrayList<Integer> modified2=successor(modified,max.length);
 						forward(degrees,partition,A, max, L, C, modified2);
-	 				}
+	 				}**/
 				}else {
 					backward(degrees,partition, A, max, L, C, modified);
 				}
@@ -4005,6 +4204,9 @@ public class PermutationGroupFunctions {
 		 return partEx;
 	 }
 	 
+	 /**
+	  * Inverse partition functions.
+	  */
 	 /**
 	  * Line criteria partitioning to implement on refined partition (DONE)
 	  * @param refinedPartition refined partition based on matrix row.
@@ -4164,11 +4366,15 @@ public class PermutationGroupFunctions {
 		 return check;
 	 }
 	 
+	 //TODO: DesBlockCheck is wrong. Not one by one all the members of the block but blockwise check should be.
 	 public static boolean desBlockCheck(ArrayList<Integer> partition, int[] row, int[] modified){
 		 boolean check=true;
 		 int index=0;
+		 System.out.println("desBlockCheck");
 		 for(Integer p:partition) {
+			 System.out.println("range"+" "+index+" "+(p+index));
 			 for(int i=index;i<p+index;i++) {
+				 System.out.println("org and modified"+" "+row[i]+" "+modified[i]);
 				 if(row[i]<modified[i]) {
 					 check=false;
 					 break;
@@ -4179,6 +4385,54 @@ public class PermutationGroupFunctions {
 		 return check;
 	 }
 	 
+	 /**
+	  * Blockwise descending order check of riginal row and its canonical form.
+	  * The blocks are repsented as integers to check the descending order.
+	  * @param partition
+	  * @param canonical
+	  * @param original
+	  * @return boolean true if descending order.
+	  */
+	 
+	 public static boolean desBlockwiseCheck(ArrayList<Integer> partition, int[] canonical, int[] original){
+		 boolean check=true;
+		 int index=0;
+		 for(Integer p:partition) {
+			 System.out.println("indices"+" "+index+" "+(p+index));
+			 System.out.println("canonical");
+			 System.out.println("getBlock"+" "+Arrays.toString(getBlocks(canonical,index,p+index)));
+			 System.out.println("Int"+" "+toInt(getBlocks(canonical,index,p+index)));
+			 System.out.println("original");
+			 System.out.println("getBlock"+" "+Arrays.toString(getBlocks(original,index,p+index)));
+			 System.out.println("Int"+" "+toInt(getBlocks(original,index,p+index)));
+			 if(toInt(getBlocks(canonical,index,p+index))<toInt(getBlocks(original,index,p+index))) {
+				 check=false;
+				 break;
+			 }
+			 index=index+p;
+		 }
+		 return check;
+	 }
+	 
+	 /**
+	  * int array to int representation. This is needed for blockwise descending order check. 
+	  * @param array
+	  * @return
+	  */
+		
+	 public static int toInt(Integer[] array) {
+		 int result=0;
+		 for(int i=0;i<array.length;i++) {
+			 result=result*10;
+			 result=result+array[i];
+		 }
+		 return result;
+	 }
+	 
+	 public static Integer [] getBlocks(int[] row, int begin, int end) {
+		 Integer[] sub=subArray(row,begin,end);
+		 return sub;
+	 }
 	 
 	 /**
 	  * Grund 1.1.16 (Done)
@@ -4341,22 +4595,20 @@ public class PermutationGroupFunctions {
 	 * @return
 	 */
 	
+	/**
+	 * Int i added just because of 
+	 **/
 	
-	public static boolean canonicalRowCheck(int[] row, PermutationGroup group, ArrayList<Integer> partition) {
+	public static boolean canonicalRowCheck(int[] row,int i, ArrayList<Integer> partition, int total) {
 		boolean check=true;
+		PermutationGroup group=getYoungGroup(partition,total);
+		System.out.println("canonical row check");
+		System.out.println("crc partition"+" "+partition);
+		System.out.println("check size"+" "+group.all().size());
 		for(Permutation perm: group.all()) {
-			if(!desBlockCheck(partition,row,act(row,perm))) {
-				check=false;
-				break;
-			}
-		}
-		return check;
-	}
-	
-	public static boolean canonicalRowCheck(int[] row,PermutationGroup group, ArrayList<Integer> partition, int total) {
-		boolean check=true;
-		for(Permutation perm: group.all()) {
-			if(!desBlockCheck(partition,row,actArray(row,perm))) {
+			System.out.println(perm.toCycleString()+" "+Arrays.toString(row)+" "+Arrays.toString(actArray(row,perm)));
+			//if(!desBlockCheck(partition,row,actArray(row,perm))) {
+			if(!desBlockwiseCheck(partition,row,actArray(row,perm))) {
 				check=false;
 				break;
 			}
@@ -4810,6 +5062,40 @@ public class PermutationGroupFunctions {
 	}
 	 public static void main(String[] args) throws CloneNotSupportedException, CDKException, IOException {   
 		 // TODO Auto-generated method stub	
+		 IAtomContainer ac= new AtomContainer();
+		 ac.addAtom(new Atom("C"));
+		 ac.addAtom(new Atom("C"));
+		 ac.addAtom(new Atom("C"));
+		 ac.addAtom(new Atom("N"));
+		 ac.addAtom(new Atom("C"));
+		 ac.addAtom(new Atom("N"));
+		 
+		 ac.addBond(0, 1, Order.SINGLE);
+		 ac.addBond(1, 2, Order.DOUBLE);
+		 ac.addBond(2, 3, Order.SINGLE);
+		 ac.addBond(3, 4, Order.SINGLE);
+		 ac.addBond(4, 5, Order.SINGLE);
+		 ac.addBond(5, 0, Order.SINGLE);
+		 
+		 //depict(ac,"C:\\Users\\mehme\\Desktop\\ring.png");
+		 
+		 IAtomContainer line= new AtomContainer();
+		 line.addAtom(new Atom("O"));
+		 line.addAtom(new Atom("C"));
+		 line.addAtom(new Atom("C"));
+		 line.addAtom(new Atom("C"));
+		
+		 
+		 line.addBond(0, 1, Order.DOUBLE);
+		 line.addBond(1, 2, Order.SINGLE);
+		 line.addBond(2, 3, Order.DOUBLE);
+		 
+		 //depict(line,"C:\\Users\\mehme\\Desktop\\line.png");
+		 
+		 DepictionGenerator dg = new DepictionGenerator();
+	     SmilesParser sp = new SmilesParser(SilentChemObjectBuilder.getInstance());
+	     IAtomContainer sm = sp.parseSmiles("CC(C)C=C(C)C");
+	     //depict(sm,"C:\\Users\\mehme\\Desktop\\MOL.png");
 		 int[][] mat= new int[5][2];
 		 mat[0][0]=2;
 		 mat[0][1]=1;
@@ -4878,8 +5164,13 @@ public class PermutationGroupFunctions {
 		 simp2.add(2);
 		 simp2.add(1);
 		 simp2.add(2);
+		
+		 //System.out.println(finalInt);
+		 //desBlockwiseCheck(simp2,arr);
 		 
 		 canonicalMatrixGenerator(simple,simp2);
+		 //PermutationGroupFunctions.fileWriter = new BufferedWriter(new FileWriter("C:\\Users\\mehme\\Desktop\\test.txt"));
+		 //canonicalMatrixGenerator(simple,simp2);
 		 //System.out.println(can.toCycleString());
 		 //matrixGenerator(simple);
 		 //canonicalMatrixGenerator(simple,simp2);
