@@ -10,6 +10,10 @@ Algorithmic group theory functions shared in this repository are especially deve
 
 This is an ongoing project for molecular structure generation. Already developed functions are regularly shared on this repository. The prototype algorithm is the demo function of the jar file. The theoretical basis of the algorithm can be found in [1]. The outlines of the functions can be found also in [1,2].
 
+## Download jar File
+
+The current jar file  provides only the connectivity matrix generator. The file can be downloaded from [here](https://github.com/MehmetAzizYirik/AlgorithmicGroupTheory/blob/master/mgen.jar)
+
 ## Download Source Code
 
 It is assumed that users have git on their system and have initialised their local directory. For more information [set-up-git](https://help.github.com/articles/set-up-git/ )
