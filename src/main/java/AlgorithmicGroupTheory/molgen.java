@@ -138,6 +138,18 @@ public class molgen {
 		return seq;
 	}
 	
+	public static ArrayList<Integer> distribution(String formula){
+		List<String> symbols = new ArrayList<String>();
+		ArrayList<Integer> occur  = new ArrayList<Integer>();
+	    String[] atoms = formula.split("(?=[A-Z])");
+	    for (String atom : atoms) {
+	    	String[] info = atom.split("(?=[0-9])", 2);   
+	        symbols.add(info[0]);
+	        occur.add(info.length > 1 ? Integer.parseInt(info[1]):1);
+	    }
+		return occur;
+	}
+	
 	 /** 
 	  * Grund Thesis - Algorithm 3.2.3 (DONE)
 	  * Simple multigraph generation
@@ -849,9 +861,8 @@ public class molgen {
 		
 	public static void run(String formula) throws IOException, CDKException, CloneNotSupportedException {
 		if(verbose) System.out.println("For the formula, "+formula+",start generating all possible connectivity matrices...");
-		canonicalMatrix(degreeSeq(formula));
-		if(verbose) System.out.println("The number of connectivity matrices is: "+output.size());
-		
+		canonicalMatrixGenerator(degreeSeq(formula),distribution(formula));
+		if(verbose) System.out.println("The number of connectivity matrices is: "+output.size());	
 	}
 	
 	public static void setFileWriter() throws IOException {
@@ -922,8 +933,24 @@ public class molgen {
 	}
 	
 	public static void main(String[] args) throws CloneNotSupportedException, CDKException, IOException {
+		 /**ArrayList<Integer> simple= new ArrayList<Integer>();
+		 
+		 simple.add(4);
+		 simple.add(4);
+		 simple.add(2);
+		 simple.add(1);
+		 simple.add(1);
+		 
+		 ArrayList<Integer> simp2= new ArrayList<Integer>();
+		 
+		 simp2.add(2);
+		 simp2.add(1);
+		 simp2.add(2);
+		
+		 canonicalMatrixGenerator(simple,simp2);**/
+		
 		molgen gen = null;
-		//String[] args1= {"-f","C2OH2","-v","-d","C:\\Users\\mehme\\Desktop\\"};
+		//String[] args1= {"-f","C4H10","-v","-d","C:\\Users\\mehme\\Desktop\\"};
 		try {
 			gen = new molgen();
 			gen.parseArgs(args);
