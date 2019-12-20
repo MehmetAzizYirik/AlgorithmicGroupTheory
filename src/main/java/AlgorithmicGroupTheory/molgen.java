@@ -26,23 +26,14 @@
 /**
  * This class is the re-implementation of MOLGEN project. For more details;
  * please check Mathematical Chemistry and Cheminformatics book[1]. Chapter 1
-<<<<<<< HEAD
  * and Chapter 5 for molecular structure generation.And also Grund's thesis. [2]
-=======
- * and Chapter 5 for molecular structure generation. Also R. Grund's thesis [2]
->>>>>>> refs/remotes/origin/master
  * 
- * [1] Kerber, A., Laue, R., Meringer, M., Rücker, C. and Schymanski, E., 2013.
+ * [1] Kerber, A., Laue, R., Meringer, M., RÃ¼cker, C. and Schymanski, E., 2013.
  * Mathematical chemistry and chemoinformatics: structure generation, elucidation
  * and quantitative structure-property relationships. Walter de Gruyter.
  * 
-<<<<<<< HEAD
- * [2] Grund, Roland, and Reinhard M�ller. Konstruktion molekularer Graphen mit 
- * gegebenen Hybridisierungen und �berlappungsfreien Fragmenten. Lehrstuhl II f�r 
-=======
  * [2] Grund, Roland, and Reinhard Müller. Konstruktion molekularer Graphen mit 
  * gegebenen Hybridisierungen und überlappungsfreien Fragmenten. Lehrstuhl II für 
->>>>>>> refs/remotes/origin/master
  * Mathematik, 1995.
  * 
  * @author Mehmet Aziz Yirik
