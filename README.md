@@ -12,7 +12,7 @@ This is an ongoing project for molecular structure generation. Already developed
 
 ## Download jar File
 
-The current jar file  provides only the connectivity matrix generator. The file can be downloaded from [here](https://github.com/MehmetAzizYirik/AlgorithmicGroupTheory/blob/master/mgen.jar)
+The current jar file  provides only the connectivity matrix generator. The file can be downloaded from [here](https://github.com/MehmetAzizYirik/AlgorithmicGroupTheory/blob/master/cangen.jar)
 
 ## Download Source Code
 
