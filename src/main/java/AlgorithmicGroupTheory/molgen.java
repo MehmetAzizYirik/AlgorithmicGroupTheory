@@ -941,10 +941,10 @@ public class molgen {
 		 canonicalMatrixGenerator(simple,simp2);**/
 		
 		molgen gen = null;
-		//String[] args1= {"-f","C4H10","-v","-d","C:\\Users\\mehme\\Desktop\\"};
+		String[] args1= {"-f","C2H6","-v","-d","C:\\Users\\mehme\\Desktop\\"};
 		try {
 			gen = new molgen();
-			gen.parseArgs(args);
+			gen.parseArgs(args1);
 			molgen.run(molgen.formula);
 		} catch (Exception e) {
 			if (molgen.verbose) e.getCause(); 

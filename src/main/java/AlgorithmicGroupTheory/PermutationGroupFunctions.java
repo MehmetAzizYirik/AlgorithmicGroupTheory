@@ -39,6 +39,7 @@ package AlgorithmicGroupTheory;
 
 import java.awt.Color;
 import java.io.BufferedWriter;
+import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -994,6 +995,26 @@ public class PermutationGroupFunctions {
 	}
 	
 	/**
+	 * Calculating the size of a Youngsubgroup. 
+	 * If a young subgroup is the direct product of its subgroups build
+	 * with respect to the integer partition, then the multiplication of 
+	 * the factorial of each entry in the partition gives the Young group
+	 * order.
+	 * @param partition ArrayList<Integer> partition to build a Young subgroup.
+	 * @return int multiplication of the factorial of each entry of the partition.
+	 */
+	
+	public static int youngGroupOrder(ArrayList<Integer> partition){
+		int result=1;
+		for(Integer i:partition) {
+			if(i!=1) {
+				result*=factorial(i);
+			}
+		}
+		return result;
+	}
+	
+	/**
 	 * Building the orbits of a integer set under the group action of
 	 * a permutation group
 	 * 
@@ -1392,6 +1413,27 @@ public class PermutationGroupFunctions {
 	 */
 	public static PermutationGroup getYoungGroup(ArrayList<Integer> partition, int size) {
 		return generateGroup(getYoungsubgroupGenerators(partition,size),size); 
+	}
+	
+	/**
+	 * For 3.3.3, rather than generating a Youngsubgroup, we take the representatives.
+	 * These representatives are used in the canonical test not all the group members.
+	 * @param reps Representative permutations built by the previous partition
+	 * @param cycles Cycles are generated based on the current partition and the previous one.
+	 * @return
+	 */
+	
+	public static void updatePermTree(ArrayList<Permutation> cycles){
+		ArrayList<Permutation> newReps = new ArrayList<Permutation>();	
+		for(Permutation cycle: cycles) {
+			for(Permutation rep: permTree) {
+				Permutation n=rep.multiply(cycle);
+				if(!newReps.contains(n)) {
+					newReps.add(n);
+				}
+			}
+		}
+		permTree=newReps;
 	}
 	
 	/**
@@ -3654,23 +3696,6 @@ public class PermutationGroupFunctions {
 	 
 	 
 	 /**
-	  * 3.3.1. Permutation tree
-	  */
-	 
-	 public static ArrayList<Permutation> permTreeRep(ArrayList<Integer> part, int degree){
-		 ArrayList<Permutation> out= new ArrayList<Permutation>();
-		 int l=LValue(partition(part,degree-1),degree);
-		 for(int j=1;j<=l;j++) {
-			 int[] perm= new int[2];
-			 perm[0]=degree;
-			 perm[1]=j+degree-1;
-			 out.add(new Permutation(perm));
-		 }
-		 return out;
-	 }
-	 
-	 
-	 /**
 	  * Example 3.3.9. Permutation action on a vector
 	  */
 	 public static int[] permutationAction(int[] vector, Permutation perm) {
@@ -3781,6 +3806,30 @@ public class PermutationGroupFunctions {
 		indices.add(1);
 		zeroDiagonal(A);
 		forwardCanonical(degrees,partition,A,max,L,C,indices); //It was originally without partition entry.
+	}
+	/**
+	 * This algorithm performs canonical test with permutation tree of Youngsubgroup chain.
+	 * @param degrees degree array for atoms
+	 * @param partition partition of atom types
+	 * @throws IOException
+	 */
+	
+	public static void canMatGen(ArrayList<Integer> degrees, ArrayList<Integer> partition) throws IOException{
+		int size    = degrees.size();
+		int[][] A   = new int[size][size];
+		int[][] max = maximalMatrix(degrees);
+		int[][] L   = upperTriangularL(degrees);
+		int[][] L2  = upperTriangularL2(degrees,A); //Where and how these L2 and C2
+		int[][] C   = upperTriangularC(degrees);
+		int[][] C2  = upperTriangularC2(degrees,A);
+		ArrayList<Integer> indices= new ArrayList<Integer>();
+		indices.add(0);
+		indices.add(1);
+		zeroDiagonal(A);
+		Permutation id= new Permutation(size);
+		permTree.add(id);
+		setFile();
+		forwardCanRep(degrees,partition,A,max,L,C,indices); //It was originally without partition entry.
 	}
 		 
 	/**
@@ -3926,7 +3975,7 @@ public class PermutationGroupFunctions {
 	 						//A[i]=canonicalRow(A[i],group,partition); //TODO: Need to check whether it modifies the A matrix really.
 	 						System.out.println("refined once part"+" "+partition);
 	 						partition=refinedPartitioning(partition,A[i]);
-	 						System.out.println("refined Array"+" "+Arrays.toString(A[i]));
+	 						System.out.println("refined Array"+" "+Arrays.toString(A[i])+" "+i);
 	 						System.out.println("refined partition"+" "+partition);
 	 						forwardCanonical(degrees, partition, A, max, L, C, modified);
 	 					}
@@ -3936,6 +3985,57 @@ public class PermutationGroupFunctions {
 	 			}
 	 		}else {
 	 			backwardCanonical(degrees, partition,A, max, L, C, indices);
+	 		}
+	 	}
+	}
+	public static BufferedWriter file;
+	public static void setFile() throws IOException {
+		 BufferedWriter f = new BufferedWriter(new FileWriter("C:\\Users\\mehme\\Desktop\\output.txt"));
+		 file=f;
+	}
+	public static ArrayList<Permutation> permTree= new ArrayList<Permutation>(); 
+	public static void forwardCanRep(ArrayList<Integer> degrees, ArrayList<Integer> partition,int[][] A, int[][]max, int[][]L, int[][]C, ArrayList<Integer> indices) throws IOException {
+		ArrayList<Integer> cyclePart= new ArrayList<Integer>();
+		for(Integer i: partition) {
+			cyclePart.add(i);
+		}
+		int i=indices.get(0);
+		int j=indices.get(1);
+		int l2= LInverse(degrees,i,j,A);
+		int c2= CInverse(degrees,i,j,A);
+	 	int minimal= Math.min(max[i][j],Math.min(l2,c2));
+	 	for(int h=minimal;h>=0;h--) {
+	 		if((l2-h<=L[i][j]) && (c2-h<=C[i][j])) {
+	 			A[i][j]=A[j][i]=h;
+	 			if(i==(max.length-2) && j==(max.length-1)) {
+	 				backwardCanRep(degrees,partition,A, max, L, C, indices);
+	 			}else {
+	 				ArrayList<Integer> modified=successor(indices,max.length);
+	 				if(modified.get(0)>i && j==A.length-1) {
+	 					file.write("part before"+" "+partition+"\n");
+	 					//System.out.println("part before"+" "+partition);
+	 					partition=canonicalPartition(i,partition); //TODO: Might need to test again
+	 					file.write(i+" "+"part canonical"+" "+partition+" "+Arrays.toString(A[i])+"\n");
+	 					//System.out.println(i+" "+"part canonical"+" "+partition+" "+Arrays.toString(A[i]));
+	 					file.write("permTree"+" "+permTree+"\n");
+	 					if(canonicalRepRowCheck(A[i],i,partition,A.length)) {
+	 						partition=refinedPartitioning(partition,A[i]);
+	 						file.write("refined"+" "+partition+"\n");
+	 						//System.out.println("refined"+" "+partition);
+	 						ArrayList<Permutation> cycles= permTreeCycles(cyclePart,partition);
+	 						file.write("cycles"+" "+cycles+"\n");
+	 						//System.out.println("cycles"+" "+cycles);
+	 						permTree=cycles;
+	 						//updatePermTree(cycles);
+	 						//System.out.println("permTree"+" "+permTree);
+	 						forwardCanRep(degrees, partition, A, max, L, C, modified);
+	 					}
+	 				}else {
+	 					forwardCanRep(degrees, partition, A, max, L, C, modified);
+	 				}
+	 			}
+	 		}else {
+	 			backwardCanRep(degrees, partition,A, max, L, C, indices);
 	 		}
 	 	}
 	}
@@ -4038,6 +4138,55 @@ public class PermutationGroupFunctions {
 	 				}**/
 				}else {
 					backwardCanonical(degrees,partition, A, max, L, C, modified);
+				}
+			}
+		}
+	}
+	
+	public static void backwardCanRep(ArrayList<Integer> degrees,ArrayList<Integer> partition,int[][] A, int[][]max, int[][]L, int[][]C, ArrayList<Integer> indices) throws IOException {
+		int i=indices.get(0);
+		int j=indices.get(1);
+		int l2= LInverse(degrees,i,j,A);
+		int c2= CInverse(degrees,i,j,A);
+		if(i==max.length-2 && j==max.length-1) {
+			output.add(A);
+			int[][] mat2= new int[A.length][A.length]; 
+			for(int k=0;k<A.length;k++) {
+				for(int l=0;l<A.length;l++) {
+					mat2[k][l]=A[k][l];
+				}
+			}
+			//writeLine(111,"b",mat2);
+			System.out.println("done");
+			System.out.println(Arrays.deepToString(A));
+			//writeMatrix(A);
+		}else{
+			ArrayList<Integer> modified=predecessor(indices, max.length);
+			i= modified.get(0);
+			j= modified.get(1);
+			if(i>0 && j-i==1) {
+				int x= A[i][j];
+				if(x>0 && (l2-(x-1)<=L[i][j]) && (c2-(x-1)<=C[i][j])) {
+					A[i][j]=A[j][i]=x-1;
+					ArrayList<Integer> modified2=successor(modified,max.length);
+	 				forwardCanRep(degrees, partition, A, max, L, C, modified2);
+	 				
+					//forward(degrees,partition,A, max, L, C, modified2);
+					/**if(j==A.length-1) {
+	 					partition=canonicalPartition(i,partition);
+	 					PermutationGroup group=getYoungGroup(partition,A.length);
+	 					if(canonicalRowCheck(A[i],group,partition,A.length)) {
+	 						A[i]=canonicalRow(A[i],group,partition); //TODO: Need to check whether it modifies the A matrix really.
+	 						partition=refinedPartitioning(partition,A[i]);
+	 						ArrayList<Integer> modified2=successor(indices,max.length);
+	 		 				forward(degrees,partition,A, max, L, C, modified2);
+	 					}
+	 				}else {
+	 					ArrayList<Integer> modified2=successor(modified,max.length);
+						forward(degrees,partition,A, max, L, C, modified2);
+	 				}**/
+				}else {
+					backwardCanRep(degrees,partition, A, max, L, C, modified);
 				}
 			}
 		}
@@ -4248,19 +4397,23 @@ public class PermutationGroupFunctions {
 	  * @return
 	  */
 	 
-	 public static ArrayList<Integer> refinedPartitioning(ArrayList<Integer> partition, int[] row){
+	 /**public static ArrayList<Integer> refinedPartitioning(ArrayList<Integer> partition, int[] row){
+		 System.out.println("refined ici"+" "+partition+" "+Arrays.toString(row));
 		 ArrayList<Integer> refined= new ArrayList<Integer>();
 		 int index=0;
 		 int count=1;
 		 for(Integer p:partition) {
+			 System.out.println("subpart"+" "+p);
+			 System.out.println("sub indices"+" "+index+" "+(p+index));
 			 for(int i=index;i<p+index;i++) {
+				 System.out.println("row[i] and row[i+1] "+" "+row[i]+" "+row[i+1]);
 				 if(i+1<p+index) {
 					 if(row[i]==row[i+1]) {
 						 count++;
 					 }else if(row[i]>row[i+1]){
 						 refined.add(count);
 						 count=1;
-					 } else {
+					 }else{
 						 desCheck=false;
 						 break;
 					 }
@@ -4270,6 +4423,42 @@ public class PermutationGroupFunctions {
 				 }
 			 }
 			 index=index+p;
+		 }
+		 return refined;
+	 }**/
+	 
+	 public static ArrayList<Integer> refinedPartitioning(ArrayList<Integer> partition, int[] row){
+		 ArrayList<Integer> refined= new ArrayList<Integer>();
+		 int index=0;
+		 int count=1;
+		 for(Integer p:partition) {
+			 if(p!=1) {
+				 for(int i=index;i<p+index-1;i++) {
+					 if(i+1<p+index-1) { 
+						 if(row[i]==row[i+1]) {
+							 count++;
+						 }else{
+							 refined.add(count);
+							 count=1;
+						 } 
+					 }else {
+						 if(row[i]==row[i+1]) {
+							 count++;
+							 refined.add(count);
+							 count=1;
+						 }else{
+							 refined.add(count);
+							 refined.add(1);
+							 count=1;
+						 }
+					 }
+				 }
+				 index=index+p;
+			 }else {
+				 index++;
+				 refined.add(1);
+				 count=1;
+			 }
 		 }
 		 return refined;
 	 }
@@ -4404,10 +4593,31 @@ public class PermutationGroupFunctions {
 			 System.out.println("Int"+" "+toInt(getBlocks(canonical,index,p+index)));
 			 System.out.println("original");
 			 System.out.println("getBlock"+" "+Arrays.toString(getBlocks(original,index,p+index)));
-			 System.out.println("Int"+" "+toInt(getBlocks(original,index,p+index)));
+			 System.out.println("IntCan"+" "+toInt(getBlocks(canonical,index,p+index)));
+			 System.out.println("IntOrg"+" "+toInt(getBlocks(original,index,p+index)));
 			 if(toInt(getBlocks(canonical,index,p+index))<toInt(getBlocks(original,index,p+index))) {
 				 check=false;
 				 break;
+			 }
+			 index=index+p;
+		 }
+		 return check;
+	 }
+	 
+	 public static boolean descBlockCheck(ArrayList<Integer> partition, int[] canonical, int[] original){
+		 boolean check=true;
+		 int index=0;
+		 for(Integer p:partition) {
+			 Integer[] can= getBlocks(canonical,index,p+index);
+			 Integer[] org= getBlocks(original,index,p+index);
+			 if(!Arrays.equals(can,org)) {
+				 if(toInt(can)>toInt(org)) {
+					 check=true;
+					 break;
+				 }else if(toInt(can)<toInt(org)) {
+					 check=false;
+					 break;
+				 }
 			 }
 			 index=index+p;
 		 }
@@ -4597,20 +4807,53 @@ public class PermutationGroupFunctions {
 	
 	/**
 	 * Int i added just because of 
+	 * @throws IOException 
 	 **/
 	
-	public static boolean canonicalRowCheck(int[] row,int i, ArrayList<Integer> partition, int total) {
+	public static boolean canonicalRowCheck(int[] row,int i, ArrayList<Integer> partition, int total) throws IOException {
 		boolean check=true;
 		PermutationGroup group=getYoungGroup(partition,total);
-		System.out.println("canonical row check");
-		System.out.println("crc partition"+" "+partition);
-		System.out.println("check size"+" "+group.all().size());
 		for(Permutation perm: group.all()) {
-			System.out.println(perm.toCycleString()+" "+Arrays.toString(row)+" "+Arrays.toString(actArray(row,perm)));
+			//file.write("canRowCheck"+" "+perm+"\n");
+			//System.out.println("canRowCheck"+" "+perm);
 			//if(!desBlockCheck(partition,row,actArray(row,perm))) {
-			if(!desBlockwiseCheck(partition,row,actArray(row,perm))) {
+			//if(!desBlockwiseCheck(partition,row,actArray(row,perm))) {
+			if(!descBlockCheck(partition,row,actArray(row,perm))) {	
 				check=false;
 				break;
+			}
+		}
+		return check;
+	}
+	
+	/**
+	 * Canonical Row Check is performed by checking the descending order with every permutation
+	 * of a Young subgroup built with respect to a partition. Rather than dealing with that many
+	 * permutations, we get the Young subgroup representatives. These representatives are used
+	 * in the canonical row check. 
+	 * @param row row of connectivity matrix
+	 * @param i row index
+	 * @param reps Young group representatives from the previous partition.
+	 * @param cycles cycles are generated with respect to the previous and current partition at the ith row.
+	 * @param partition current partition at the ith row.
+	 * @param total number of atoms. 
+	 * @return
+	 * @throws IOException 
+	 */
+	
+	public static boolean canonicalRepRowCheck(int[] row, int i, ArrayList<Integer> partition, int total) throws IOException {
+		boolean check=true;
+		if(i==0) { //In the first row, descending order check is performed with its Young subgroup
+			canonicalRowCheck(row,i,partition,total);
+		}else {  
+			for(Permutation perm: permTree) {
+				file.write("permTr"+" "+perm.toCycleString()+"\n");
+			}
+			for(Permutation perm: permTree) {
+				if(!descBlockCheck(partition,row,actArray(row,perm))) {
+					check=false;
+					break;
+				}
 			}
 		}
 		return check;
@@ -4671,54 +4914,7 @@ public class PermutationGroupFunctions {
 		 }
 		 return list2;
 	 }
-	 /**
-	  * Definition 3.3.3
-	  * Calculating l(i)
-	  */
-	 
-	 public static int LValue(ArrayList<Integer> partEx, int degree) {
-		 return (sum(partEx,degree-1)-degree+1); 
-	 }
-	 
-	 /**
-	  * Grund 3.3.3 Group tree cycles for cosets
-	  * @param index i power of the partition
-	  * @param partition partition
-	  * @return List<int[]> list of components as described in Grund Thesis 3.3.3
-	  */
-	 
-	 public static List<int[]> cycleComponents(int index, ArrayList<Integer> partition){
-		 List<int[]> components= new ArrayList<int[]>();
-		 int lValue= LValue(partition,index);
-		 for(int j=1;j<=lValue;j++) {
-			 int[] component=new int[2];
-			 component[0]=index;
-			 component[1]=j+index-1;
-			 components.add(component);
-		 }
-		 return components;
-	 }
-	 
-	 /**
-	  * Grund 3.3.5. Coset components as described for Ui-1/Ui
-	  * Here, the Ui is the left coset of i index in the permutation group.
-	  * It returns the list of permutation components of cosets.
-	  * @param Ui The ith left coset
-	  * @param partition partition
-	  * @param index left coset index 
-	  * @return List<Permutation> list of permutation components.
-	  */
-	 
-	 public static List<Permutation> cosetComponents(List<Permutation> Ui,ArrayList<Integer> partition, int index){
-		 List<Permutation> perms= new ArrayList<Permutation>();
-		 int lValue= LValue(partition,index);
-		 for(int j=2;j<lValue;j++) {
-			 perms.add(Ui.get(j));
-		 }
-		 return perms;
-	 }
-	 
-	 
+	 	 
 	 /**
 	  * Definition 1.1.16 (DONE)
 	  * 
@@ -4801,66 +4997,7 @@ public class PermutationGroupFunctions {
 		 }
 		 return check;
 	 }
-	 
-	 /**
-	  * 3.3.7 Left Coset indices J(i) for vij values. 
-	  */
-	 
-	 public static ArrayList<Integer> leftClassRepIndices(PermutationGroup group, int i, int[][]A, int index, ArrayList<Integer> part) {
-		 ArrayList<Integer> vReps= new ArrayList<Integer>();
-		 List<Permutation> perms=group.getLeftTransversal(i);
-		 int[][] Ar= matrixStrip(A,index,part);
-		 ArrayList<Permutation> reps=permTreeRep(part,index);
-		 for(int j=0;j<perms.size();j++) {
-			 for(int k=0;k<reps.size();k++) {
-				 if(autoCheckMatStrip(Ar,perms.get(j).multiply(reps.get(k)))) {
-					 vReps.add(j);
-				 }
-			 }
-			 
-		 }
-		 return vReps;
-	 }
-	 
-	 
-	 /**
-	  * 3.3.7 Must take a matrix strip as the input. The matrix strip function is not needed.
-	  */
-	 
-	 public static ArrayList<Permutation> leftClassRepIndices(PermutationGroup group, int  index, int[] strip) {
-		 ArrayList<Permutation> vReps= new ArrayList<Permutation>();
-		 List<Permutation> perms=group.getLeftTransversal(index);
-		 for(Permutation perm:perms) {
-			for(Permutation perm2:perms) {
-				if(Arrays.equals(strip, act(strip,perm2.multiply(perm)))){
-					vReps.add(perm2);
-				}
-			}
-		 }
-		 return vReps;
-	 }
-	 
-	 /**
-	  * 3.3.7 Left Coset indices vij permutations. 
-	  */
-	 
-	 public static ArrayList<Permutation> leftClassRepPerms(PermutationGroup group, int i, int[][]A, int index, ArrayList<Integer> part) {
-		 ArrayList<Permutation> vReps= new ArrayList<Permutation>();
-		 List<Permutation> perms=group.getLeftTransversal(i);
-		 int[][] Ar= matrixStrip(A,index,part);
-		 ArrayList<Permutation> reps=permTreeRep(part,index);
-		 for(int j=0;j<perms.size();j++) {
-			 for(int k=0;k<reps.size();k++) {
-				 Permutation v= perms.get(j).multiply(reps.get(k));
-				 if(autoCheckMatStrip(Ar,v)) {
-					 vReps.add(v);
-				 }
-			 }
-		 }
-		 return vReps;
-	 }
-	 
-	 	 
+	  	 
 	 /**
 	  * Descending order check for two arrays
 	  */
@@ -4986,20 +5123,380 @@ public class PermutationGroupFunctions {
 	 }
 	 
 	 /**
+	  * Centralizer group chain and other functions between 3.3.1 and 3.3.11
+	  */
+	 
+	 /**
+	  * Definition 3.3.3
+	  * In the definition, l(i) is not clearly explained. With my assumption;
+	  * we need to take the former partition and index as inputs.
+	  * Sum the entries of the partition until the index (including the index value) 
+	  */
+	 
+	 public static int LValue(ArrayList<Integer> partEx, int degree) {
+		 return (sum(partEx,degree-1)-degree+1); 
+	 }
+	 
+	 /**
+	  * Definition 3.3.3.
+	  * The number of left cosets of a subgroup in a group.
+	  * This number is called the index of the subgroup in the bigger group.
+	  * This index relies on Lagrange's Index Theorem.
+	  */
+	 
+	 public static int LIndex(ArrayList<Integer> subPart, ArrayList<Integer> part) {
+		 return youngGroupOrder(part)/youngGroupOrder(subPart);
+	 }
+	 
+	 
+	 /**
+	  * Grund 3.3.3 Group tree cycles for cosets
+	  * @param index i power of the partition
+	  * @param partition partition
+	  * @return List<int[]> list of components as described in Grund Thesis 3.3.3
+	  */
+	 
+	 public static List<int[]> cycleComponents(int index, ArrayList<Integer> partition){
+		 List<int[]> components = new ArrayList<int[]>();
+		 int lValue= LValue(partition,index);
+		 for(int j=1;j<=lValue;j++) {
+			 int[] component=new int[2];
+			 component[0]=index;
+			 component[1]=j+index-1;
+			 components.add(component);
+		 }
+		 return components;
+	 }
+	 
+	 /**
+	  * In the case of 3.3.19 example, they take the cycle representatives
+	  * one by one for each row, that is why we have this table representation.
+	  * ArrayList<Permutation> are stored as ArrayList
+	  */
+	 
+	 public static ArrayList<ArrayList<Permutation>> representatives = new ArrayList<ArrayList<Permutation>>();
+	 
+	 /**
+	  * (After Grund Answers) First it builds cycle representatives as given 
+	  * in 3.3.3. Then the Aut group (the perm tree) is updated. For the table
+	  * representation like in 3.3.19, representatives of all the rows are
+	  * stored in representatives ArrayList
+	  * @param index row index
+	  * @param formerPartition former partition
+	  * @param indexChanges from which index the partition is divided to new partition
+	  * @param size number of atoms
+	  * @return
+	  */
+	 
+	 public static ArrayList<Permutation> cycleRepresentatives(int index, ArrayList<Integer> formerPartition, ArrayList<Integer> indexChanges, int size) {
+		 ArrayList<Permutation> perms= new ArrayList<Permutation>();
+		 perms.add(idPermutation(size));
+		 int lValue= LValue(formerPartition,index);
+	     for(int i=1;i<=lValue;i++) {
+	    	 int[] values= idValues(size);
+			 for(int changes:indexChanges) {
+				 values[changes]=changes+i;
+				 values[changes+i]=changes;
+			 }
+			 Permutation p = new Permutation(values);
+			 perms.add(p);
+		 }
+	     representatives.add(index, perms);
+	     updatePermTree(perms);
+		 return perms;
+	 }
+	 
+	 /**
+	  * (After Grund Answers) First it builds cycle representatives as given 
+	  * in 3.3.3. Then the Aut group (the perm tree) is updated.For the table
+	  * representation like in 3.3.19, representatives of all the rows are
+	  * stored in representatives ArrayList.
+	  * 
+	  * Different from the former version, here, we generate all the cycles 
+	  * for the index as in 3.3.19. The last partition is the one does not
+	  * have the indexth entry so we need to build all the cycles like in
+	  * 3.3.3 and 3.3.19. 
+	  * @param index
+	  * @param lastartition
+	  * @param size
+	  * @return
+	  */
+	 public static ArrayList<Permutation> cycleRepresentatives(int index, ArrayList<Integer> lastPartition, int size) {
+		 ArrayList<Permutation> perms= new ArrayList<Permutation>();
+		 perms.add(idPermutation(size));
+		 int lValue= LValue(lastPartition,index);
+	     for(int i=1;i<=lValue;i++) {
+	    	 int[] values= idValues(size);
+	    	 values[index]=index+i;
+	    	 values[index+i]=index;
+			 Permutation p = new Permutation(values);
+			 perms.add(p);
+		 }
+	     representatives.add(index, perms);
+	     updatePermTree(perms);
+		 return perms;
+	 }
+	
+	 /**
+	  * Build id permutation
+	  */
+	 
+	 public static Permutation idPermutation(int size) {
+		 Permutation perm= new Permutation(size);
+		 return perm;
+	 }
+	 
+	 /**
+	  * (After Grund's Answer)
+	  * I need the strip ( block) based canonical test.
+	  * So taking a strip to check canonicity not line by line.
+	  */
+	 
+	 //TODO: The xth partition or all the partitions can be stored in an ArrayList
+	 public static void canonicalBlockTest(ArrayList<Integer> xthPartition, int rValue) {
+		 
+	 }
+	 /**
+	  * 3.3.3. definition is not clear. Based on Example 3.3.19, I defined this function.
+	  * The cycles are build based on the changes between the ext and new refined partitions. 
+	  */
+	 
+	 //TODO: Clean the code
+	 public static ArrayList<Permutation> permTreeCycles(int level, ArrayList<Integer> extPart, ArrayList<Integer> part){
+		 int total=sum(part);
+		 int LValue=LValue(extPart,level);
+		 ArrayList<Permutation> cycles= new ArrayList<Permutation>();
+		 cycles.add(new Permutation(idValues(total)));
+		 if(lastPartition(extPart) && lastPartition(part)) {
+			 if(LValue!=1) {
+				 if(extPart.size()!=part.size()) {
+					 int index=sum1s(part,(part.size()-1));
+					 for(int i=index+1;i<LValue+index;i++) {
+						 cycles.add(buildCycles(index,i,total));
+					 } 
+				 }
+			 }
+		 }else {
+			 int index=0;
+			 List<Integer> indices= new ArrayList<Integer>();
+			 if(LValue!=1) {
+				 for(Integer i: extPart) {
+					 if(i!=part.get(index)) {
+						 indices.add(sumPrev(part,index));
+						 index++;
+						 if(indices.size()==LValue) {
+							 break;
+						 }
+					 }
+					 index++;
+				 } 
+				 cycles.add(buildPermutation(indices,total));
+			 }
+			 
+		 }
+		 return cycles;
+	 }
+	 
+	 public static Permutation buildCycles(int former, int latter, int total) {
+		 int[] entries=idValues(total);
+		 entries[former]=latter;
+		 entries[latter]=former;
+		 Permutation perm=new Permutation(entries); 
+		 return perm;
+	 }
+	 
+	 public static Permutation buildPermutation(List<Integer> indices, int total) {
+		 Permutation cycle= new Permutation(buildEntriesArray(indices,total));
+		 return cycle;
+	 }
+	 
+	 public static int[] buildEntriesArray(List<Integer> indices,int total) {
+		 int[] entries=idValues(total);
+		 for(Integer i:indices) {
+			 entries[i]=i+1;
+			 entries[i+1]=i;
+		 }
+		 return entries;
+	 }
+	 public static boolean lastPartition(ArrayList<Integer> partition) {
+		 boolean check=true;
+		 int count=0;
+		 for(Integer i:partition) {
+			 if(i!=1) {
+				 if(count==1) {
+					 check=false;
+					 break;
+				 }else {
+					 count++;
+				 }
+			 }
+		 }
+		 return check;
+	 }
+	 
+	 public static int sum1s(ArrayList<Integer> part, int index) {
+		 int result=0;
+		 for(int i=0;i<index;i++) {
+			 result=result+part.get(i);
+		 }
+		 return result-1;
+	 }
+	 
+	 public static int sumPrev(ArrayList<Integer> part, int index) {
+		 int result=0;
+		 for(int i=0;i<=index;i++) {
+			 result=result+part.get(i);
+		 }
+		 return result-1;
+	 }
+	 
+	 /**
+	  * Grund 3.3.5. Coset components as described for Ui-1/Ui
+	  * Here, the Ui is ith centralizer of the automorphism.
+	  * It returns the list of permutation components of centralizers.
+	  * @param Ui The ith centralizer group
+	  * @param partition degree partition
+	  * @param index centralizer index 
+	  * @return List<Permutation> list of permutation components.
+	  */
+	 
+	 public static List<Permutation> cosetComponents(List<Permutation> Ui,ArrayList<Integer> partition, int index){
+		 List<Permutation> perms= new ArrayList<Permutation>();
+		 int lValue= LValue(partition,index);
+		 for(int j=2;j<lValue;j++) {
+			 perms.add(Ui.get(j));
+		 }
+		 return perms;
+	 }
+	 
+	 /**
+	  * 3.3.1. Permutation tree
+	  */
+	 
+	 public static ArrayList<Permutation> permTreeRep(ArrayList<Integer> part, int degree){
+		 ArrayList<Permutation> out= new ArrayList<Permutation>();
+		 int l=LValue(partition(part,degree-1),degree);
+		 for(int j=1;j<=l;j++) {
+			 int[] perm= new int[2];
+			 perm[0]=degree;
+			 perm[1]=j+degree-1;
+			 out.add(new Permutation(perm));
+		 }
+		 return out;
+	 }
+	 
+	 /**
+	  * Centralizer group of a given index as described in 3.3.1. Grund Thesis.
+	  * @param group PermutationGroup U
+	  * @param index index of the subgroup
+	  */
+	 
+	 //TODO: The action of U groups on rows and matrix stips must be analized. 
+	 public static ArrayList<Permutation> centralizer(PermutationGroup group, int index) {
+		ArrayList<Permutation> centralizer= new ArrayList<Permutation>();
+		//TODO: This index might be changed later. 0 to index or index-1. 
+		for(Permutation perm: group.all()) {
+			if(stabilizerCheck(index,perm)) {
+				centralizer.add(perm);
+			}
+		}
+		return centralizer;
+	 }
+	 
+	 public static boolean stabilizerCheck(int index, Permutation p) {
+		 boolean check=true;
+		 for(int i=0; i<index;i++) {
+			 if(i!=p.get(i)) {
+				 check=false;
+			 }
+		 }
+		 return check;
+	 }
+	 
+	 /**
+	  * 3.3.7 Left Coset indices J(i) for vij values. 
+	  */
+	 
+	 /**
+	  * Understand and test this one to build V groups.
+	  */
+	 
+	 public static ArrayList<Integer> leftClassRepIndices(PermutationGroup group, int i, int[][]A, int index, ArrayList<Integer> part) {
+		 ArrayList<Integer> vReps= new ArrayList<Integer>();
+		 List<Permutation> perms=group.getLeftTransversal(i);
+		 int[][] Ar= matrixStrip(A,index,part);
+		 ArrayList<Permutation> reps=permTreeRep(part,index);
+		 for(int j=0;j<perms.size();j++) {
+			 for(int k=0;k<reps.size();k++) {
+				 if(autoCheckMatStrip(Ar,perms.get(j).multiply(reps.get(k)))) {
+					 vReps.add(j);
+				 }
+			 }
+			 
+		 }
+		 return vReps;
+	 }
+	 
+	 /**
+	  * 3.3.7 Must take a matrix strip as the input. The matrix strip function is not needed.
+	  */
+	 
+	 public static ArrayList<Permutation> leftClassRepIndices(PermutationGroup group, int  index, int[] strip) {
+		 ArrayList<Permutation> vReps= new ArrayList<Permutation>();
+		 List<Permutation> perms=group.getLeftTransversal(index);
+		 for(Permutation perm:perms) {
+			for(Permutation perm2:perms) {
+				if(Arrays.equals(strip, act(strip,perm2.multiply(perm)))){
+					vReps.add(perm2);
+				}
+			}
+		 }
+		 return vReps;
+	 }
+	 
+	 /**
+	  * 3.3.7 Left Coset indices vij permutations. 
+	  */
+	 
+	 public static ArrayList<Permutation> leftClassRepPerms(PermutationGroup group, int i, int[][]A, int index, ArrayList<Integer> part) {
+		 ArrayList<Permutation> vReps= new ArrayList<Permutation>();
+		 List<Permutation> perms=group.getLeftTransversal(i);
+		 int[][] Ar= matrixStrip(A,index,part);
+		 ArrayList<Permutation> reps=permTreeRep(part,index);
+		 for(int j=0;j<perms.size();j++) {
+			 for(int k=0;k<reps.size();k++) {
+				 Permutation v= perms.get(j).multiply(reps.get(k));
+				 if(autoCheckMatStrip(Ar,v)) {
+					 vReps.add(v);
+				 }
+			 }
+		 }
+		 return vReps;
+	 }
+	 
+	 /**
 	  * Canonical strips - 3.3.14
 	  */
 	 
-	 public static int xValue(ArrayList<Integer> part) {
-		 int count=sum(part);
-		 return count-part.get(part.size());
+	 /**
+	  * I made a mistake in the former version. r is the block index,
+	  * so the input for the function.
+	  */
+	 
+	 public static int xValue(ArrayList<Integer> part, int rValue) {
+		 int sum=0;
+		 for(int i=0;i<=(rValue-1);i++) { //TODO = or not; check again
+			 sum=sum+part.get(i);
+		 }
+		 return sum;
 	 }
 	 
-	 public static int yValue(ArrayList<Integer> part) {
-		 return xValue(part)+1;
+	 public static int yValue(ArrayList<Integer> part, int rValue) {
+		 return xValue(part,rValue)+1; // the xValue can be fixed, no need to calculate again.
 	 }
 	 
-	 public static int zValue(ArrayList<Integer> part) {
-		 return sum(part);
+	 public static int zValue(ArrayList<Integer> part, int rValue) {
+		 return xValue(part,rValue)+part.get(rValue);
 	 }
 	 
 	 public static void setFileWriter() throws IOException {
@@ -5060,115 +5557,92 @@ public class PermutationGroupFunctions {
 		String inchi = InChIGeneratorFactory.getInstance().getInChIGenerator(molecule).getInchi();	
 		return inchi;
 	}
+	
 	 public static void main(String[] args) throws CloneNotSupportedException, CDKException, IOException {   
 		 // TODO Auto-generated method stub	
-		 IAtomContainer ac= new AtomContainer();
-		 ac.addAtom(new Atom("C"));
-		 ac.addAtom(new Atom("C"));
-		 ac.addAtom(new Atom("C"));
-		 ac.addAtom(new Atom("N"));
-		 ac.addAtom(new Atom("C"));
-		 ac.addAtom(new Atom("N"));
 		 
-		 ac.addBond(0, 1, Order.SINGLE);
-		 ac.addBond(1, 2, Order.DOUBLE);
-		 ac.addBond(2, 3, Order.SINGLE);
-		 ac.addBond(3, 4, Order.SINGLE);
-		 ac.addBond(4, 5, Order.SINGLE);
-		 ac.addBond(5, 0, Order.SINGLE);
+		 ArrayList<Integer> degrees= new ArrayList<Integer>();
 		 
-		 //depict(ac,"C:\\Users\\mehme\\Desktop\\ring.png");
+		 degrees.add(4);
+		 degrees.add(4);
+		 degrees.add(4);
+		 degrees.add(4);
+		 degrees.add(4);
+		 degrees.add(4);
+		 degrees.add(4);
+		 degrees.add(4);
+		 degrees.add(4);
+		 degrees.add(4);
+		 degrees.add(5);
+		 degrees.add(1);
 		 
-		 IAtomContainer line= new AtomContainer();
-		 line.addAtom(new Atom("O"));
-		 line.addAtom(new Atom("C"));
-		 line.addAtom(new Atom("C"));
-		 line.addAtom(new Atom("C"));
+		 
+		 ArrayList<Integer> partition= new ArrayList<Integer>();
+		 
+		 partition.add(10);
+		 partition.add(1);
+		 partition.add(1);
+		 
+		 ArrayList<Integer> part= new ArrayList<Integer>();
+		 part.add(1);
+		 part.add(1);
+		 part.add(2);
+		 part.add(1);
+		 part.add(1);
+		 part.add(4);
+		 
+		 ArrayList<Integer> part2= new ArrayList<Integer>();
+		 part2.add(1);
+		 part2.add(1);
+		 part2.add(1);
+		 part2.add(1);
+		 part2.add(1);
+		 part2.add(1);
+		 part2.add(4);
+		 
+		 
+		 int[] row= new int[5];
+		 row[0]=0;
+		 row[1]=3;
+		 row[2]=0;
+		 row[3]=0;
+		 row[4]=1;
+		 
+		 //System.out.println(part);
+		 PermutationGroup group1=getYoungGroup(part,10);
+		 //System.out.println(part2);
+		 PermutationGroup group2=getYoungGroup(part2,10);
+		 /**for(Permutation perm:group1.transversal(group2)) {
+			 System.out.println(perm.toCycleString());
+		 }**/
+		 
+		 System.out.println(permTreeCycles(3,part,part2));
 		
+		 /**
+		 for(Permutation perm1: group1.all()) {
+			 System.out.println("bu"+" "+perm1.toCycleString());
+			 for(Permutation perm2: group2.all()) {
+				 System.out.println(perm2.multiply(perm1));
+			 }
+		 }**/
 		 
-		 line.addBond(0, 1, Order.DOUBLE);
-		 line.addBond(1, 2, Order.SINGLE);
-		 line.addBond(2, 3, Order.DOUBLE);
+		 //canMatGen(degrees,partition);
+		 //file.close();
+		 //PermutationGroup hep= PermutationGroup.makeSymN(3);
+		 //System.out.println(hep);
+		 /**for(Permutation perm:hep.all()) {
+			 //System.out.println(perm.toCycleString());
+		 }**/
 		 
-		 //depict(line,"C:\\Users\\mehme\\Desktop\\line.png");
+		 /**for(int[] ar: cycleComponents(1,simp2)) {
+			 System.out.println(Arrays.toString(ar));
+		 }**/
 		 
-		 DepictionGenerator dg = new DepictionGenerator();
-	     SmilesParser sp = new SmilesParser(SilentChemObjectBuilder.getInstance());
-	     IAtomContainer sm = sp.parseSmiles("CC(C)C=C(C)C");
-	     //depict(sm,"C:\\Users\\mehme\\Desktop\\MOL.png");
-		 int[][] mat= new int[5][2];
-		 mat[0][0]=2;
-		 mat[0][1]=1;
-		 mat[1][0]=2;
-		 mat[1][1]=1;
-		 mat[2][0]=2;
-		 mat[2][1]=0;
-		 mat[3][0]=1;
-		 mat[3][1]=0;
-		 mat[4][0]=1;
-		 mat[4][1]=0;
-		 
-		 int[] arr= new int[10];
-		 arr[0]=0;
-		 arr[1]=2;
-		 arr[2]=1;
-		 arr[3]=0;
-		 arr[4]=3;
-		 arr[5]=1;
-		 arr[6]=0;
-		 arr[7]=1;
-		 arr[8]=0;
-		 arr[9]=1;
-		 
-		 int[] val= new int[10];
-		 val[0]=2;
-		 val[1]=0;
-		 val[2]=1;
-		 val[3]=3;
-		 val[4]=4;
-		 val[5]=5;
-		 val[6]=9;
-		 val[7]=7;
-		 val[8]=8;
-		 val[9]=6;
-		 
-		 ArrayList<Integer> list= new ArrayList<Integer>();
-		 
-		 list.add(3);
-		 list.add(3);
-		 list.add(4);
-		 list.add(4);
-		 list.add(4);
-		 list.add(4);
-		 list.add(1);
-		 list.add(1);
-		 list.add(1);
-		 list.add(1);
-		 
-		 ArrayList<Integer> simple= new ArrayList<Integer>();
-		 
-		 simple.add(4);
-		 simple.add(4);
-		 simple.add(2);
-		 simple.add(1);
-		 simple.add(1);
-
-		 ArrayList<Integer> list2= new ArrayList<Integer>();
-		 
-		 list2.add(2);
-		 list2.add(4);
-		 list2.add(4);
-		 
-		 ArrayList<Integer> simp2= new ArrayList<Integer>();
-		 
-		 simp2.add(2);
-		 simp2.add(1);
-		 simp2.add(2);
-		
 		 //System.out.println(finalInt);
 		 //desBlockwiseCheck(simp2,arr);
-		 
-		 canonicalMatrixGenerator(simple,simp2);
+		 //PermutationGroup grp= PermutationGroup.makeSymN(3);
+		 //System.out.println(grp);
+		 //canonicalMatrixGenerator(simple,simp2);
 		 //PermutationGroupFunctions.fileWriter = new BufferedWriter(new FileWriter("C:\\Users\\mehme\\Desktop\\test.txt"));
 		 //canonicalMatrixGenerator(simple,simp2);
 		 //System.out.println(can.toCycleString());
