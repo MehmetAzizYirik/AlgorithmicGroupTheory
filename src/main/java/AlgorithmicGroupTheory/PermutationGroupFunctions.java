@@ -5176,6 +5176,7 @@ public class PermutationGroupFunctions {
 	 
 	 public static ArrayList<ArrayList<Permutation>> representatives = new ArrayList<ArrayList<Permutation>>();
 	 
+	 public static ArrayList<ArrayList<Integer>> partition2 = new ArrayList<ArrayList<Integer>>();
 	 /**
 	  * (After Grund Answers) First it builds cycle representatives as given 
 	  * in 3.3.3. Then the Aut group (the perm tree) is updated. For the table
@@ -5253,9 +5254,54 @@ public class PermutationGroupFunctions {
 	  */
 	 
 	 //TODO: The xth partition or all the partitions can be stored in an ArrayList
-	 public static void canonicalBlockTest(ArrayList<Integer> xthPartition, int rValue) {
-		 
+	 public static boolean canonicalBlockTest(int[] row,int yValue, int rowIndex) {
+		 boolean check=true;
+		 ArrayList<Permutation> perms= blockPermutations(yValue,rowIndex); //TODO: Without using perms, just arrays ?
+		 ArrayList<Integer> formerPartition= partition2.get(rowIndex-1);
+		 for(Permutation perm : perms) {
+				if(!desBlockwiseCheck(formerPartition,row,actArray(row,perm))) {
+					check=false;
+					break;
+				}
+			}
+		 return check;
 	 }
+	 
+	 public static boolean yCanonicalRowCheck(int[] rowY, int yValue) {
+		 boolean check=true;
+		 ArrayList<Permutation> reps= representatives.get(yValue); //TODO: Without using perms, just arrays ?
+		 ArrayList<Integer> formerPartition= partition2.get(yValue-1);
+		 for(Permutation perm: reps) {
+				if(!desBlockwiseCheck(formerPartition,rowY,actArray(rowY,perm))) {
+					check=false;
+					break;
+				}
+			}
+		 return check;
+	 }
+	
+	 /**
+	  * 3.3.18 From the yth line, to ith representatives,
+	  * multiply them all to find the permutation set.
+	  */
+	 
+	 public static ArrayList<Permutation> blockPermutations(int yValue, int rowIndex){
+		 ArrayList<Permutation> yReps = representatives.get(yValue);	
+		 for(int i=(yValue+1);i<=rowIndex;i++) {
+			 ArrayList<Permutation> newReps= new ArrayList<Permutation>();
+			 for(Permutation perm : representatives.get(i)) {
+				 for(Permutation yPerm:yReps) {
+					 Permutation n=yPerm.multiply(perm);
+					 if(!newReps.contains(n)) {
+						 newReps.add(n);
+					 } 
+				 }
+			 }
+			 yReps=newReps;
+		 }
+		 return yReps;
+	 }
+	 
 	 /**
 	  * 3.3.3. definition is not clear. Based on Example 3.3.19, I defined this function.
 	  * The cycles are build based on the changes between the ext and new refined partitions. 
