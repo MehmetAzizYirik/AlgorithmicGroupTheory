@@ -3798,9 +3798,7 @@ public class PermutationGroupFunctions {
 		int[][] A   = new int[size][size];
 		int[][] max = maximalMatrix(degrees);
 		int[][] L   = upperTriangularL(degrees);
-		int[][] L2  = upperTriangularL2(degrees,A); //Where and how these L2 and C2
 		int[][] C   = upperTriangularC(degrees);
-		int[][] C2  = upperTriangularC2(degrees,A);
 		ArrayList<Integer> indices= new ArrayList<Integer>();
 		indices.add(0);
 		indices.add(1);
@@ -5189,10 +5187,10 @@ public class PermutationGroupFunctions {
 	  * @return
 	  */
 	 
-	 public static ArrayList<Permutation> cycleRepresentatives(int index, ArrayList<Integer> formerPartition, ArrayList<Integer> indexChanges, int size) {
+	 public static ArrayList<Permutation> cycleRepresentatives(int index, ArrayList<Integer> indexChanges, int size) {
 		 ArrayList<Permutation> perms= new ArrayList<Permutation>();
 		 perms.add(idPermutation(size));
-		 int lValue= LValue(formerPartition,index);
+		 int lValue= LValue(refinedPartitions.get(index-1),index);
 	     for(int i=1;i<=lValue;i++) {
 	    	 int[] values= idValues(size);
 			 for(int changes:indexChanges) {
@@ -5206,6 +5204,30 @@ public class PermutationGroupFunctions {
 	     updatePermTree(perms);
 		 return perms;
 	 }
+	 
+	 public static ArrayList<Integer> findChanges(ArrayList<Integer> extPart, ArrayList<Integer> part) {
+		 ArrayList<Integer> changes= new ArrayList<Integer>();
+		 int extS= extPart.size();
+		 int newS= part.size();
+		 if(extS!=newS) {
+			 outer:
+			 for(int i=0; i<extS;i++) {
+				 for(int j=0;j<newS;j++) {
+					 if(extPart.get(i)!=part.get(j)) {
+						 if(i==(extS-1)) {
+							 changes.add(sum(extPart));
+							 break outer;
+						 }else {
+							 changes.add(sum(extPart,i));
+							 j++;
+						 }
+					 }
+				 }
+			 }
+		 }
+		 return changes;
+	 }
+	 
 	 
 	 /**
 	  * (After Grund Answers) First it builds cycle representatives as given 
@@ -5222,10 +5244,11 @@ public class PermutationGroupFunctions {
 	  * @param size
 	  * @return
 	  */
-	 public static ArrayList<Permutation> cycleRepresentatives(int index, ArrayList<Integer> lastPartition, int size) {
+	 
+	 public static ArrayList<Permutation> cycleRepresentatives(int index, int size) {
 		 ArrayList<Permutation> perms= new ArrayList<Permutation>();
 		 perms.add(idPermutation(size));
-		 int lValue= LValue(lastPartition,index);
+		 int lValue= LValue(refinedPartitions.get(index-1),index);
 	     for(int i=1;i<=lValue;i++) {
 	    	 int[] values= idValues(size);
 	    	 values[index]=index+i;
@@ -5254,19 +5277,24 @@ public class PermutationGroupFunctions {
 	  */
 	 
 	 //TODO: The xth partition or all the partitions can be stored in an ArrayList
-	 public static boolean canonicalBlockTest(int[] row,int yValue, int rowIndex) {
+	 public static boolean canonicalBlockTest(int[] row,int r, int rowIndex) {
 		 boolean check=true;
-		 ArrayList<Permutation> perms= blockPermutations(yValue,rowIndex); //TODO: Without using perms, just arrays ?
-		 ArrayList<Integer> formerPartition= partition2.get(rowIndex-1);
-		 for(Permutation perm : perms) {
-				if(!desBlockwiseCheck(formerPartition,row,actArray(row,perm))) {
-					check=false;
-					break;
-				}
-			}
+		 if(rowIndex==findY(r)) {
+			 check=yCanonicalRowCheck(row,rowIndex);
+		 }else {
+			 ArrayList<Permutation> perms= blockPermutations((r+1),rowIndex); //TODO: Without using perms, just arrays ?
+			 ArrayList<Integer> formerPartition= partition2.get(rowIndex-1);
+			 for(Permutation perm : perms) {
+					if(!desBlockwiseCheck(formerPartition,row,actArray(row,perm))) {
+						check=false;
+						break;
+					}
+			 }
+		 }
 		 return check;
 	 }
 	 
+	 //TODO: fOR THE Y ROW, I will check with the former ones but then How can I decide what the canonical perm ?
 	 public static boolean yCanonicalRowCheck(int[] rowY, int yValue) {
 		 boolean check=true;
 		 ArrayList<Permutation> reps= representatives.get(yValue); //TODO: Without using perms, just arrays ?
@@ -5279,6 +5307,82 @@ public class PermutationGroupFunctions {
 			}
 		 return check;
 	 }
+	
+	 public static int partitionSize;
+	 public static ArrayList<Integer> firstPartition= new ArrayList<Integer>();
+
+	 /**
+	  * According to 3.3.1 in Grund Thesis, we need to fill a matrix 
+	  * strip by strip. For a strip r, first fill the matrix upto z value. 
+	  * Filling the rth strip first. Then test the strip whether canonical
+	  * or not based on the representatives. 
+	  */
+	 
+	public static void canonicalBlockGenerator(ArrayList<Integer> degrees, ArrayList<Integer> partition) throws IOException{
+		int size    = degrees.size();
+		partitionSize=partition.size();
+		firstPartition=partition;
+		int r=1;
+		int[][] A   = new int[size][size];
+		int[][] max = maximalMatrix(degrees);
+		int[][] L   = upperTriangularL(degrees);
+		int[][] C   = upperTriangularC(degrees);
+		ArrayList<Integer> indices= new ArrayList<Integer>();
+		indices.add(0);
+		indices.add(1);
+		zeroDiagonal(A);
+		forwardCanonicalBlock(degrees,partition,A,max,L,C,indices,r); //It was originally without partition entry.
+	}
+	
+	public static ArrayList<ArrayList<Integer>> refinedPartitions= new ArrayList<ArrayList<Integer>>();
+	public static void forwardCanonicalBlock(ArrayList<Integer> degrees, ArrayList<Integer> partition,int[][] A, int[][]max, int[][]L, int[][]C, ArrayList<Integer> indices, int r) throws IOException {
+		int i=indices.get(0);
+		int j=indices.get(1);
+		int l2= LInverse(degrees,i,j,A);
+		int c2= CInverse(degrees,i,j,A);
+	 	int minimal= Math.min(max[i][j],Math.min(l2,c2));
+	 	for(int h=minimal;h>=0;h--) {
+	 		if((l2-h<=L[i][j]) && (c2-h<=C[i][j])) {
+	 			A[i][j]=A[j][i]=h;
+	 			if(i==(max.length-2) && j==(max.length-1)) {
+	 				backwardCanonical(degrees,partition,A, max, L, C, indices);
+	 			}else {
+	 				ArrayList<Integer> modified=successor(indices,max.length);
+	 				if(modified.get(0)>i && j==A.length-1) { 
+	 					partition=canonicalPartition(i,partition); //TODO: Might need to test again
+	 					if(canonicalBlockTest(A[i],r,i)) { //Based on former perms, check canonical or not then add new perms if it is canonical.
+	 						partition=refinedPartitioning(partition,A[i]);
+	 						refinedPartitions.add(partition);
+	 						ArrayList<Integer> changes=findChanges(refinedPartitions.get(i-1),partition); //TODO: In case i=1 or 0, the first partition is used.
+	 						cycleRepresentatives(i,changes,max.length);
+	 						if(i==findZ(r)) {
+	 							r++;
+	 							forwardCanonicalBlock(degrees, partition, A, max, L, C, modified,r);
+	 						}else {
+	 							forwardCanonicalBlock(degrees, partition, A, max, L, C, modified,r);
+	 						}
+	 					}
+	 				}else {
+	 					forwardCanonical(degrees, partition, A, max, L, C, modified);
+	 				}
+	 			}
+	 		}else {
+	 			backwardCanonical(degrees, partition,A, max, L, C, indices);
+	 		}
+	 	}
+	}
+	
+	public static int findX(int r) {
+		return (sum(firstPartition,(r-1))-1);
+	}
+	
+	public static int findY(int r) {
+		return (sum(firstPartition,(r-1)));
+	}
+	
+	public static int findZ(int r) {
+		return (sum(firstPartition,r)-1);
+	}
 	
 	 /**
 	  * 3.3.18 From the yth line, to ith representatives,
