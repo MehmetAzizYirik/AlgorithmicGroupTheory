@@ -5190,7 +5190,7 @@ public class PermutationGroupFunctions {
 	 public static ArrayList<Permutation> cycleRepresentatives(int index, ArrayList<Integer> indexChanges, int size) {
 		 ArrayList<Permutation> perms= new ArrayList<Permutation>();
 		 perms.add(idPermutation(size));
-		 int lValue= LValue(refinedPartitions.get(index-1),index);
+		 int lValue= LValue(refinedPartitions.get(index),index);
 	     for(int i=1;i<=lValue;i++) {
 	    	 int[] values= idValues(size);
 			 for(int changes:indexChanges) {
@@ -5248,7 +5248,7 @@ public class PermutationGroupFunctions {
 	 public static ArrayList<Permutation> cycleRepresentatives(int index, int size) {
 		 ArrayList<Permutation> perms= new ArrayList<Permutation>();
 		 perms.add(idPermutation(size));
-		 int lValue= LValue(refinedPartitions.get(index-1),index);
+		 int lValue= LValue(refinedPartitions.get(index),index);
 	     for(int i=1;i<=lValue;i++) {
 	    	 int[] values= idValues(size);
 	    	 values[index]=index+i;
@@ -5294,6 +5294,41 @@ public class PermutationGroupFunctions {
 		 return check;
 	 }
 	 
+	 /**
+	  * Refined Partitions a input partition eklenmeli.
+	  * @param A
+	  * @throws IOException
+	  */
+	 public static boolean firstBlock(int[][]A) throws IOException {
+		 boolean check=true;
+		 ArrayList<Integer> partition= inputPartition;
+		 int len= inputPartition.get(0);
+		 int matSize= A.length;
+		 for(int i=0;i<len;i++) {
+			 partition=canonicalPartition(i,refinedPartitions.get(i));
+			 if(canonicalRowCheck(A[i],i,partition,matSize)) {
+				 refinedPartitions.add(refinedPartitioning(partition,A[i]));
+				 representatives.add(cycleRepresentatives(i,findChanges(refinedPartitions.get(i),refinedPartitions.get(i+1)),matSize));
+			 }else {
+				 check=false;
+				 break;
+			 }
+		 } 
+		 if(check) {
+			 fillRepresentatives(matSize);
+		 }
+		 return check;
+	 }
+	 
+	 //TODO: For the other strips, I need to update these representatives and refinedPartitions.
+	 public static void fillRepresentatives(int total) {
+		 int z=findZ(0);
+		 for(int i=z;i<total;i++) {
+			 refinedPartitions.add(partitionWDegree(refinedPartitions.get(i),1));
+			 representatives.add(cycleRepresentatives(i,total));
+		 }
+	 }
+	
 	 //TODO: fOR THE Y ROW, I will check with the former ones but then How can I decide what the canonical perm ?
 	 public static boolean yCanonicalRowCheck(int[] rowY, int yValue) {
 		 boolean check=true;
@@ -5309,7 +5344,7 @@ public class PermutationGroupFunctions {
 	 }
 	
 	 public static int partitionSize;
-	 public static ArrayList<Integer> firstPartition= new ArrayList<Integer>();
+	 public static ArrayList<Integer> inputPartition= new ArrayList<Integer>();
 
 	 /**
 	  * According to 3.3.1 in Grund Thesis, we need to fill a matrix 
@@ -5321,7 +5356,7 @@ public class PermutationGroupFunctions {
 	public static void canonicalBlockGenerator(ArrayList<Integer> degrees, ArrayList<Integer> partition) throws IOException{
 		int size    = degrees.size();
 		partitionSize=partition.size();
-		firstPartition=partition;
+		inputPartition=partition;
 		int r=1;
 		int[][] A   = new int[size][size];
 		int[][] max = maximalMatrix(degrees);
@@ -5373,15 +5408,15 @@ public class PermutationGroupFunctions {
 	}
 	
 	public static int findX(int r) {
-		return (sum(firstPartition,(r-1))-1);
+		return (sum(inputPartition,(r-1))-1);
 	}
 	
 	public static int findY(int r) {
-		return (sum(firstPartition,(r-1)));
+		return (sum(inputPartition,(r-1)));
 	}
 	
 	public static int findZ(int r) {
-		return (sum(firstPartition,r)-1);
+		return (sum(inputPartition,r)-1);
 	}
 	
 	 /**
