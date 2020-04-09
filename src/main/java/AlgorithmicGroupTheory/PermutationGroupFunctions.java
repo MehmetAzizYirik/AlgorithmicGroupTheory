@@ -91,7 +91,7 @@ public class PermutationGroupFunctions {
 	public static PermutationGroup group=PermutationGroup.makeSymN(4);
 	public static IChemObjectBuilder builder =  SilentChemObjectBuilder.getInstance();
 	public static int order=(int)group.order();
-	public static int size=4;
+	public static int size=0;
 	public static Map<String, Integer> valences; 
 	public static boolean verbose = false;
 	static String filedir = null;
@@ -5274,22 +5274,26 @@ public class PermutationGroupFunctions {
 	  * (After Grund's Answer)
 	  * I need the strip ( block) based canonical test.
 	  * So taking a strip to check canonicity not line by line.
+	 * @throws IOException 
 	  */
 	 
 	 //TODO: The xth partition or all the partitions can be stored in an ArrayList
-	 public static boolean canonicalBlockTest(int[] row,int r, int rowIndex) {
+	 public static boolean canonicalBlockTest(int[] row,int r, int rowIndex, ArrayList<Integer> canonicalPart) throws IOException {
 		 boolean check=true;
-		 if(rowIndex==findY(r)) {
-			 check=yCanonicalRowCheck(row,rowIndex);
+		 if(r==0) {
+			 check=canonicalRowCheck(row,rowIndex,canonicalPart,size);
 		 }else {
-			 ArrayList<Permutation> perms= blockPermutations((r+1),rowIndex); //TODO: Without using perms, just arrays ?
-			 ArrayList<Integer> formerPartition= partition2.get(rowIndex-1);
-			 for(Permutation perm : perms) {
-					if(!desBlockwiseCheck(formerPartition,row,actArray(row,perm))) {
-						check=false;
-						break;
-					}
-			 }
+			 if(rowIndex==findY(r)) {
+				 check=yCanonicalRowCheck(row,rowIndex);
+			 }else {
+				 ArrayList<Permutation> perms= blockPermutations((r+1),rowIndex); //TODO: Without using perms, just arrays ?
+				 for(Permutation perm : perms) {
+					 if(!desBlockwiseCheck(canonicalPart,row,actArray(row,perm))) {
+						 check=false;
+						 break;
+					 }
+				 }
+			 } 
 		 }
 		 return check;
 	 }
@@ -5330,16 +5334,15 @@ public class PermutationGroupFunctions {
 	 }
 	
 	 //TODO: fOR THE Y ROW, I will check with the former ones but then How can I decide what the canonical perm ?
-	 public static boolean yCanonicalRowCheck(int[] rowY, int yValue) {
+	 public static boolean yCanonicalRowCheck(int[] rowY, int yValue, ArrayList<Integer> canonicalPart) {
 		 boolean check=true;
 		 ArrayList<Permutation> reps= representatives.get(yValue); //TODO: Without using perms, just arrays ?
-		 ArrayList<Integer> formerPartition= partition2.get(yValue-1);
 		 for(Permutation perm: reps) {
-				if(!desBlockwiseCheck(formerPartition,rowY,actArray(rowY,perm))) {
-					check=false;
-					break;
-				}
-			}
+			 if(!desBlockwiseCheck(canonicalPart,rowY,actArray(rowY,perm))) {
+				 check=false;
+				 break;
+			 }
+		 }
 		 return check;
 	 }
 	
@@ -5352,12 +5355,13 @@ public class PermutationGroupFunctions {
 	  * Filling the rth strip first. Then test the strip whether canonical
 	  * or not based on the representatives. 
 	  */
-	 
+	
 	public static void canonicalBlockGenerator(ArrayList<Integer> degrees, ArrayList<Integer> partition) throws IOException{
-		int size    = degrees.size();
+		size = degrees.size();
 		partitionSize=partition.size();
 		inputPartition=partition;
-		int r=1;
+		refinedPartitions.add(partition);
+		int r=0;
 		int[][] A   = new int[size][size];
 		int[][] max = maximalMatrix(degrees);
 		int[][] L   = upperTriangularL(degrees);
@@ -5385,20 +5389,20 @@ public class PermutationGroupFunctions {
 	 				ArrayList<Integer> modified=successor(indices,max.length);
 	 				if(modified.get(0)>i && j==A.length-1) { 
 	 					partition=canonicalPartition(i,partition); //TODO: Might need to test again
-	 					if(canonicalBlockTest(A[i],r,i)) { //Based on former perms, check canonical or not then add new perms if it is canonical.
+	 					if(canonicalBlockTest(A[i],r,i,partition)) { //Based on former perms, check canonical or not then add new perms if it is canonical.
 	 						partition=refinedPartitioning(partition,A[i]);
-	 						refinedPartitions.add(partition);
-	 						ArrayList<Integer> changes=findChanges(refinedPartitions.get(i-1),partition); //TODO: In case i=1 or 0, the first partition is used.
-	 						cycleRepresentatives(i,changes,max.length);
+	 						refinedPartitions.add(partition);	 	
+	 						representatives.add(cycleRepresentatives(i,findChanges(refinedPartitions.get(i),refinedPartitions.get(i+1)),size));
 	 						if(i==findZ(r)) {
+	 							if(r==0) {
+	 								fillRepresentatives(size);
+	 							}
 	 							r++;
-	 							forwardCanonicalBlock(degrees, partition, A, max, L, C, modified,r);
-	 						}else {
-	 							forwardCanonicalBlock(degrees, partition, A, max, L, C, modified,r);
 	 						}
+	 						forwardCanonicalBlock(degrees, partition, A, max, L, C, modified,r);
 	 					}
 	 				}else {
-	 					forwardCanonical(degrees, partition, A, max, L, C, modified);
+	 					forwardCanonicalBlock(degrees, partition, A, max, L, C, modified,r);
 	 				}
 	 			}
 	 		}else {
