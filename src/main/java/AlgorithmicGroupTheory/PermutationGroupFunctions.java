@@ -5324,15 +5324,39 @@ public class PermutationGroupFunctions {
 		 return check;
 	 }
 	 
-	 //TODO: For the other strips, I need to update these representatives and refinedPartitions.
-	 public static void fillRepresentatives(int total) {
-		 int z=findZ(0);
+	 /**
+	  * Filling refined partitions and also the representatives. If the strip
+	  * is the first one, r=0, then it will fill all the lists; but for the
+	  * others, it will update the already filled entries. 
+	  * @param total number of atoms. 
+	  */
+	 
+	 public static void fillRepresentatives(int r, int total) { 
+		 int z=findZ(r)+1; //TODO: +1 or -1 just decide how to define the indices.
 		 for(int i=z;i<total;i++) {
-			 refinedPartitions.add(partitionWDegree(refinedPartitions.get(i),1));
+			 refinedPartitions.add(i, partitionWDegree(refinedPartitions.get(i),1));
 			 representatives.add(cycleRepresentatives(i,total));
 		 }
 	 }
-	
+	 
+	 /**
+	  * At the end of every strip, check whether all the representatives are
+	  * id permutation. If yes, no need to check the further strips.
+	  * @param z end of the strip
+	  * @return
+	  */
+	 
+	 public static boolean idRepresentativesCheck(int z) {
+		 boolean check=true;
+		 for(int i=0;i<=z;i++) {
+			 if(representatives.get(i).size()>1) {
+				 check=false;
+				 break;
+			 }
+		 }
+		 return check;
+	 }
+	 
 	 //TODO: fOR THE Y ROW, I will check with the former ones but then How can I decide what the canonical perm ?
 	 public static boolean yCanonicalRowCheck(int[] rowY, int yValue, ArrayList<Integer> canonicalPart) {
 		 boolean check=true;
@@ -5384,31 +5408,99 @@ public class PermutationGroupFunctions {
 	 		if((l2-h<=L[i][j]) && (c2-h<=C[i][j])) {
 	 			A[i][j]=A[j][i]=h;
 	 			if(i==(max.length-2) && j==(max.length-1)) {
-	 				backwardCanonical(degrees,partition,A, max, L, C, indices);
+	 				backwardCanonicalBlock(degrees,partition,A, max, L, C, indices,r);
 	 			}else {
 	 				ArrayList<Integer> modified=successor(indices,max.length);
-	 				if(modified.get(0)>i && j==A.length-1) { 
+	 				if(modified.get(0)>i && j==A.length-1) {  //TODO: Why we create the canonical for i not modified.get(0) ?
 	 					partition=canonicalPartition(i,partition); //TODO: Might need to test again
 	 					if(canonicalBlockTest(A[i],r,i,partition)) { //Based on former perms, check canonical or not then add new perms if it is canonical.
 	 						partition=refinedPartitioning(partition,A[i]);
 	 						refinedPartitions.add(partition);	 	
 	 						representatives.add(cycleRepresentatives(i,findChanges(refinedPartitions.get(i),refinedPartitions.get(i+1)),size));
-	 						if(i==findZ(r)) {
-	 							if(r==0) {
-	 								fillRepresentatives(size);
-	 							}
-	 							r++;
-	 						}
-	 						forwardCanonicalBlock(degrees, partition, A, max, L, C, modified,r);
+	 						if(i==findZ(r)){
+	 							fillRepresentatives(r,size);
+	 							if(!idRepresentativesCheck(findZ(r))) {
+	 								r++;
+	 								forwardCanonicalBlock(degrees, partition, A, max, L, C, modified,r);
+	 							}else{
+	 								System.out.println(" The automorphism group is trivial; no need for further test.");
+	 								//TODO: Fill remaining without test but test how this works.
+	 								forward(degrees,A,max,L,C,modified);
+	 							} 
+	 						}else {
+	 							forwardCanonicalBlock(degrees, partition, A, max, L, C, modified,r);
+	 						}		
 	 					}
 	 				}else {
 	 					forwardCanonicalBlock(degrees, partition, A, max, L, C, modified,r);
 	 				}
 	 			}
 	 		}else {
-	 			backwardCanonical(degrees, partition,A, max, L, C, indices);
+	 			backwardCanonicalBlock(degrees, partition,A, max, L, C, indices,r);
 	 		}
 	 	}
+	}
+	
+	public static void backwardCanonicalBlock(ArrayList<Integer> degrees,ArrayList<Integer> partition,int[][] A, int[][]max, int[][]L, int[][]C, ArrayList<Integer> indices, int r) throws IOException {
+		int i=indices.get(0);
+		int j=indices.get(1);
+		int l2= LInverse(degrees,i,j,A);
+		int c2= CInverse(degrees,i,j,A);
+		if(i==max.length-2 && j==max.length-1) {
+			output.add(A);
+			int[][] mat2= new int[A.length][A.length]; 
+			for(int k=0;k<A.length;k++) {
+				for(int l=0;l<A.length;l++) {
+					mat2[k][l]=A[k][l];
+				}
+			}
+			//writeLine(111,"b",mat2);
+			System.out.println("done");
+			System.out.println(Arrays.deepToString(A));
+			//writeMatrix(A);
+		}else{
+			ArrayList<Integer> modified=predecessor(indices, max.length);
+			i= modified.get(0);
+			j= modified.get(1);
+			if(i>0 && j-i==1) {
+				int x= A[i][j];
+				if(x>0 && (l2-(x-1)<=L[i][j]) && (c2-(x-1)<=C[i][j])) {
+					A[i][j]=A[j][i]=x-1;
+					ArrayList<Integer> modified2=successor(modified,max.length);
+					int i2 = modified2.get(0);
+					if(!inStrip(i2,r)) {
+						r=findNewR(i2,r);
+					}
+					forwardCanonicalBlock(degrees, partition, A, max, L, C, modified2,r);
+				}else {
+					if(!inStrip(i,r)) {
+						r=findNewR(i,r);
+					}
+					backwardCanonicalBlock(degrees,partition, A, max, L, C, modified,r);
+				}
+			}
+		}
+	}
+	
+	public static boolean inStrip(int iIndex,int r) {
+		boolean check=false;
+		int y= findX(r);
+		int z= findZ(r);
+		if(y<=iIndex && iIndex<=z) {
+			check=true;
+		}
+		return check;
+	}
+	
+	public static int findNewR(int iIndex,int r) {
+		int y= findX(r);
+		int z= findZ(r);
+		if(iIndex<y) {
+			r--;
+		}else if(iIndex>z) {
+			r++;
+		}
+		return r;
 	}
 	
 	public static int findX(int r) {
