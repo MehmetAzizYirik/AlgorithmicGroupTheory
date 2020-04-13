@@ -4825,6 +4825,40 @@ public class PermutationGroupFunctions {
 	}
 	
 	/**
+	 * After Grund's Answer, building the new canonical perm function.
+	 * Here, we search for a canonical perm, with whose action on the row,
+	 * it keeps the original row and its still in descending order.
+	 * If there is such a permutation, then no need to check for further
+	 * permutations. In other words, if there is one perm, keeps the row
+	 * in descending order, then for all the others, the row satisfies the 
+	 * canonical row check.
+	 */
+	
+	/**
+	 * Find Canonical Permutation
+	 * @param formerPerm for the row index, the formerly defined representative.
+	 * @param partition canonical partition
+	 * @param array the row 
+	 * @return new canonical permutation
+	 */
+	
+	public static Permutation findCanonicalPermutation(Permutation formerPerm, ArrayList<Integer> partition, int[] array){
+		PermutationGroup group=getYoungGroup(partition,size);
+		Permutation canPerm= new Permutation(size);
+		Permutation multPerm= new Permutation(size);
+		int[] canCheck = new int[array.length];
+		for(Permutation perm: group.all()) {
+			multPerm  = perm.multiply(formerPerm);
+			canCheck = actArray(array,multPerm);
+			if(blockwiseDesOrderCheck(canCheck,partition)) {
+				canPerm=perm;
+				break;
+			} 
+		}
+		return canPerm;
+	}
+	
+	/**
 	 * Canonical Row Check is performed by checking the descending order with every permutation
 	 * of a Young subgroup built with respect to a partition. Rather than dealing with that many
 	 * permutations, we get the Young subgroup representatives. These representatives are used
@@ -5284,12 +5318,27 @@ public class PermutationGroupFunctions {
 			 check=canonicalRowCheck(row,rowIndex,canonicalPart,size);
 		 }else {
 			 if(rowIndex==findY(r)) {
-				 check=yCanonicalRowCheck(row,rowIndex);
+				 check=yCanonicalRowCheck(row,rowIndex,canonicalPart);
 			 }else {
 				 ArrayList<Permutation> perms= blockPermutations((r+1),rowIndex); //TODO: Without using perms, just arrays ?
+				 //TOOD: Maybe I dont need all just take one from the list ? And check that break rule. 
 				 for(Permutation perm : perms) {
 					 if(!desBlockwiseCheck(canonicalPart,row,actArray(row,perm))) {
-						 check=false;
+						 Permutation canonicalPerm= findCanonicalPermutation(perm,canonicalPart, row);
+						 Permutation multPerm= perm.multiply(canonicalPerm);
+						 if(!desBlockwiseCheck(canonicalPart,row,actArray(row,multPerm))) {
+							 check=false;
+							 break;
+						 }else {
+							 representatives.get(rowIndex).clear();
+							 representatives.get(rowIndex).add(multPerm);
+							 updateFormerRepresentatives(r,canonicalPart,perm,row);
+							 break;
+						 }
+					 }else {
+						 representatives.get(rowIndex).clear();
+						 representatives.get(rowIndex).add(new Permutation(size));
+						 updateFormerRepresentatives(r,canonicalPart,perm,row);
 						 break;
 					 }
 				 }
@@ -5297,6 +5346,28 @@ public class PermutationGroupFunctions {
 		 }
 		 return check;
 	 }
+	 
+	 /**
+	  * If the canonical perm is found or the former permutation in the
+	  * representatives is already satisfying the canonical test, then 
+	  * we update the former representatives of the former blocks.
+	  * @param r
+	  * @param canonicalPart
+	  * @param perm
+	  * @param row
+	  */
+	 
+	 public static void updateFormerRepresentatives(int r, ArrayList<Integer> canonicalPart, Permutation perm, int[] row) {
+		 for(int s=0;s<findY(r);s++) {
+			 for(int f=0;f<representatives.get(s).size();f++) {
+				 Permutation mult= representatives.get(s).get(f).multiply(perm);
+				 if(desBlockwiseCheck(canonicalPart,row,actArray(row,mult))) {
+					 representatives.get(s).add(f, mult);
+				 }
+			 }
+		 }	 
+	 }
+	 
 	 
 	 /**
 	  * Refined Partitions a input partition eklenmeli.
@@ -5335,8 +5406,32 @@ public class PermutationGroupFunctions {
 		 int z=findZ(r)+1; //TODO: +1 or -1 just decide how to define the indices.
 		 for(int i=z;i<total;i++) {
 			 refinedPartitions.add(i, partitionWDegree(refinedPartitions.get(i),1));
-			 representatives.add(cycleRepresentatives(i,total));
+			 representatives.add(i,cycleRepresentatives(i,total)); //TODO: Need to update the list. Otherwise it keeps adding.
 		 }
+	 }
+	 
+	 
+	 /**
+	  * Like in Grund Example 3.3.19; We need to check with the permutations 
+	  * of the former representatives. This function helps us to calculate
+	  * the multiplication of the former representatives. So, before
+	  * the beginning of the current strip (or block).
+	  * 
+	  * @param index current row index
+	  * @return
+	  */
+	 
+	 public static ArrayList<Permutation> formerPermutations(int index) {
+		 ArrayList<Permutation> list= new ArrayList<Permutation>();
+		 list.add(new Permutation(size));
+		 for(int i=0;i<index;i++) {
+			 for(Permutation perm: representatives.get(i)) {
+				 for(int l=0;l<list.size();l++) {
+					 list.add(l,list.get(l).multiply(perm)); //TODO: Check whether it replace the element with the new one.
+				 }
+			 }
+		 }
+		 return list;
 	 }
 	 
 	 /**
