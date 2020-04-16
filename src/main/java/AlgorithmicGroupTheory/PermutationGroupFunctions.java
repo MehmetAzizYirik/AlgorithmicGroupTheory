@@ -5225,7 +5225,8 @@ public class PermutationGroupFunctions {
 		 ArrayList<Permutation> perms= new ArrayList<Permutation>();
 		 perms.add(idPermutation(size));
 		 int lValue= LValue(refinedPartitions.get(index),index);
-	     for(int i=1;i<=lValue;i++) {
+		 System.out.println(LValue);
+	     for(int i=0;i<=lValue;i++) {
 	    	 int[] values= idValues(size);
 			 for(int changes:indexChanges) {
 				 values[changes]=changes+i;
@@ -5244,18 +5245,13 @@ public class PermutationGroupFunctions {
 		 int extS= extPart.size();
 		 int newS= part.size();
 		 if(extS!=newS) {
-			 outer:
-			 for(int i=0; i<extS;i++) {
-				 for(int j=0;j<newS;j++) {
-					 if(extPart.get(i)!=part.get(j)) {
-						 if(i==(extS-1)) {
-							 changes.add(sum(extPart));
-							 break outer;
-						 }else {
-							 changes.add(sum(extPart,i));
-							 j++;
-						 }
-					 }
+			 int j=0;
+			 for(int i=0;i<extS;i++) {
+				 if(extPart.get(i)!=part.get(j)) {
+					 changes.add(sum(extPart,i)-2);
+					 j=j+2;
+				 }else {
+					 j++;				 
 				 }
 			 }
 		 }
@@ -5477,8 +5473,11 @@ public class PermutationGroupFunctions {
 	
 	public static void canonicalBlockGenerator(ArrayList<Integer> degrees, ArrayList<Integer> partition) throws IOException{
 		size = degrees.size();
+		System.out.println("size"+" "+size);
 		partitionSize=partition.size();
+		System.out.println("partSize"+" "+partitionSize);
 		inputPartition=partition;
+		System.out.println("input partition"+" "+inputPartition);
 		refinedPartitions.add(partition);
 		int r=0;
 		int[][] A   = new int[size][size];
@@ -5489,7 +5488,7 @@ public class PermutationGroupFunctions {
 		indices.add(0);
 		indices.add(1);
 		zeroDiagonal(A);
-		forwardCanonicalBlock(degrees,partition,A,max,L,C,indices,r); //It was originally without partition entry.
+		forwardCanonicalBlock(degrees,partition,A,max,L,C,indices,r); //It was originally without partition entry.**/
 	}
 	
 	public static ArrayList<ArrayList<Integer>> refinedPartitions= new ArrayList<ArrayList<Integer>>();
@@ -5510,7 +5509,12 @@ public class PermutationGroupFunctions {
 	 					partition=canonicalPartition(i,partition); //TODO: Might need to test again
 	 					if(canonicalBlockTest(A[i],r,i,partition)) { //Based on former perms, check canonical or not then add new perms if it is canonical.
 	 						partition=refinedPartitioning(partition,A[i]);
-	 						refinedPartitions.add(partition);	 	
+	 						refinedPartitions.add(partition);	
+	 						System.out.println("index"+" "+i);
+	 						System.out.println("size"+" "+size);
+	 						System.out.println(refinedPartitions.get(i)+" "+"i refined");
+	 						System.out.println(refinedPartitions.get(i+1)+" "+"(i+1) refined");
+	 						System.out.println("changes"+" "+findChanges(refinedPartitions.get(i),refinedPartitions.get(i+1)));
 	 						representatives.add(cycleRepresentatives(i,findChanges(refinedPartitions.get(i),refinedPartitions.get(i+1)),size));
 	 						if(i==findZ(r)){
 	 							fillRepresentatives(r,size);
@@ -5936,30 +5940,31 @@ public class PermutationGroupFunctions {
 	
 	 public static void main(String[] args) throws CloneNotSupportedException, CDKException, IOException {   
 		 // TODO Auto-generated method stub	
-		 
 		 ArrayList<Integer> degrees= new ArrayList<Integer>();
 		 
 		 degrees.add(4);
 		 degrees.add(4);
-		 degrees.add(4);
-		 degrees.add(4);
-		 degrees.add(4);
-		 degrees.add(4);
-		 degrees.add(4);
-		 degrees.add(4);
-		 degrees.add(4);
-		 degrees.add(4);
-		 degrees.add(5);
+		 degrees.add(2);
 		 degrees.add(1);
-		 
+		 degrees.add(1);
 		 
 		 ArrayList<Integer> partition= new ArrayList<Integer>();
 		 
-		 partition.add(10);
-		 partition.add(1);
-		 partition.add(1);
+		 partition.add(2);
+		 partition.add(4);
+		 partition.add(4);
 		 
-		 ArrayList<Integer> part= new ArrayList<Integer>();
+		 ArrayList<Integer> partition2= new ArrayList<Integer>();
+		 
+		 partition2.add(1);
+		 partition2.add(1);
+		 partition2.add(3);
+		 partition2.add(1);
+		 partition2.add(4);
+		 cycleRepresentatives(0,findChanges(partition,partition2),10);
+		 //canonicalBlockGenerator(degrees,partition);
+		 
+		 /**ArrayList<Integer> part= new ArrayList<Integer>();
 		 part.add(1);
 		 part.add(1);
 		 part.add(2);
@@ -5992,7 +5997,7 @@ public class PermutationGroupFunctions {
 			 System.out.println(perm.toCycleString());
 		 }**/
 		 
-		 System.out.println(permTreeCycles(3,part,part2));
+		 //System.out.println(permTreeCycles(3,part,part2));
 		
 		 /**
 		 for(Permutation perm1: group1.all()) {
