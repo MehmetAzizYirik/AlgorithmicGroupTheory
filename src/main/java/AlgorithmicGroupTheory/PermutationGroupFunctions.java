@@ -3950,30 +3950,38 @@ public class PermutationGroupFunctions {
 	 	int minimal= Math.min(max[i][j],Math.min(l2,c2));
 	 	for(int h=minimal;h>=0;h--) {
 	 		if((l2-h<=L[i][j]) && (c2-h<=C[i][j])) {
+	 			System.out.println(i+" "+j+" "+Arrays.deepToString(A));
 	 			A[i][j]=A[j][i]=h;
 	 			if(i==(max.length-2) && j==(max.length-1)) {
+	 				System.out.println("backward"+" "+i+" "+j);
 	 				backwardCanonical(degrees,partition,A, max, L, C, indices);
 	 			}else {
 	 				System.out.println("i and j"+" "+i+" "+j);
 	 				ArrayList<Integer> modified=successor(indices,max.length);
-	 				System.out.println("modified"+" "+modified.get(0)+" "+modified.get(1));
+	 				System.out.println("i and j modified"+" "+i+" "+j);
+	 				//System.out.println("modified"+" "+modified.get(0)+" "+modified.get(1));
 	 				if(modified.get(0)>i && j==A.length-1) { 
 	 					//A[i]=canonicalRow(group,partition,A[i]);
 	 					//System.out.println("canonicalCheck"+" "+canonicalRowCheck(A[i],group,partition,A.length));
-	 					System.out.println("partition before"+" "+partition);
+	 					//System.out.println("partition before"+" "+partition);
 	 					partition=canonicalPartition(i,partition); //TODO: Might need to test again
-	 					System.out.println("canonical partition"+" "+partition);
+	 					//System.out.println("canonical partition"+" "+partition);
 	 					if(canonicalRowCheck(A[i],i,partition,A.length)) {
 	 						//A[i]=canonicalRow(A[i],group,partition); //TODO: Need to check whether it modifies the A matrix really.
 	 						partition=refinedPartitioning(partition,A[i]);
-	 						System.out.println("refined partition"+" "+partition);
+	 						//System.out.println("refined partition"+" "+partition);
+	 						System.out.println("forward"+" "+i+" "+j);
 	 						forwardCanonical(degrees, partition, A, max, L, C, modified);
+	 					}else {
+	 						System.out.println("not canonical");
 	 					}
 	 				}else {
+	 					System.out.println("forward"+" "+i+" "+j);
 	 					forwardCanonical(degrees, partition, A, max, L, C, modified);
 	 				}
 	 			}
 	 		}else {
+	 			System.out.println("backward"+" "+i+" "+j);
 	 			backwardCanonical(degrees, partition,A, max, L, C, indices);
 	 		}
 	 	}
@@ -4101,16 +4109,19 @@ public class PermutationGroupFunctions {
 			System.out.println(Arrays.deepToString(A));
 			//writeMatrix(A);
 		}else{
+			System.out.println("back ici "+" "+i+" "+j);
 			ArrayList<Integer> modified=predecessor(indices, max.length);
 			i= modified.get(0);
 			j= modified.get(1);
+			System.out.println("back ici mod"+" "+i+" "+j);
 			if(i>0 && j-i==1) {
 				int x= A[i][j];
 				if(x>0 && (l2-(x-1)<=L[i][j]) && (c2-(x-1)<=C[i][j])) {
 					A[i][j]=A[j][i]=x-1;
+					System.out.println("back ici forward"+" "+i+" "+j);
 					ArrayList<Integer> modified2=successor(modified,max.length);
-	 				forwardCanonical(degrees, partition, A, max, L, C, modified2);
-	 				
+	 				System.out.println("back ici forward 2"+" "+i+" "+j);
+					forwardCanonical(degrees, partition, A, max, L, C, modified2);
 					//forward(degrees,partition,A, max, L, C, modified2);
 					/**if(j==A.length-1) {
 	 					partition=canonicalPartition(i,partition);
@@ -4126,6 +4137,7 @@ public class PermutationGroupFunctions {
 						forward(degrees,partition,A, max, L, C, modified2);
 	 				}**/
 				}else {
+					System.out.println("back ici backward"+" "+i+" "+j);
 					backwardCanonical(degrees,partition, A, max, L, C, modified);
 				}
 			}
