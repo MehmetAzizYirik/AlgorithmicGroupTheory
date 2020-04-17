@@ -5228,21 +5228,47 @@ public class PermutationGroupFunctions {
 		 ArrayList<Permutation> perms= new ArrayList<Permutation>();
 		 perms.add(idPermutation(size));
 		 int lValue= LValue(refinedPartitions.get(index),index);
-		 System.out.println(lValue);
-	     for(int i=0;i<=lValue;i++) {
-	    	 int[] values= idValues(size);
-			 for(int changes:indexChanges) {
-				 values[changes]=changes+i;
-				 values[changes+i]=changes;
-			 }
-			 Permutation p = new Permutation(values);
-			 perms.add(p);
-		 }
+		 System.out.println("l"+" "+lValue);
+	     if(lValue>1) {
+	    	 for(int i=1;i<=(lValue-1);i++) { // TODO: This lvalue might causes an error like out of array size.
+		    	 int[] values= idValues(size);
+				 for(int changes:indexChanges) {
+					 values[changes]=changes+i;
+					 values[changes+i]=changes;
+				 }
+				 Permutation p = new Permutation(values);
+				 perms.add(p);
+			 } 
+	     }
 	     representatives.add(index, perms);
 	     updatePermTree(perms);
 		 return perms;
 	 }
 	 
+	 public static ArrayList<Integer> findIndexChanges(ArrayList<Integer> extPart, ArrayList<Integer> part){
+		 ArrayList<Integer> changes= new ArrayList<Integer>();
+		 int extS= extPart.size();
+		 int newS= part.size();
+		 if(extS!=newS) {
+			 int j=0;
+			 int i=0;
+			 while(i<extS) {
+				 if(extPart.get(i)!=part.get(j)) {
+					 changes.add(sum(part,j)-1);
+					 if(sum(extPart,i)==sum(part,j+1)) {
+						 i++;
+						 j=j+2;
+					 }else {
+						 j++; 
+					 }
+				 }else {
+					 i++;
+					 j++;				 
+				 }
+			 }
+		 }
+		 return changes;
+	 }
 	 public static ArrayList<Integer> findChanges(ArrayList<Integer> extPart, ArrayList<Integer> part) {
 		 ArrayList<Integer> changes= new ArrayList<Integer>();
 		 int extS= extPart.size();
@@ -5511,20 +5537,23 @@ public class PermutationGroupFunctions {
 	 				ArrayList<Integer> modified=successor(indices,max.length);
 	 				if(modified.get(0)>i && j==A.length-1) {  //TODO: Why we create the canonical for i not modified.get(0) ?
 	 					partition=canonicalPartition(i,partition); //TODO: Might need to test again
+	 					System.out.println("canonical"+" "+partition+" "+i);
 	 					if(canonicalBlockTest(A[i],r,i,partition)) { //Based on former perms, check canonical or not then add new perms if it is canonical.
+	 						System.out.println("row"+" "+Arrays.toString(A[i]));
 	 						partition=refinedPartitioning(partition,A[i]);
 	 						//ArrayList<Integer> refinedPart = refinedPartitioning(partition,A[i]);
 	 						refinedPartitions.add(partition);	
-	 						System.out.println("index"+" "+i);
+	 						//System.out.println("index"+" "+i);
 	 						for(int s=0;s<refinedPartitions.size();s++) {
-	 							System.out.println("refined "+" "+s+" "+refinedPartitions.get(s));
+	 							//System.out.println("refined "+" "+s+" "+refinedPartitions.get(s));
 	 						}
-	 						System.out.println("size"+" "+size);
-	 						ArrayList<Integer> changes= findChanges(refinedPartitions.get(i),refinedPartitions.get(i+1));
-	 						System.out.println("changes"+" "+findChanges(refinedPartitions.get(i),refinedPartitions.get(i+1)));
-	 						ArrayList<Permutation> representative= cycleRepresentatives(i,findChanges(refinedPartitions.get(i),refinedPartitions.get(i+1)),size);
+	 						//System.out.println("size"+" "+size);
+	 						System.out.println(i+" "+refinedPartitions.get(i)+" "+refinedPartitions.get(i+1));
+	 						ArrayList<Integer> changes= findIndexChanges(refinedPartitions.get(i),refinedPartitions.get(i+1));
+	 						System.out.println("changes"+" "+findIndexChanges(refinedPartitions.get(i),refinedPartitions.get(i+1)));
+	 						ArrayList<Permutation> representative= cycleRepresentatives(i,findIndexChanges(refinedPartitions.get(i),refinedPartitions.get(i+1)),size);
 	 						System.out.println("representatives"+" "+i+" "+representative);
-	 						representatives.add(cycleRepresentatives(i,findChanges(refinedPartitions.get(i),refinedPartitions.get(i+1)),size));
+	 						representatives.add(cycleRepresentatives(i,findIndexChanges(refinedPartitions.get(i),refinedPartitions.get(i+1)),size));
 	 						if(i==findZ(r)){
 	 							fillRepresentatives(r,size); 
 	 							if(!idRepresentativesCheck(findZ(r))) { 
@@ -5571,7 +5600,7 @@ public class PermutationGroupFunctions {
 			if(modified.get(0)<i) {
 				System.out.println(i+" "+"rep and ref are cleared");
 				for(int s=0;s<representatives.size();s++) {
-					System.out.println(s+" "+representatives.get(s));
+					//System.out.println(s+" "+representatives.get(s));
 				}
 				for(int k=i;k<size;k++) {
 					representatives.get(k).clear();
@@ -5971,19 +6000,24 @@ public class PermutationGroupFunctions {
 		 degrees.add(1);
 		 
 		 ArrayList<Integer> partition= new ArrayList<Integer>();
-		 
+		
 		 partition.add(3);
 		 partition.add(2);
+		 
 		 
 		 ArrayList<Integer> partition2= new ArrayList<Integer>();
 		 
 		 partition2.add(1);
 		 partition2.add(1);
-		 partition2.add(3);
 		 partition2.add(1);
-		 partition2.add(4);
+		 partition2.add(2);
+		 partition2.add(2);
+		 partition2.add(1);
+		 partition2.add(2);
+		 
 		 //cycleRepresentatives(0,findChanges(partition,partition2),10);
 		 canonicalBlockGenerator(degrees,partition);
+		
 		 /**ArrayList<Integer> part= new ArrayList<Integer>();
 		 part.add(1);
 		 part.add(1);
