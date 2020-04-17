@@ -5169,7 +5169,7 @@ public class PermutationGroupFunctions {
 	  */
 	 
 	 public static int LValue(ArrayList<Integer> partEx, int degree) {
-		 return (sum(partEx,degree-1)-degree+1); 
+		 return (sum(partEx,degree)-degree); 
 	 }
 	 
 	 /**
@@ -5228,6 +5228,7 @@ public class PermutationGroupFunctions {
 		 ArrayList<Permutation> perms= new ArrayList<Permutation>();
 		 perms.add(idPermutation(size));
 		 int lValue= LValue(refinedPartitions.get(index),index);
+		 System.out.println(lValue);
 	     if(lValue>1) {
 	    	 for(int i=1;i<=(lValue-1);i++) { // TODO: This lvalue might causes an error like out of array size.
 		    	 int[] values= idValues(size);
@@ -6001,66 +6002,20 @@ public class PermutationGroupFunctions {
 		 
 		 ArrayList<Integer> partition= new ArrayList<Integer>();
 		
-		 partition.add(3);
 		 partition.add(2);
-		 
+		 partition.add(4);
+		 partition.add(4);
 		 
 		 ArrayList<Integer> partition2= new ArrayList<Integer>();
 		 
 		 partition2.add(1);
 		 partition2.add(1);
+		 partition2.add(3);
 		 partition2.add(1);
-		 partition2.add(2);
-		 partition2.add(2);
-		 partition2.add(1);
-		 partition2.add(2);
+		 partition2.add(4);
 		 
-		 ArrayList<Integer> in= new ArrayList<Integer>();
-		 in.add(0);
-		 in.add(1);
-		 in.add(2);
-		 for(int i=1;i<=2;i++) { // TODO: This lvalue might causes an error like out of array size.
-	    	 int[] values= idValues(5);
-	    	 System.out.println("v"+" "+Arrays.toString(values));
-			 for(int changes:in) {
-				 System.out.println(changes+" "+i);
-				 int b =  values[changes];
-				 values[changes] =  values[changes+i];
-				 values[changes+i] = b;
-				 
-				 System.out.println(Arrays.toString(values));
-			 }
-			 System.out.println(Arrays.toString(values));
-			 Permutation p = new Permutation(values);
-		 } 
-		 
-		 int[] ar= new int[5];
-		 ar[0]=1;
-		 ar[1]=0;
-		 ar[2]=2;
-		 ar[3]=3;
-		 ar[4]=4;
-		 
-		 int[] ar2= new int[5];
-		 ar2[0]=0;
-		 ar2[1]=2;
-		 ar2[2]=1;
-		 ar2[3]=3;
-		 ar2[4]=4;
-		 
-		 int[] ar3= new int[5];
-		 ar3[0]=0;
-		 ar3[1]=1;
-		 ar3[2]=3;
-		 ar3[3]=2;
-		 ar3[4]=4;
-		 
-		 Permutation perm= new Permutation(ar);
-		 Permutation perm2= new Permutation(ar2);
-		 Permutation perm3= new Permutation(ar3);
-		 System.out.println(perm2.multiply(perm3).toCycleString());
-		 System.out.println(perm.multiply(perm2.multiply(perm3)).toCycleString());
-		 //cycleRepresentatives(0,findChanges(partition,partition2),10);
+		 refinedPartitions.add(0, partition);
+		 System.out.println(cycleRepresentatives(0,findIndexChanges(partition,partition2),10));
 		 //canonicalBlockGenerator(degrees,partition);
 		
 		 /**ArrayList<Integer> part= new ArrayList<Integer>();
