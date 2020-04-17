@@ -3950,15 +3950,15 @@ public class PermutationGroupFunctions {
 	 	int minimal= Math.min(max[i][j],Math.min(l2,c2));
 	 	for(int h=minimal;h>=0;h--) {
 	 		if((l2-h<=L[i][j]) && (c2-h<=C[i][j])) {
-	 			System.out.println(i+" "+j+" "+Arrays.deepToString(A));
+	 			//System.out.println(i+" "+j+" "+Arrays.deepToString(A));
 	 			A[i][j]=A[j][i]=h;
 	 			if(i==(max.length-2) && j==(max.length-1)) {
-	 				System.out.println("backward"+" "+i+" "+j);
+	 				//System.out.println("backward"+" "+i+" "+j);
 	 				backwardCanonical(degrees,partition,A, max, L, C, indices);
 	 			}else {
-	 				System.out.println("i and j"+" "+i+" "+j);
+	 				//System.out.println("i and j"+" "+i+" "+j);
 	 				ArrayList<Integer> modified=successor(indices,max.length);
-	 				System.out.println("i and j modified"+" "+i+" "+j);
+	 				//System.out.println("i and j modified"+" "+i+" "+j);
 	 				//System.out.println("modified"+" "+modified.get(0)+" "+modified.get(1));
 	 				if(modified.get(0)>i && j==A.length-1) { 
 	 					//A[i]=canonicalRow(group,partition,A[i]);
@@ -5512,19 +5512,21 @@ public class PermutationGroupFunctions {
 	 				if(modified.get(0)>i && j==A.length-1) {  //TODO: Why we create the canonical for i not modified.get(0) ?
 	 					partition=canonicalPartition(i,partition); //TODO: Might need to test again
 	 					if(canonicalBlockTest(A[i],r,i,partition)) { //Based on former perms, check canonical or not then add new perms if it is canonical.
-	 						//partition=refinedPartitioning(partition,A[i]);
-	 						ArrayList<Integer> refinedPart = refinedPartitioning(partition,A[i]);
-	 						//refinedPartitions.add(partition);	
+	 						partition=refinedPartitioning(partition,A[i]);
+	 						//ArrayList<Integer> refinedPart = refinedPartitioning(partition,A[i]);
+	 						refinedPartitions.add(partition);	
 	 						System.out.println("index"+" "+i);
+	 						for(int s=0;s<refinedPartitions.size();s++) {
+	 							System.out.println("refined "+" "+s+" "+refinedPartitions.get(s));
+	 						}
 	 						System.out.println("size"+" "+size);
-	 						System.out.println(refinedPartitions.get(i)+" "+"i refined");
-	 						System.out.println(refinedPartitions.get(i+1)+" "+"(i+1) refined");
 	 						ArrayList<Integer> changes= findChanges(refinedPartitions.get(i),refinedPartitions.get(i+1));
 	 						System.out.println("changes"+" "+findChanges(refinedPartitions.get(i),refinedPartitions.get(i+1)));
 	 						ArrayList<Permutation> representative= cycleRepresentatives(i,findChanges(refinedPartitions.get(i),refinedPartitions.get(i+1)),size);
-	 						//representatives.add(cycleRepresentatives(i,findChanges(refinedPartitions.get(i),refinedPartitions.get(i+1)),size));
+	 						System.out.println("representatives"+" "+i+" "+representative);
+	 						representatives.add(cycleRepresentatives(i,findChanges(refinedPartitions.get(i),refinedPartitions.get(i+1)),size));
 	 						if(i==findZ(r)){
-	 							//fillRepresentatives(r,size); TODO: We cannot fill the representatives.
+	 							fillRepresentatives(r,size); 
 	 							if(!idRepresentativesCheck(findZ(r))) { 
 	 								r++;
 	 								forwardCanonicalBlock(degrees, partition, A, max, L, C, modified,r);
@@ -5566,6 +5568,19 @@ public class PermutationGroupFunctions {
 			//writeMatrix(A);
 		}else{
 			ArrayList<Integer> modified=predecessor(indices, max.length);
+			if(modified.get(0)<i) {
+				System.out.println(i+" "+"rep and ref are cleared");
+				for(int s=0;s<representatives.size();s++) {
+					System.out.println(s+" "+representatives.get(s));
+				}
+				for(int k=i;k<size;k++) {
+					representatives.get(k).clear();
+					refinedPartitions.get(k).clear();
+				}
+				for(int s=0;s<representatives.size();s++) {
+					System.out.println(s+" "+representatives.get(s));
+				}
+			}
 			i= modified.get(0);
 			j= modified.get(1);
 			if(i>0 && j-i==1) {
@@ -5951,14 +5966,13 @@ public class PermutationGroupFunctions {
 		 
 		 degrees.add(4);
 		 degrees.add(4);
-		 degrees.add(2);
+		 degrees.add(4);
 		 degrees.add(1);
 		 degrees.add(1);
 		 
 		 ArrayList<Integer> partition= new ArrayList<Integer>();
 		 
-		 partition.add(2);
-		 partition.add(1);
+		 partition.add(3);
 		 partition.add(2);
 		 
 		 ArrayList<Integer> partition2= new ArrayList<Integer>();
@@ -5969,7 +5983,7 @@ public class PermutationGroupFunctions {
 		 partition2.add(1);
 		 partition2.add(4);
 		 //cycleRepresentatives(0,findChanges(partition,partition2),10);
-		 canonicalMatrixGenerator(degrees,partition);
+		 canonicalBlockGenerator(degrees,partition);
 		 /**ArrayList<Integer> part= new ArrayList<Integer>();
 		 part.add(1);
 		 part.add(1);
