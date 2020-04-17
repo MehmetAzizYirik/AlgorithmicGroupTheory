@@ -5169,7 +5169,7 @@ public class PermutationGroupFunctions {
 	  */
 	 
 	 public static int LValue(ArrayList<Integer> partEx, int degree) {
-		 return (sum(partEx,degree)-degree); 
+		 return (sum(partEx,degree)-degree); //In Grund, the numeration starts with 1. Since we start with 0, it should be -(degree+1)+1, so just -degree
 	 }
 	 
 	 /**
