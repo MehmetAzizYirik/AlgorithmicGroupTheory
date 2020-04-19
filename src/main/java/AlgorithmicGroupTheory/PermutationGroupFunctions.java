@@ -3844,11 +3844,14 @@ public class PermutationGroupFunctions {
 	public static void forward(ArrayList<Integer> degrees,int[][] A, int[][]max, int[][]L, int[][]C, ArrayList<Integer> indices) throws IOException {
 		int i=indices.get(0);
 		int j=indices.get(1);
+		System.out.println("forward normal"+" "+i+" "+j);
 		int l2= LInverse(degrees,i,j,A);
 		int c2= CInverse(degrees,i,j,A);
 	 	int minimal= Math.min(max[i][j],Math.min(l2,c2));
 	 	for(int h=minimal;h>=0;h--) {
+	 		System.out.println("normal forward ");
 	 		if((l2-h<=L[i][j]) && (c2-h<=C[i][j])) {
+	 			System.out.println("normal forward gird");
 	 			A[i][j]=A[j][i]=h;
 	 			System.out.println(Arrays.deepToString(A)+" "+i+" "+j);
 	 			System.out.println("forward"+" "+i+" "+j);
@@ -3858,8 +3861,10 @@ public class PermutationGroupFunctions {
 	 			 * Second, this partition check is when we reach the last column and need to move to next row. 
 	 			 */
 	 			if(i==(max.length-2) && j==(max.length-1)) {
+	 				System.out.println("backledi");
 	 				backward(degrees,A, max,L, C, indices);
 	 			}else {
+	 				System.out.println("backlemedi");
 	 				ArrayList<Integer> modified=successor(indices,max.length);
 	 				System.out.println(modified.get(0)+" "+modified.get(1)+" "+i+" "+j);
 	 				//TODO: 
@@ -4050,12 +4055,13 @@ public class PermutationGroupFunctions {
 	 **/
 	
 	public static void backward(ArrayList<Integer> degrees,int[][] A, int[][]max, int[][]L, int[][]C, ArrayList<Integer> indices) throws IOException {
+		System.out.println("normal backward e geldi");
 		int i=indices.get(0);
 		int j=indices.get(1);
 		int l2= LInverse(degrees,i,j,A);
 		int c2= CInverse(degrees,i,j,A);
 		if(i==max.length-2 && j==max.length-1) {
-			
+			System.out.println("tamam backward");
 			/**
 			 * When I just add the matrix to the list it did not do anything.
 			 * This is not a proper solution but that is ok for now to keep it like this.
@@ -5168,8 +5174,12 @@ public class PermutationGroupFunctions {
 	  * Sum the entries of the partition until the index (including the index value) 
 	  */
 	 
+	 /**public static int LValue(ArrayList<Integer> partEx, int degree) {
+		 return (sum(partEx,(degree-1))-(degree-1)); //In Grund, the numeration starts with 1. Since we start with 0, it should be -(degree+1)+1, so just -degree
+	 }**/
+	 
 	 public static int LValue(ArrayList<Integer> partEx, int degree) {
-		 return (sum(partEx,degree)-degree); //In Grund, the numeration starts with 1. Since we start with 0, it should be -(degree+1)+1, so just -degree
+		 return (sum(partEx,(degree))-(degree)); //In Grund, the numeration starts with 1. Since we start with 0, it should be -(degree+1)+1, so just -degree
 	 }
 	 
 	 /**
@@ -5228,21 +5238,35 @@ public class PermutationGroupFunctions {
 		 ArrayList<Permutation> perms= new ArrayList<Permutation>();
 		 perms.add(idPermutation(size));
 		 int lValue= LValue(refinedPartitions.get(index),index);
-		 System.out.println(lValue);
-	     if(lValue>1) {
-	    	 for(int i=1;i<=(lValue-1);i++) { // TODO: This lvalue might causes an error like out of array size.
-		    	 int[] values= idValues(size);
-				 for(int changes:indexChanges) {
-					 int former =  values[changes];
-					 values[changes] =  values[changes+i];
-					 values[changes+i] = former;
-				 }
-				 Permutation p = new Permutation(values);
-				 perms.add(p);
-			 } 
-	     }
-	     representatives.add(index, perms);
-	     updatePermTree(perms);
+		 System.out.println(refinedPartitions.get(index)+" "+index);
+		 System.out.println("lvalues and index"+" "+lValue+" "+index+" "+representatives.size());
+		 if(lValue==1) {
+			 if(representatives.size()==index) {
+				 representatives.add(perms);
+			 }else {
+				 representatives.set(index,perms);
+			 }
+		     //updatePermTree(perms);
+		 }else if (lValue>1) {
+			 if(lValue>1) {
+		    	 for(int i=1;i<=(lValue-1);i++) { // TODO: This lvalue might causes an error like out of array size.
+			    	 int[] values= idValues(size);
+					 for(int changes:indexChanges) {
+						 int former =  values[changes];
+						 values[changes] =  values[changes+i];
+						 values[changes+i] = former;
+					 }
+					 Permutation p = new Permutation(values);
+					 perms.add(p);
+				 } 
+		     }
+			 if(representatives.size()==index) {
+				 representatives.add(perms);
+			 }else {
+				 representatives.set(index,perms);
+			 }
+		     //updatePermTree(perms);
+		 }
 		 return perms;
 	 }
 	 
@@ -5253,6 +5277,7 @@ public class PermutationGroupFunctions {
 		 if(extS!=newS) {
 			 int j=0;
 			 int i=0;
+			 System.out.println("index changes"+" "+extPart+" "+part);
 			 while(i<extS) {
 				 if(extPart.get(i)!=part.get(j)) {
 					 changes.add(sum(part,j)-1);
@@ -5308,8 +5333,10 @@ public class PermutationGroupFunctions {
 	 public static ArrayList<Permutation> cycleRepresentatives(int index, int size) {
 		 ArrayList<Permutation> perms= new ArrayList<Permutation>();
 		 perms.add(idPermutation(size));
+		 System.out.println(" tek index refined"+" "+refinedPartitions.get(index)+" "+index);
 		 int lValue= LValue(refinedPartitions.get(index),index);
-	     for(int i=index;i<=lValue;i++) {
+	     System.out.println("tek"+" "+lValue);
+		 for(int i=index;i<=lValue;i++) {
 	    	 int[] values= idValues(size);
 	    	 int former =  values[index];
 			 values[index] =  values[index+i];
@@ -5317,8 +5344,12 @@ public class PermutationGroupFunctions {
 			 Permutation p = new Permutation(values);
 			 perms.add(p);
 		 }
-	     representatives.add(index, perms);
-	     updatePermTree(perms);
+		 if(representatives.size()==index) {
+			 representatives.add(perms);
+		 }else {
+			 representatives.set(index,perms);
+		 }
+	     //updatePermTree(perms);
 		 return perms;
 	 }
 	
@@ -5357,14 +5388,21 @@ public class PermutationGroupFunctions {
 							 check=false;
 							 break;
 						 }else {
-							 representatives.get(rowIndex).clear();
-							 representatives.get(rowIndex).add(multPerm);
+							 /**
+							  * Not clear what to do here. TODO!
+							  */
+							 representatives.set(rowIndex,perms);
+							 /**representatives.get(rowIndex).clear(); //TODO: What happens if there are more than 1 perms. ?
+							 representatives.get(rowIndex).add(multPerm);**/
 							 updateFormerRepresentatives(r,canonicalPart,perm,row);
 							 break;
 						 }
 					 }else {
-						 representatives.get(rowIndex).clear();
-						 representatives.get(rowIndex).add(new Permutation(size));
+						 ArrayList<Permutation> idPerm= new ArrayList<Permutation>();
+						 idPerm.add(new Permutation(size));
+						 representatives.set(rowIndex,idPerm);
+						 /**representatives.get(rowIndex).clear();
+						 representatives.get(rowIndex).add(new Permutation(size));**/
 						 updateFormerRepresentatives(r,canonicalPart,perm,row);
 						 break;
 					 }
@@ -5431,9 +5469,38 @@ public class PermutationGroupFunctions {
 	 
 	 public static void fillRepresentatives(int r, int total) { 
 		 int z=findZ(r)+1; //TODO: +1 or -1 just decide how to define the indices.
+		 System.out.println("fill z"+" "+z);
+		 System.out.println("fill reps"+" "+r+" "+total);
+		 System.out.println("Printing refined partition in fill representatives function");
+		 for(int k=0;k<refinedPartitions.size();k++) {
+			 System.out.println(k+" "+refinedPartitions.get(k));
+		 }
+		 System.out.println("Printing representatives in fill representatives function");
+		 for(int l=0;l<representatives.size();l++) {
+			 System.out.println(l+" "+representatives.get(l));
+		 }
+		 System.out.println("once"+" "+refinedPartitions.size());
+		 boolean check= false;
+		 if(refinedPartitions.size()>(z+1)) {
+			 check=true;
+		 }
 		 for(int i=z;i<total;i++) {
-			 refinedPartitions.add(i, partitionWDegree(refinedPartitions.get(i),1));
-			 representatives.add(i,cycleRepresentatives(i,total)); //TODO: Need to update the list. Otherwise it keeps adding.
+			 System.out.println(i+" "+"girdi");
+			 System.out.println(i+" "+refinedPartitions.get(i));
+			 System.out.println("par degree"+" "+partitionWDegree(refinedPartitions.get(i),1));
+			 System.out.println("cikti"+" "+refinedPartitions.get(i).size());
+			 System.out.println("refined add before size"+" "+refinedPartitions.size());
+			 
+			 if(!check) {
+				 refinedPartitions.add((i+1), partitionWDegree(refinedPartitions.get(i),1));
+				 representatives.add((i+1), cycleRepresentatives(i,total)); //TODO: Need to update the list. Otherwise it keeps adding
+			 }else {
+				 refinedPartitions.set((i+1), partitionWDegree(refinedPartitions.get(i),1));
+				 representatives.set((i+1), cycleRepresentatives(i,total)); //TODO: Need to update the list. Otherwise it keeps adding 
+			 }
+		 }
+		 for(int l=0;l<representatives.size();l++) {
+			 System.out.println(l+" "+representatives.get(l));
 		 }
 	 }
 	 
@@ -5504,11 +5571,8 @@ public class PermutationGroupFunctions {
 	
 	public static void canonicalBlockGenerator(ArrayList<Integer> degrees, ArrayList<Integer> partition) throws IOException{
 		size = degrees.size();
-		System.out.println("size"+" "+size);
 		partitionSize=partition.size();
-		System.out.println("partSize"+" "+partitionSize);
 		inputPartition=partition;
-		System.out.println("input partition"+" "+inputPartition);
 		refinedPartitions.add(partition);
 		int r=0;
 		int[][] A   = new int[size][size];
@@ -5526,12 +5590,16 @@ public class PermutationGroupFunctions {
 	public static void forwardCanonicalBlock(ArrayList<Integer> degrees, ArrayList<Integer> partition,int[][] A, int[][]max, int[][]L, int[][]C, ArrayList<Integer> indices, int r) throws IOException {
 		int i=indices.get(0);
 		int j=indices.get(1);
+		System.out.println("forward block indices"+" "+i+" "+j);
 		int l2= LInverse(degrees,i,j,A);
 		int c2= CInverse(degrees,i,j,A);
 	 	int minimal= Math.min(max[i][j],Math.min(l2,c2));
 	 	for(int h=minimal;h>=0;h--) {
+	 		System.out.println("forward if oncesi indices"+" "+i+" "+j+" "+h);
 	 		if((l2-h<=L[i][j]) && (c2-h<=C[i][j])) {
 	 			A[i][j]=A[j][i]=h;
+	 			System.out.println("forward block indices"+" "+i+" "+j);
+	 			System.out.println("h added in forward"+" "+h+" "+Arrays.deepToString(A)+" "+i+" "+j);
 	 			if(i==(max.length-2) && j==(max.length-1)) {
 	 				backwardCanonicalBlock(degrees,partition,A, max, L, C, indices,r);
 	 			}else {
@@ -5540,30 +5608,43 @@ public class PermutationGroupFunctions {
 	 					partition=canonicalPartition(i,partition); //TODO: Might need to test again
 	 					System.out.println("canonical"+" "+partition+" "+i);
 	 					if(canonicalBlockTest(A[i],r,i,partition)) { //Based on former perms, check canonical or not then add new perms if it is canonical.
-	 						System.out.println("row"+" "+Arrays.toString(A[i]));
+	 						System.out.println("row"+" "+Arrays.toString(A[i])+" "+i);
 	 						partition=refinedPartitioning(partition,A[i]);
+	 						System.out.println("find refined"+" "+partition+" "+i);
+	 						System.out.println("part size"+" "+refinedPartitions.size());
 	 						//ArrayList<Integer> refinedPart = refinedPartitioning(partition,A[i]);
-	 						refinedPartitions.add(partition);	
+	 						if((refinedPartitions.size()-1)==i) {
+	 							refinedPartitions.add(partition);
+	 						}else {
+	 							System.out.println("part size"+" "+refinedPartitions.size()+" "+i);
+	 							refinedPartitions.set(i+1,partition);
+	 						}
 	 						//System.out.println("index"+" "+i);
 	 						for(int s=0;s<refinedPartitions.size();s++) {
-	 							//System.out.println("refined "+" "+s+" "+refinedPartitions.get(s));
+	 							System.out.println("list refined "+" "+s+" "+refinedPartitions.get(s));
 	 						}
+	
 	 						//System.out.println("size"+" "+size);
+	 						System.out.println("i"+" "+i);
 	 						System.out.println(i+" "+refinedPartitions.get(i)+" "+refinedPartitions.get(i+1));
-	 						ArrayList<Integer> changes= findIndexChanges(refinedPartitions.get(i),refinedPartitions.get(i+1));
-	 						System.out.println("changes"+" "+findIndexChanges(refinedPartitions.get(i),refinedPartitions.get(i+1)));
+	 						ArrayList<Integer> changes= findIndexChanges(refinedPartitions.get(i),refinedPartitions.get(i+1)); 
+	 						System.out.println(i+" "+"changes"+" "+findIndexChanges(refinedPartitions.get(i),refinedPartitions.get(i+1)));
 	 						ArrayList<Permutation> representative= cycleRepresentatives(i,findIndexChanges(refinedPartitions.get(i),refinedPartitions.get(i+1)),size);
-	 						System.out.println("representatives"+" "+i+" "+representative);
-	 						representatives.add(cycleRepresentatives(i,findIndexChanges(refinedPartitions.get(i),refinedPartitions.get(i+1)),size));
+	 						for(int g=0;g<representatives.size();g++) {
+	 							System.out.println("list reps"+" "+representatives.get(g));
+	 						}
+	 						//representatives.add(cycleRepresentatives(i,findIndexChanges(refinedPartitions.get(i),refinedPartitions.get(i+1)),size));
 	 						if(i==findZ(r)){
 	 							fillRepresentatives(r,size); 
 	 							if(!idRepresentativesCheck(findZ(r))) { 
 	 								r++;
 	 								forwardCanonicalBlock(degrees, partition, A, max, L, C, modified,r);
 	 							}else{
-	 								System.out.println(" The automorphism group is trivial; no need for further test.");
-	 								//TODO: Fill remaining without test but test how this works.
-	 								forward(degrees,A,max,L,C,modified);
+	 								if(r==(inputPartition.size()-2)){ //TODO: sadece son block a id kalınca mı yoksa herhangi step sonrası da id olması işe yarar mı ?
+	 									System.out.println(" The automorphism group is trivial; no need for further test.");
+		 								//TODO: Fill remaining without test but test how this works.
+		 								forward(degrees,A,max,L,C,modified);
+	 								}
 	 							} 
 	 						}else {
 	 							forwardCanonicalBlock(degrees, partition, A, max, L, C, modified,r);
@@ -5582,9 +5663,11 @@ public class PermutationGroupFunctions {
 	public static void backwardCanonicalBlock(ArrayList<Integer> degrees,ArrayList<Integer> partition,int[][] A, int[][]max, int[][]L, int[][]C, ArrayList<Integer> indices, int r) throws IOException {
 		int i=indices.get(0);
 		int j=indices.get(1);
+		System.out.println("back block girdi"+" "+i+" "+j);
 		int l2= LInverse(degrees,i,j,A);
 		int c2= CInverse(degrees,i,j,A);
 		if(i==max.length-2 && j==max.length-1) {
+			System.out.println("back block tamam");
 			output.add(A);
 			int[][] mat2= new int[A.length][A.length]; 
 			for(int k=0;k<A.length;k++) {
@@ -5597,18 +5680,23 @@ public class PermutationGroupFunctions {
 			System.out.println(Arrays.deepToString(A));
 			//writeMatrix(A);
 		}else{
+			System.out.println("back block devam"+" "+i+" "+j);
 			ArrayList<Integer> modified=predecessor(indices, max.length);
+			System.out.println("back block devam modified"+" "+modified.get(0)+" "+modified.get(1));
 			if(modified.get(0)<i) {
-				System.out.println(i+" "+"rep and ref are cleared");
-				for(int s=0;s<representatives.size();s++) {
-					//System.out.println(s+" "+representatives.get(s));
-				}
-				for(int k=i;k<size;k++) {
-					representatives.get(k).clear();
-					refinedPartitions.get(k).clear();
-				}
+				System.out.println(i+" "+j+" "+modified.get(0)+" "+modified.get(1)+" "+"rep and ref are cleared");
 				for(int s=0;s<representatives.size();s++) {
 					System.out.println(s+" "+representatives.get(s));
+				}
+				/**
+				 * I am not sure we need to clear or just reset the elements.
+				 */
+				for(int k=i;k<size;k++) {
+					//representatives.get(k).clear();
+					//refinedPartitions.get(k).clear();
+				}
+				for(int s=0;s<representatives.size();s++) {
+					//System.out.println(s+" "+representatives.get(s));
 				}
 			}
 			i= modified.get(0);
@@ -6002,9 +6090,9 @@ public class PermutationGroupFunctions {
 		 
 		 ArrayList<Integer> partition= new ArrayList<Integer>();
 		
+		 partition.add(3);
 		 partition.add(2);
-		 partition.add(4);
-		 partition.add(4);
+		 
 		 
 		 ArrayList<Integer> partition2= new ArrayList<Integer>();
 		 
@@ -6014,9 +6102,9 @@ public class PermutationGroupFunctions {
 		 partition2.add(1);
 		 partition2.add(4);
 		 
-		 refinedPartitions.add(0, partition);
-		 System.out.println(cycleRepresentatives(0,findIndexChanges(partition,partition2),10));
-		 //canonicalBlockGenerator(degrees,partition);
+		 //refinedPartitions.add(0, partition);
+		 //System.out.println(cycleRepresentatives(0,findIndexChanges(partition,partition2),10));
+		 canonicalBlockGenerator(degrees,partition);
 		
 		 /**ArrayList<Integer> part= new ArrayList<Integer>();
 		 part.add(1);
