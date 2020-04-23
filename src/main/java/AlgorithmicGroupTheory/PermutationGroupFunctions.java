@@ -4825,7 +4825,7 @@ public class PermutationGroupFunctions {
 			//System.out.println("canRowCheck"+" "+perm);
 			//if(!desBlockCheck(partition,row,actArray(row,perm))) {
 			//if(!desBlockwiseCheck(partition,row,actArray(row,perm))) {
-			if(!descBlockCheck(partition,row,actArray(row,perm))) {	
+			if(!descBlockCheck(partition,actArray(row,perm),row)) {	
 				check=false;
 				break;
 			}
@@ -6106,6 +6106,24 @@ public class PermutationGroupFunctions {
 		 //System.out.println(cycleRepresentatives(0,findIndexChanges(partition,partition2),10));
 		 PermutationGroup group = PermutationGroup.makeSymN(4);
 		 List<Permutation> gens= new ArrayList<Permutation>();
+		 
+		 int[] firstV= new int[10];
+		 
+		 firstV[0]=1;
+		 firstV[1]=0;
+		 firstV[2]=2;
+		 firstV[3]=3;
+		 firstV[4]=4;
+		 firstV[5]=5;
+		 firstV[6]=6;
+		 firstV[7]=7;
+		 firstV[8]=8;
+		 firstV[9]=9;
+		 
+		 Permutation firstPerm= new Permutation(firstV);
+		 
+		 gens.add(firstPerm);
+		 
 		 int[] uzun= new int[10];
 		 
 		 uzun[0]=0;
@@ -6142,10 +6160,10 @@ public class PermutationGroupFunctions {
 		 uzun3[1]=1;
 		 uzun3[2]=2;
 		 uzun3[3]=3;
-		 uzun3[4]=4;
-		 uzun3[5]=5;
-		 uzun3[6]=7;
-		 uzun3[7]=6;
+		 uzun3[4]=5;
+		 uzun3[5]=4;
+		 uzun3[6]=6;
+		 uzun3[7]=7;
 		 uzun3[8]=8;
 		 uzun3[9]=9;
 		 
@@ -6159,9 +6177,9 @@ public class PermutationGroupFunctions {
 		 uzun4[3]=3;
 		 uzun4[4]=4;
 		 uzun4[5]=5;
-		 uzun4[6]=6;
-		 uzun4[7]=8;
-		 uzun4[8]=7;
+		 uzun4[6]=7;
+		 uzun4[7]=6;
+		 uzun4[8]=8;
 		 uzun4[9]=9;
 		 
 		 Permutation uPerm4= new Permutation(uzun4);
@@ -6175,10 +6193,33 @@ public class PermutationGroupFunctions {
 		 uzun5[4]=4;
 		 uzun5[5]=5;
 		 uzun5[6]=6;
-		 uzun5[7]=7;
-		 uzun5[8]=9;
-		 uzun5[9]=8;
+		 uzun5[7]=8;
+		 uzun5[8]=7;
+		 uzun5[9]=9;
+		 
 		 Permutation uPerm5= new Permutation(uzun5);
+		 
+		 int[] uzun6= new int[10];
+		 
+		 uzun6[0]=0;
+		 uzun6[1]=1;
+		 uzun6[2]=2;
+		 uzun6[3]=3;
+		 uzun6[4]=4;
+		 uzun6[5]=5;
+		 uzun6[6]=6;
+		 uzun6[7]=7;
+		 uzun6[8]=9;
+		 uzun6[9]=8;
+		 
+		 Permutation uPerm6= new Permutation(uzun6);
+		 
+		 gens.add(uPerm);
+		 gens.add(uPerm2);
+		 gens.add(uPerm3);
+		 gens.add(uPerm4);
+		 gens.add(uPerm5);
+		 gens.add(uPerm6);
 		 
 		 int[] dene= new int[10];
 		 
@@ -6262,30 +6303,47 @@ public class PermutationGroupFunctions {
 		 //Permutation generator= new Permutation(val);
 		 Permutation generator2= new Permutation(val2);
 		 //gens.add(generator);
-		 gens.add(generator2);
+		 //gens.add(generator2);
 		 
 		 List<Permutation> lit= new ArrayList<Permutation>();
 		 lit.add(new Permutation(3));
 		 //lit.add(generator);
 		 lit.add(generator2);
 		 
-		 PermutationGroup group2 = generateGroup(uPerms,10);
+		 int[] row= new int[10];
+		 row[0]=0;
+		 row[1]=0;
+		 row[2]=1;
+		 row[3]=1;
+		 row[4]=1;
+		 row[5]=0;
+		 row[6]=0;
+		 row[7]=0;
+		 row[8]=0;
+		 row[9]=0;
+		 
+		 ArrayList<Integer> testPart= new ArrayList<Integer>();
+		 testPart.add(1);
+		 testPart.add(1);
+		 testPart.add(4);
+		 testPart.add(4);
+		 
+		 PermutationGroup group2 = generateGroup(gens,10);
+		 for(Permutation perm: group2.all()) {
+			 if(descBlockCheck(testPart,actArray(row,perm),row)) {	
+				 System.out.println(perm.toCycleString());
+				 System.out.println(Arrays.toString(actArray(row,perm)));
+				 System.out.println("Ara");
+			 }
+		 }
 		 List<Permutation> ilk= new ArrayList<Permutation>();
 		 List<Permutation> iki= new ArrayList<Permutation>();
 		 List<Permutation> uc= new ArrayList<Permutation>();
-		 System.out.println(group2.all().size());
-		 System.out.println(deneP.toCycleString());
-		 System.out.println(deneP2.toCycleString());
-		 System.out.println(deneP3.toCycleString());
+		 //System.out.println(group2.all().size());
 		 for(Permutation yap: group2.all()) {
-			 ilk.add(yap.multiply(deneP));
-			 iki.add(yap.multiply(deneP2));
-			 uc.add(yap.multiply(deneP3));
+			 //System.out.println(yap.toCycleString());
 		 }
 		 
-		 for(int s=0;s<ilk.size();s++) {
-			 System.out.println(ilk.get(s).toCycleString()+" "+iki.get(s).toCycleString()+" "+uc.get(s).toCycleString());
-		 }
 		 
 		 //canonicalBlockGenerator(degrees,partition);
 		
