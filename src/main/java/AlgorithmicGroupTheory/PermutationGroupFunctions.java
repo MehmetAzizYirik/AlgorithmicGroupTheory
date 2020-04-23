@@ -6104,7 +6104,190 @@ public class PermutationGroupFunctions {
 		 
 		 //refinedPartitions.add(0, partition);
 		 //System.out.println(cycleRepresentatives(0,findIndexChanges(partition,partition2),10));
-		 canonicalBlockGenerator(degrees,partition);
+		 PermutationGroup group = PermutationGroup.makeSymN(4);
+		 List<Permutation> gens= new ArrayList<Permutation>();
+		 int[] uzun= new int[10];
+		 
+		 uzun[0]=0;
+		 uzun[1]=1;
+		 uzun[2]=3;
+		 uzun[3]=2;
+		 uzun[4]=4;
+		 uzun[5]=5;
+		 uzun[6]=6;
+		 uzun[7]=7;
+		 uzun[8]=8;
+		 uzun[9]=9;
+		 
+		 Permutation uPerm= new Permutation(uzun);
+		 
+		 int[] uzun2= new int[10];
+		 
+		 uzun2[0]=0;
+		 uzun2[1]=1;
+		 uzun2[2]=2;
+		 uzun2[3]=4;
+		 uzun2[4]=3;
+		 uzun2[5]=5;
+		 uzun2[6]=6;
+		 uzun2[7]=7;
+		 uzun2[8]=8;
+		 uzun2[9]=9;
+		 
+		 Permutation uPerm2= new Permutation(uzun2);
+		 
+		 int[] uzun3= new int[10];
+		 
+		 uzun3[0]=0;
+		 uzun3[1]=1;
+		 uzun3[2]=2;
+		 uzun3[3]=3;
+		 uzun3[4]=4;
+		 uzun3[5]=5;
+		 uzun3[6]=7;
+		 uzun3[7]=6;
+		 uzun3[8]=8;
+		 uzun3[9]=9;
+		 
+		 Permutation uPerm3= new Permutation(uzun3);
+		 
+		 int[] uzun4= new int[10];
+		 
+		 uzun4[0]=0;
+		 uzun4[1]=1;
+		 uzun4[2]=2;
+		 uzun4[3]=3;
+		 uzun4[4]=4;
+		 uzun4[5]=5;
+		 uzun4[6]=6;
+		 uzun4[7]=8;
+		 uzun4[8]=7;
+		 uzun4[9]=9;
+		 
+		 Permutation uPerm4= new Permutation(uzun4);
+		 
+		 int[] uzun5= new int[10];
+		 
+		 uzun5[0]=0;
+		 uzun5[1]=1;
+		 uzun5[2]=2;
+		 uzun5[3]=3;
+		 uzun5[4]=4;
+		 uzun5[5]=5;
+		 uzun5[6]=6;
+		 uzun5[7]=7;
+		 uzun5[8]=9;
+		 uzun5[9]=8;
+		 Permutation uPerm5= new Permutation(uzun5);
+		 
+		 int[] dene= new int[10];
+		 
+		 dene[0]=1;
+		 dene[1]=0;
+		 dene[2]=5;
+		 dene[3]=3;
+		 dene[4]=4;
+		 dene[5]=2;
+		 dene[6]=6;
+		 dene[7]=7;
+		 dene[8]=8;
+		 dene[9]=9;
+		 
+		 Permutation deneP= new Permutation(dene);
+		 
+		 int[] dene2= new int[10];
+		 
+		 dene2[0]=1;
+		 dene2[1]=0;
+		 dene2[2]=2;
+		 dene2[3]=5;
+		 dene2[4]=4;
+		 dene2[5]=3;
+		 dene2[6]=6;
+		 dene2[7]=7;
+		 dene2[8]=8;
+		 dene2[9]=9;
+		 
+		 Permutation deneP2= new Permutation(dene2);
+		 
+		 int[] dene3= new int[10];
+		 
+		 dene3[0]=1;
+		 dene3[1]=0;
+		 dene3[2]=2;
+		 dene3[3]=3;
+		 dene3[4]=5;
+		 dene3[5]=4;
+		 dene3[6]=6;
+		 dene3[7]=7;
+		 dene3[8]=8;
+		 dene3[9]=9;
+		 
+		 Permutation deneP3= new Permutation(dene3);
+		 
+		 List<Permutation> uPerms= new ArrayList<Permutation>();
+		 uPerms.add(uPerm);
+		 uPerms.add(uPerm2);
+		 uPerms.add(uPerm3);
+		 uPerms.add(uPerm4);
+		 uPerms.add(uPerm5);
+		 
+		 int[] val2= new int[4];
+		 val2[0]=0;
+		 val2[1]=2;
+		 val2[2]=1;
+		 val2[3]=3;
+		 
+		 int[] val3= new int[4];
+		 val3[0]=0;
+		 val3[1]=1;
+		 val3[2]=3;
+		 val3[3]=2;
+		 
+		 int[] val4= new int[4];
+		 val4[0]=3;
+		 val4[1]=1;
+		 val4[2]=2;
+		 val4[3]=0;
+		 Permutation carp2= new Permutation(val4);
+		 int[] val5= new int[4];
+		 val5[0]=0;
+		 val5[1]=3;
+		 val5[2]=2;
+		 val5[3]=1;
+		 Permutation carp3= new Permutation(val5);
+		 
+		 
+		 Permutation carp= new Permutation(val3);
+		 //Permutation generator= new Permutation(val);
+		 Permutation generator2= new Permutation(val2);
+		 //gens.add(generator);
+		 gens.add(generator2);
+		 
+		 List<Permutation> lit= new ArrayList<Permutation>();
+		 lit.add(new Permutation(3));
+		 //lit.add(generator);
+		 lit.add(generator2);
+		 
+		 PermutationGroup group2 = generateGroup(uPerms,10);
+		 List<Permutation> ilk= new ArrayList<Permutation>();
+		 List<Permutation> iki= new ArrayList<Permutation>();
+		 List<Permutation> uc= new ArrayList<Permutation>();
+		 System.out.println(group2.all().size());
+		 System.out.println(deneP.toCycleString());
+		 System.out.println(deneP2.toCycleString());
+		 System.out.println(deneP3.toCycleString());
+		 for(Permutation yap: group2.all()) {
+			 ilk.add(yap.multiply(deneP));
+			 iki.add(yap.multiply(deneP2));
+			 uc.add(yap.multiply(deneP3));
+		 }
+		 
+		 for(int s=0;s<ilk.size();s++) {
+			 System.out.println(ilk.get(s).toCycleString()+" "+iki.get(s).toCycleString()+" "+uc.get(s).toCycleString());
+		 }
+		 
+		 //canonicalBlockGenerator(degrees,partition);
 		
 		 /**ArrayList<Integer> part= new ArrayList<Integer>();
 		 part.add(1);
