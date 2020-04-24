@@ -5269,7 +5269,30 @@ public class PermutationGroupFunctions {
 		 }
 		 return perms;
 	 }
-	
+	 
+	 /**
+	  * I guess we dont need to consider the L value from the canonical
+	  * partition to refined partition. This is just a trial.
+	  * @param index
+	  * @param indexChanges
+	  * @param size
+	  * @return
+	  */
+	 
+	 public static ArrayList<Permutation> cycleRepresentatives2(int index, ArrayList<Integer> indexChanges, int size) {
+		 ArrayList<Permutation> perms= cycleRepresentatives(index,refinedPartitions.get(index));
+		 int[] values= idValues(size);
+		 for(int changes:indexChanges) {
+			 int former =  values[changes];
+			 values[changes] =  values[changes+1];
+			 values[changes+1] = former;
+		 }
+		 Permutation p = new Permutation(values);
+		 updatePermList(perms,p);
+		 representatives.set(index,perms);
+		 return perms;
+	 }
+	 
 	 public static ArrayList<Integer> findIndexChanges(ArrayList<Integer> extPart, ArrayList<Integer> part){
 		 ArrayList<Integer> changes= new ArrayList<Integer>();
 		 int extS= extPart.size();
@@ -5640,6 +5663,7 @@ public class PermutationGroupFunctions {
 	 				ArrayList<Integer> modified=successor(indices,max.length);
 	 				if(modified.get(0)>i && j==A.length-1) {  //TODO: Why we create the canonical for i not modified.get(0) ?
 	 					partition=canonicalPartition(i,partition); //TODO: Might need to test again
+	 					
 	 					System.out.println("canonical"+" "+partition+" "+i);
 	 					if(canonicalBlockTest(A[i],r,i,partition)) { //Based on former perms, check canonical or not then add new perms if it is canonical.
 	 						System.out.println("row"+" "+Arrays.toString(A[i])+" "+i);
