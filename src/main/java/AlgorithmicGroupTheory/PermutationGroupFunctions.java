@@ -5269,7 +5269,7 @@ public class PermutationGroupFunctions {
 		 }
 		 return perms;
 	 }
-	 
+	
 	 public static ArrayList<Integer> findIndexChanges(ArrayList<Integer> extPart, ArrayList<Integer> part){
 		 ArrayList<Integer> changes= new ArrayList<Integer>();
 		 int extS= extPart.size();
@@ -5325,16 +5325,17 @@ public class PermutationGroupFunctions {
 	  * have the indexth entry so we need to build all the cycles like in
 	  * 3.3.3 and 3.3.19. 
 	  * @param index
-	  * @param lastartition
+	  * @param last partition
 	  * @param size
 	  * @return
 	  */
 	 
-	 public static ArrayList<Permutation> cycleRepresentatives(int index, int size) {
+	 public static ArrayList<Permutation> cycleRepresentatives(int index, ArrayList<Integer> partition) {
 		 ArrayList<Permutation> perms= new ArrayList<Permutation>();
 		 perms.add(idPermutation(size));
-		 System.out.println(" tek index refined"+" "+refinedPartitions.get(index)+" "+index);
-		 int lValue= LValue(refinedPartitions.get(index),index);
+		 //System.out.println(" tek index refined"+" "+refinedPartitions.get(index)+" "+index);
+		 //int lValue= LValue(refinedPartitions.get(index),index);
+		 int lValue= LValue(partition,index);
 	     System.out.println("tek"+" "+lValue);
 		 for(int i=index;i<=lValue;i++) {
 	    	 int[] values= idValues(size);
@@ -5353,6 +5354,38 @@ public class PermutationGroupFunctions {
 		 return perms;
 	 }
 	
+	 /**
+	  * Cycle representatives are built based on partitions. For every row,
+	  * there are more than 1 step of partitioning, so for each partitioning,
+	  * the representatives list of the row is needed to be updated.   
+	  * 
+	  * @param perms list of cycle permutations
+	  * @param perm new permutation
+	  */
+	 
+	 public static void updatePermList(ArrayList<Permutation> perms, Permutation perm) {
+		 for(int i=0;i<perms.size();i++) {
+			 perms.set(i, perms.get(i).multiply(perm));
+		 }
+	 }
+	 
+	 public static ArrayList<Permutation> firstCycleRepresentatives(int index) {
+		 index++; // Since we had the former partitioning with the initial partition
+		 ArrayList<Permutation> perms= representatives.get(0);
+		 int lValue= LValue(refinedPartitions.get(0),index);
+		 for(int i=index;i<=lValue;i++) {
+	    	 int[] values= idValues(size);
+	    	 int former =  values[index];
+			 values[index] =  values[index+i];
+			 values[index+i] = former;
+			 Permutation p = new Permutation(values);
+			 updatePermList(perms,p);
+		 }
+		 representatives.set(0,perms);
+		 return perms;
+	 }
+	 
+	 
 	 /**
 	  * Build id permutation
 	  */
@@ -5493,10 +5526,10 @@ public class PermutationGroupFunctions {
 			 
 			 if(!check) {
 				 refinedPartitions.add((i+1), partitionWDegree(refinedPartitions.get(i),1));
-				 representatives.add((i+1), cycleRepresentatives(i,total)); //TODO: Need to update the list. Otherwise it keeps adding
+				 representatives.add((i+1), cycleRepresentatives(i,refinedPartitions.get(i))); //TODO: Need to update the list. Otherwise it keeps adding
 			 }else {
 				 refinedPartitions.set((i+1), partitionWDegree(refinedPartitions.get(i),1));
-				 representatives.set((i+1), cycleRepresentatives(i,total)); //TODO: Need to update the list. Otherwise it keeps adding 
+				 representatives.set((i+1), cycleRepresentatives(i,refinedPartitions.get(i))); //TODO: Need to update the list. Otherwise it keeps adding 
 			 }
 		 }
 		 for(int l=0;l<representatives.size();l++) {
@@ -5573,7 +5606,8 @@ public class PermutationGroupFunctions {
 		size = degrees.size();
 		partitionSize=partition.size();
 		inputPartition=partition;
-		refinedPartitions.add(partition);
+		refinedPartitions.add(partitionWDegree(partition,1));
+		representatives.add(cycleRepresentatives(0,partition));
 		int r=0;
 		int[][] A   = new int[size][size];
 		int[][] max = maximalMatrix(degrees);
