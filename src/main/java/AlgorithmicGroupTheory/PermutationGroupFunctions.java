@@ -6081,6 +6081,27 @@ public class PermutationGroupFunctions {
 		 PermutationGroupFunctions.fileWriter = new BufferedWriter(new FileWriter(filedir));
 	 }
 	 
+	 /**
+	  * 3.4 Canonical Learning Criteria
+	  */
+	 
+	 /**
+	  * Finding i and j values as described in 3.4.1
+	  */
+	 
+	 public static int[] findIJ(int index,int[] row, Permutation perm) {
+		 int[] ij= new int[2];
+		 ij[0]=index;
+		 int[] modified = actArray(row,perm); // After permutation action on the array.
+		 for(int i=0;i<size;i++) {
+			 if(row[i]<modified[i]) {
+				 ij[1]=i;
+			 }
+			 break;
+		 }
+		 return ij;
+	 }
+	 
 	 //TODO: Adjacency matrix to atomcontainer.
 	 private void parseArgs(String[] args) throws ParseException, IOException{
 		 Options options = setupOptions(args);	
