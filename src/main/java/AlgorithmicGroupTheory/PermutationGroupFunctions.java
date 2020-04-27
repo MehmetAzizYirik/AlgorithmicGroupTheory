@@ -6087,6 +6087,12 @@ public class PermutationGroupFunctions {
 	 
 	 /**
 	  * Finding i and j values as described in 3.4.1
+	  *
+	  * @param y beginning index of the strip
+	  * @param z last index of the strip
+	  * @param A matrix to test
+	  * @param perm permutation to act on the strip
+	  * @return int[] (ij)
 	  */
 	 
 	 public static int[] findIJ(int y, int z, int[][] A, Permutation perm) {
@@ -6112,7 +6118,7 @@ public class PermutationGroupFunctions {
 	  * @param ij the ij value as described in findIJ (3.1.4)
 	  * @param A matrix to test
 	  * @param perm Permutation to act on the matrix strip
-	  * @return (i0,j0) index pair
+	  * @return int[] (i0,j0) 
 	  */
 	 
 	 public static int[] findIJ0(int y,int[] ij, int[][] A, Permutation perm) {
@@ -6133,15 +6139,22 @@ public class PermutationGroupFunctions {
 	 
 	 /**
 	  * 3.4.1. To find the (i1,j1) index pair
-	  * @param y
-	  * @param ij
-	  * @param A
-	  * @param perm
-	  * @return
+	  * @param y beginning index of the strip
+	  * @param z last index of the strip
+	  * @param A matrix to test
+	  * @param perm permutation to act on the strip
+	  * @return int[] (i1,j1)
 	  */
-	 public static int[] findIJ1(int y,int[] ij, int[][] A, Permutation perm) {
-		 
+	 
+	 public static int[] findIJ1(int y, int z, int[][] A, Permutation perm) {
+		 int[] ij= findIJ(y,z,A,perm);
+		 int[] ij0=findIJ0(y,ij,A,perm);
+		 int[] pij= new int[2]; // After the pi permutation action
+		 pij[0]= perm.get(ij[0]);
+		 pij[0]= perm.get(ij[0]); // Consider pij as the maximal to test with others.
+		 return findMaximalPair(pij,findMaximalPair(ij,ij0));
 	 }
+	 
 	 /**
 	  * Test whether the current maximal index pair is bigger than the tested
 	  * one or not. If yes, update max pair indices.
@@ -6162,6 +6175,24 @@ public class PermutationGroupFunctions {
 			 }
 		 }
 		 return max;
+	 }
+	 /**
+	  * Same as the former one; inputs are different.
+	  * @param arr1 int[] array 1
+	  * @param arr2	int[] array 2
+	  * @return
+	  */
+	 
+	 public static int[] findMaximalPair(int[] arr1,int[] arr2) {
+		if(arr1[0]<arr2[0]) {
+			arr1[0]= arr2[0];
+			arr1[1]= arr2[1];
+		}else if(arr1[0]==arr2[0]) {
+			if(arr1[1]<arr2[1]){
+				arr1[1]=arr2[1];
+			}
+		}
+		return arr1;
 	 }
 	 
 	 /**
