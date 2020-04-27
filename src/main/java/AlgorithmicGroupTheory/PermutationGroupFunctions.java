@@ -6094,10 +6094,12 @@ public class PermutationGroupFunctions {
 		 ij[0]=index;
 		 int[] modified = actArray(row,perm); // After permutation action on the array.
 		 for(int i=0;i<size;i++) {
-			 if(row[i]<modified[i]) {
+			 if(row[i]==modified[i]) {
+				 continue;
+			 }else if(row[i]<modified[i]) {
 				 ij[1]=i;
+				 break;
 			 }
-			 break;
 		 }
 		 return ij;
 	 }
@@ -6158,14 +6160,16 @@ public class PermutationGroupFunctions {
 	  * @return boolean
 	  */
 	 
-	 public static boolean orderCheck(int[] row, Permutation perm) {
-		 boolean check=true;
+	 public static boolean inOrder(int[] row, Permutation perm) {
+		 boolean check=false;
 		 int[] modified = actArray(row,perm); // After permutation action on the array.
 		 for(int i=0;i<size;i++) {
-			 if(row[i]<modified[i]) {
-				 check=false;
+			 if(row[i]==modified[i]) {
+				 continue;
+			 }else if(row[i]<modified[i]) {
+				 check=true;
+				 break;
 			 }
-			 break;
 		 }
 		 return check;
 	 }
