@@ -6102,7 +6102,74 @@ public class PermutationGroupFunctions {
 		 return ij;
 	 }
 	 
-	 //TODO: Adjacency matrix to atomcontainer.
+	 /**
+	  * 3.4.1 Finding the (i0, j0) pair to calculate (i1,j1)
+	  * @param y the beginning index of the strip
+	  * @param ij the ij value as described in findIJ (3.1.4)
+	  * @param A matrix to test
+	  * @param perm Permutation to act on the matrix strip
+	  * @return (i0,j0) index pair
+	  */
+	 
+	 public static int[] findIJ0(int y,int[] ij, int[][] A, Permutation perm) {
+		 int[] pair = new int[2];
+		 int[] max= new int[2];
+		 max[0]=y;
+		 max[1]=y+1;
+		 for(int i=y;i<ij[0];i++) {
+			 int[] modified = actArray(A[i],perm);
+			 for(int j=(y+1);j<ij[1];j++) {
+				 if(modified[j]>0) {
+					 max=findMaximalPair(max,i,j,perm);
+				 }
+			 }
+		 }
+		 return pair;
+	 }
+	 
+	 /**
+	  * Test whether the current maximal index pair is bigger than the tested
+	  * one or not. If yes, update max pair indices.
+	  * @param max maximal index pair (3.1.4)
+	  * @param i   current index i
+	  * @param j   current index j
+	  * @param perm permutation to act on the strip
+	  * @return int[] maximal index pair
+	  */
+	 
+	 public static int[] findMaximalPair(int[] max,int i, int j, Permutation perm) {
+		 if(max[0]<perm.get(i)) {
+			 max[0]= perm.get(i);
+			 max[1]= perm.get(j);
+		 }else if(max[0]==perm.get(i)) {
+			 if(max[1]<perm.get(j)) {
+				 max[1]= perm.get(j);
+			 }
+		 }
+		 return max;
+	 }
+	 
+	 /**
+	  * 3.4.1 Check the order between the original and modified arrays.
+	  * First we need to check in which row the modified entry is bigger
+	  * than the original one.
+	  * @param row original row
+	  * @param perm permutation to act on the array
+	  * @return boolean
+	  */
+	 
+	 public static boolean orderCheck(int[] row, Permutation perm) {
+		 boolean check=true;
+		 int[] modified = actArray(row,perm); // After permutation action on the array.
+		 for(int i=0;i<size;i++) {
+			 if(row[i]<modified[i]) {
+				 check=false;
+			 }
+			 break;
+		 }
+		 return check;
+	 }
+	 
 	 private void parseArgs(String[] args) throws ParseException, IOException{
 		 Options options = setupOptions(args);	
 		 CommandLineParser parser = new DefaultParser();
