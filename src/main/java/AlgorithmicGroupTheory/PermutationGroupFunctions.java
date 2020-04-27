@@ -6222,6 +6222,59 @@ public class PermutationGroupFunctions {
 		 return check;
 	 }
 	 
+	 /**
+	  * Canonical Learning Criteria 3.4.2
+	  * The criteria has two steps and these notCanonicalCheck functions 
+	  * are differentatiate from each other based on their input types.
+	  */
+	 
+	 /**
+	  * The first criteria of 3.4.2. If every entries are equal,
+	  * then no need to continue with that new matrix otherwise skip.
+	  * 
+	  * @param y beginning index of the strip
+	  * @param z last index of the strip
+	  * @param newMat new matrix to test
+	  * @param notCanonicalMatrix the not canonical matrix tested before
+	  * @param ij1 3.4.1 (i1,j1) index pair
+	  * @return boolean
+	  */
+	 
+	 public static boolean notCanonicalCheck(int y, int z, int[][] newMat, int[][] notCanonicalMatrix, int[] ij1) {
+		 boolean check=true;
+		 int i1= ij1[0];
+		 int j1= ij1[1];
+		 for(int i=y;i<i1;i++) {
+			 for(int j=y+1;j<j1;j++) {
+				 if(newMat[i][j]!=notCanonicalMatrix[i][j]) {
+					 check=false;
+					 break;
+				 }
+			 }
+		 } 
+		 return check;
+	 }
+	 
+	 /**
+	  * The second criteria of 3.4.2. If the (i1,j1)th entry of the new matrix
+	  * is smaller than the not canonical matrix, we can continue with the 
+	  * new matrix in the algorithm otherwise skip.
+	  * @param newMat new matrix to test
+	  * @param notCanonicalMatrix the not canonical matrix tested before
+	  * @param ij1 3.4.1 (i1,j1) index pair
+	  * @return boolean
+	  */
+	 
+	 public static boolean notCanonicalCheck(int[][] newMat, int[][] notCanonicalMatrix, int[] ij1) {
+		 boolean check=false;
+		 int i1= ij1[0];
+		 int j1= ij1[1];
+		 if(newMat[i1][j1]<notCanonicalMatrix[i1][j1]) {
+			 check=true;
+		 }
+		 return check;
+	 }
+	 
 	 private void parseArgs(String[] args) throws ParseException, IOException{
 		 Options options = setupOptions(args);	
 		 CommandLineParser parser = new DefaultParser();
