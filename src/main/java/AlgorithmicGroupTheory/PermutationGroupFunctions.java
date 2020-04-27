@@ -6089,16 +6089,18 @@ public class PermutationGroupFunctions {
 	  * Finding i and j values as described in 3.4.1
 	  */
 	 
-	 public static int[] findIJ(int index,int[] row, Permutation perm) {
+	 public static int[] findIJ(int y, int z, int[][] A, Permutation perm) {
 		 int[] ij= new int[2];
-		 ij[0]=index;
-		 int[] modified = actArray(row,perm); // After permutation action on the array.
-		 for(int i=0;i<size;i++) {
-			 if(row[i]==modified[i]) {
-				 continue;
-			 }else if(row[i]<modified[i]) {
-				 ij[1]=i;
-				 break;
+		 for(int i=y;i<z;i++) {
+			 int[] modified = actArray(A[i],perm); // After permutation action on the array.
+			 for(int j=(y+1);j<size;j++) {
+				 if(A[i][j]==modified[j]) {
+					 continue;
+				 }else if(A[i][j]<modified[j]) {
+					 ij[0]=i;
+					 ij[1]=j;
+					 break;
+				 }
 			 }
 		 }
 		 return ij;
@@ -6130,6 +6132,17 @@ public class PermutationGroupFunctions {
 	 }
 	 
 	 /**
+	  * 3.4.1. To find the (i1,j1) index pair
+	  * @param y
+	  * @param ij
+	  * @param A
+	  * @param perm
+	  * @return
+	  */
+	 public static int[] findIJ1(int y,int[] ij, int[][] A, Permutation perm) {
+		 
+	 }
+	 /**
 	  * Test whether the current maximal index pair is bigger than the tested
 	  * one or not. If yes, update max pair indices.
 	  * @param max maximal index pair (3.1.4)
@@ -6155,20 +6168,24 @@ public class PermutationGroupFunctions {
 	  * 3.4.1 Check the order between the original and modified arrays.
 	  * First we need to check in which row the modified entry is bigger
 	  * than the original one.
-	  * @param row original row
-	  * @param perm permutation to act on the array
+	  * @param y beginning of the strip
+	  * @param z end of the strip
+	  * @param A matrix to test
+	  * @param perm permutation to act on the strip
 	  * @return boolean
 	  */
 	 
-	 public static boolean inOrder(int[] row, Permutation perm) {
+	 public static boolean inOrder(int y, int z, int[][] A, Permutation perm) {
 		 boolean check=false;
-		 int[] modified = actArray(row,perm); // After permutation action on the array.
-		 for(int i=0;i<size;i++) {
-			 if(row[i]==modified[i]) {
-				 continue;
-			 }else if(row[i]<modified[i]) {
-				 check=true;
-				 break;
+		 for(int i=y;i<z;i++) {
+			 int[] modified = actArray(A[i],perm); // After permutation action on the array.
+			 for(int j=(y+1);j<size;j++) {
+				 if(A[i][j]==modified[j]) {
+					 continue;
+				 }else if(A[i][j]<modified[j]) {
+					 check=true;
+					 break;
+				 }
 			 }
 		 }
 		 return check;
