@@ -770,9 +770,9 @@ public class PermutationGroupFunctions {
 	 * Acts a permutation p on a given set of integers. 
 	 * The permutation permutates the integer set by the re-arrangement. 
 	 * 
-	 * @param set the set of integers 
-	 * @param p a permutation from a permutation group
-	 * @return modified set based on the acts of the permutation
+	 * @param set ArrayList<Integer> the set of integers 
+	 * @param p   Permutation from a permutation group
+	 * @return ArrayList<Integer> modified set based on the acts of the permutation
 	 */
 	
 	public static ArrayList<Integer> act(ArrayList<Integer> set, Permutation p) {
@@ -783,6 +783,15 @@ public class PermutationGroupFunctions {
 		return modifiedSet;
 	}
 	
+	/**
+	 * Acts a permutation p on a given int array. 
+	 * The permutation permutates entries by the re-arrangement. 
+	 * 
+	 * @param strip int[]
+	 * @param p   Permutation permutation from a permutation group
+	 * @return int[] modified array based on the acts of the permutation
+	 */
+	
 	public static int[] actArray(int[] strip, Permutation p) {
 		int length= strip.length;
 		int[] modified = new int[length];
@@ -791,6 +800,15 @@ public class PermutationGroupFunctions {
 		}
 		return modified;
 	}
+	
+	/**
+	 * Acts a permutation p on a set of integers. 
+	 * The permutation permutates entries by the re-arrangement. 
+	 * 
+	 * @param strip Set<Integer>
+	 * @param p   Permutation permutation from a permutation group
+	 * @return Set<Integer> modified set based on the acts of the permutation
+	 */
 	
 	public static Set<Integer> act(Set<Integer> set, Permutation p) {
 		Set<Integer> modifiedSet = new HashSet<Integer>();
@@ -803,11 +821,11 @@ public class PermutationGroupFunctions {
 	
 	
 	/**
-	 * Acts a group  on a given set of integers.  
+	 * Acts a group on a given set of integers.  
 	 * 
-	 * @param set the set of integers 
-	 * @param group a group acting on the set 
-	 * @return modified set based on the acts of the group
+	 * @param set ArrayList<Integer> the set of integers 
+	 * @param group PermutationGroup acting on the set 
+	 * @return ArrayList<ArrayList<Integer>> the results of all the permutation actions of the set.
 	 */
 	
 	public static ArrayList<ArrayList<Integer>> actGroup(ArrayList<Integer> set, PermutationGroup group) {
@@ -822,12 +840,19 @@ public class PermutationGroupFunctions {
 	}
 	
 	/**
+	 * Product groups, we dont need to represent them as ArrayList<Integer>
+	 * We use PermutationGroup class of CDK, to build disjoint partition
+	 * and its product group, for every group of the subpartitions, we need
+	 * to use their generators for the generation of the product group.
+	 */
+	
+	/**
 	 * Acts a product group  on a given set of integers.  
 	 * 
 	 * @param set the set of integers 
 	 * @param productGroup a product group acting on the set 
 	 * @return modified set based on the acts of the product group
-	 */
+	 *
 	//TODO: This should be an action on a bijection. m over ( n 2) is the set from MOLGEN page 42.
 	//TODO: This m maps are mapping from vertex pair to edge multiplicity. 
 	public static ArrayList<ArrayList<Integer>> actProductGroup(ArrayList<Integer> set, ArrayList<ArrayList<Permutation>> productGroup) {
@@ -838,12 +863,12 @@ public class PermutationGroupFunctions {
 		return list;
 	}
 	
-	/**
+	/*
 	 * Group action for direct product groups
 	 * @param product Direct product group
 	 * @param group a permutation group
 	 * @return action of direct product group on a permutation group
-	 */
+	 *
 	
 	public static ArrayList<Permutation> groupActionProduct(ArrayList<ArrayList<Permutation>> product, PermutationGroup group) {
 		ArrayList<Permutation> result= new ArrayList<Permutation>();
@@ -856,12 +881,12 @@ public class PermutationGroupFunctions {
 	}
 	
 
-	/**
+	/*
 	 * Group action of direct product groups on vertex pairs.
 	 * @param product Direct product group
 	 * @param group a permutation group
 	 * @return action of direct product group on a permutation group
-	 */
+	 *
 	
 	public static ArrayList<Permutation> groupActionProduct(ArrayList<ArrayList<Permutation>> product, int k) {
 		ArrayList<ArrayList<Integer>> subsets= ksubSet2(k,getBase(group));
@@ -872,15 +897,7 @@ public class PermutationGroupFunctions {
 			}
 		}
 		return result;
-	}
-	/**
-	 * Gets the size of group's base
-	 * @param group a permutation group
-	 */
-	
-	public static void setSize(PermutationGroup group) {
-		PermutationGroupFunctions.size= group.getSize();
-	}
+	}**/
     
 	/**
 	 *************************************************************************
@@ -890,8 +907,8 @@ public class PermutationGroupFunctions {
 	
 	/**
 	 * Generates the subsets of a integer set. 
-	 * @param set
-	 * @return list of unique subsets
+	 * @param set Set<Integer> 
+	 * @return Set<Set<Integer>> list of unique subsets
 	 */
 	
 	public static Set<Set<Integer>> subSet( Set<Integer> set ) {
@@ -910,6 +927,14 @@ public class PermutationGroupFunctions {
         return subsets;
     }
 	
+	/**
+	 * Build a subset with given indices.
+	 * @param array int[]
+	 * @param begin int beginning index
+	 * @param end   int ending index
+	 * @return Set<Integer>
+	 */
+	
 	public static Set<Integer> subSet(int[] array, int begin, int end) {
 		Set<Integer> sub= new HashSet<Integer>();
 		for(int i=begin;i<end;i++) {
@@ -920,12 +945,12 @@ public class PermutationGroupFunctions {
 	
 	/**
 	 * Generates all the k-subsets whose size is k
-	 * @param k size of subset
-	 * @param set a integer set
-	 * @return list of k-subsets
+	 * @param k int size of each subset
+	 * @param set ArrayList<Integer> 
+	 * @return Set<Set<Integer>> k-subsets
 	 */
 	
-	public static Set<Set<Integer>> ksubSet(int k,ArrayList<Integer> set ) {
+	public static Set<Set<Integer>> ksubSet(int k, ArrayList<Integer> set ) {
 		Integer[] elements = set.toArray(new Integer [set.size()]);
         int power = 1 << elements.length;
         Set<Set<Integer>> subsets = new HashSet<Set<Integer>>();
