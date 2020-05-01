@@ -129,6 +129,30 @@ public class PermutationGroupFunctions {
 	}
 	
 	/**
+	 * Counting the n combinatoion of m.
+	 * @param m integer
+	 * @param n integer
+	 * @return the combination value of two integers.
+	 */
+	
+	public static int combination(int m, int n) {
+		return factorial(m) / (factorial(n) * factorial(m - n));
+	}
+	
+	/**
+	 * Calculating factorial of an integer.
+	 * @param i integer
+	 * @return factorial of the integer.
+	 */
+	
+	public static int factorial(int i){
+		if (i==0){
+			return 1;
+		}
+		return i * factorial(i - 1);
+	}
+	
+	/**
 	 * Summation of the connected bond orders.
 	 */
 	
@@ -725,6 +749,98 @@ public class PermutationGroupFunctions {
 	}
 	
 	/**
+	 * Calculating the multinomial coefficient for the given power array
+	 * 
+	 * @param n main power over the multinomial.
+	 * @param array power array, the powers of each element in the multinomial
+	 * @return specified moltinomial coefficient
+	 */
+	
+	public static int multiCoef(int n, int[] array) {
+		int mult=1;
+		for(int i=0;i<array.length;i++) {
+			mult=mult*factorial(array[i]);
+		}
+		return factorial(n)/mult;
+	}
+	
+	public static int multiCoefList(int n, ArrayList<Integer> array) {
+		int mult=1;
+		for(int i=0;i<array.size();i++) {
+			mult=mult*factorial(array.get(i));
+		}
+		return factorial(n)/mult;
+	}
+	
+	/**
+	 * Building a monomial for number of variable with the power.
+	 * @param var number of variables
+	 * @param inPower the power of the variables
+	 * @return map representing the multinomials. 
+	 */
+	
+	public static HashMap<ArrayList<Integer>,Integer> monomial(int var, int inPower){
+		HashMap<ArrayList<Integer>,Integer> map= new HashMap<ArrayList<Integer>,Integer>();
+		for(int i=0;i<var;i++) {
+			map.put(multiply(simpleList(var,i),inPower), 1);
+		}
+		return map;
+	}
+	
+	/**
+	 * Construction of a multinomial for the given number of variable and power information 
+	 * @param power power of the multinomial
+	 * @param var number of variables
+	 * @param inPower power of each variable
+	 * @return a multinomial.
+	 */
+	
+	public static HashMap<ArrayList<Integer>,Integer> multinomialList(int power, int var , int inPower ) {
+		if(power==1) {
+			return monomial(var,inPower);
+		}
+		HashMap<ArrayList<Integer>,Integer> map= new HashMap<ArrayList<Integer>, Integer>();
+		for(ArrayList<Integer> arr:partition2(power,var,0)) {
+			map.put(multiply(arr,inPower),multiCoefList(power,arr));
+		}
+		return map;
+	}
+	
+	public static HashMap<int[],Integer> multinomial(int power, int var , int inPower ) {
+		HashMap<int[],Integer> map= new HashMap<int[], Integer>();
+		for(int[] arr:partition(power,var,0)) {
+			map.put(multiply(arr,inPower),multiCoef(power,arr));
+		}
+		return map;
+	}
+	
+	
+	/**
+	 * Group Reduction Function. The formula given in MOLGEN Book pg 77.
+	 * @param group permutation group 
+	 * @param m multiplicity
+	 * @return value of GRF for the multiplicity and permutation group
+	 */
+	
+	public static HashMap<ArrayList<Integer>, Integer> GRF(PermutationGroup group, int m) {
+		Multimap<HashMap<Integer, Integer>, Permutation> map=conjugacyClasses(group);
+		HashMap<ArrayList<Integer>, Integer> sum= new HashMap<ArrayList<Integer>, Integer>();
+		for(HashMap<Integer, Integer> key:map.keySet()) {
+			Permutation perm = (Permutation) map.get(key).toArray()[0];
+			HashMap<ArrayList<Integer>,Integer> mult= idMultinomial(m,map.get(key).size());
+			for(int i=1;i<cycleTypeInduced(perm).length;i++) {
+				if(cycleTypeInduced(perm)[i]!=0) {
+					int power= cycleTypeInduced(perm)[i];
+					mult=multMultinomialList(mult,multinomialList(power,m,i));
+				}
+			}
+			sum=sumLists(sum,mult);
+		}
+		divideByOrder(sum);
+		return sum;
+	}
+	
+	/**
 	 * ***********************************************************************
 	 * Permutation Group Functions
 	 * ***********************************************************************
@@ -840,6 +956,101 @@ public class PermutationGroupFunctions {
 	}
 	
 	/**
+	 * 
+	 * @param group a permutation group
+	 * @param set a set of integers
+	 * @return the list of permutations stabilizing the input set
+	 */
+	
+	public static ArrayList<Permutation> getStabilizers(PermutationGroup group,ArrayList<Integer> set){
+		ArrayList<Permutation> stabilizers = new ArrayList<Permutation>();
+		for(Permutation p:group.all()){
+			ArrayList<Integer> stabilizer = new ArrayList<Integer>();
+			for(Integer i :set) {
+				stabilizer.add(p.get(i));
+			}
+			if(stabilizer.equals(set)) {
+				stabilizers.add(p);
+			}
+		}
+		return stabilizers;
+	}
+	
+	/**
+	 * Rather than the group action on the integer set, the action
+	 * of a permutation is considered.
+	 * 
+	 * @param g a permutation
+	 * @param sets list of subsets
+	 * @return the list of stabilized subsets under the permutation action.
+	 */
+	
+	public static int getStabilizers2(Permutation g, ArrayList<ArrayList<Integer>> sets){
+		ArrayList<ArrayList<Integer>> stabilizedSets = new ArrayList<ArrayList<Integer>>();
+		for(ArrayList<Integer> set: sets) {
+			ArrayList<Integer> stabilize = new ArrayList<Integer>();
+			for(Integer i :set) {
+				stabilize.add(g.get(i));
+			}
+			if(stabilize.equals(set)) {
+				stabilizedSets.add(set);
+			}
+		}
+		return stabilizedSets.size();
+	}
+	
+	/**
+	 * Checks the integer set is stable or not under the permutation action
+	 * 
+	 * @param g a permutation
+	 * @param set a set of integers
+	 * @return 1 or 0 meaning the set is stable or not.
+	 */
+	
+	public static int checkStab(Permutation g, ArrayList<Integer> set){
+		int no=0;
+        if(set.equals(act(set,g))) {
+			no++;
+		}
+		return no;
+	}
+	
+	/**
+	 * Returns the cycle type of a permutation. In the permutation,
+	 * cycles are counted based on their lengths and the counting return
+	 * as the cycle type array of the permutation.
+	 * 
+	 * ( The algorithm is from C.A.G.E.S. Book. )
+	 * 
+	 * @param n the size of the return array (group size +1)
+	 * @param g
+	 * @return cycle type array of the permutation.
+	 */
+	
+	public static int[] type(int n,Permutation g) {
+		boolean[] p = new boolean[size];
+		int[] t = new int[n];
+		for(int i=0;i<n-1;i++) {
+			p[i]=true;
+			t[i+1]=0;
+		}
+		for(int i=0;i<n-1;i++) {
+			if(p[i]) {
+				int l=1;
+				int j=i;
+				p[j]=false;
+				while(p[g.get(j)]) {
+					l=l+1;
+					j=g.get(j);
+					p[j]=false;
+				}
+				t[l]=t[l]+1;
+			}
+		}
+		return t;
+	}
+	
+	/**
 	 * Product groups, we dont need to represent them as ArrayList<Integer>
 	 * We use PermutationGroup class of CDK, to build disjoint partition
 	 * and its product group, for every group of the subpartitions, we need
@@ -897,6 +1108,50 @@ public class PermutationGroupFunctions {
 			}
 		}
 		return result;
+	}
+	
+	/*
+	 * Direct product of two permutation groups is also a group.
+	 * 
+	 * @param group  a permutation group
+	 * @param group2 another permutation group
+	 * @return direct prodcut group
+	 *
+	
+	public static ArrayList<ArrayList<Permutation>> groupDirectProduct(PermutationGroup group, PermutationGroup group2) {
+		ArrayList<ArrayList<Permutation>> product = new ArrayList<ArrayList<Permutation>>(); 
+		for(Permutation perm: group.all()) {
+			for(Permutation perm2: group2.all()){
+				ArrayList<Permutation> list= new ArrayList<Permutation>();
+				list.add(perm);
+				list.add(perm2);
+				product.add(list);
+			}
+		}
+		return product;
+	}
+	
+	
+	
+	
+	/*
+	 * Direct product of a group with a list of stabilizers. The stabilizers set is also a permutation group.
+	 * @param group a permutation group
+	 * @param stab a stabilizier group
+	 * @return direct product of permutation group with the stabilizer group.
+	 *
+	
+	public static ArrayList<ArrayList<Permutation>> groupDirectProduct2(PermutationGroup group, ArrayList<Permutation> stab) {
+		ArrayList<ArrayList<Permutation>> product = new ArrayList<ArrayList<Permutation>>(); 
+		for(Permutation perm: group.all()) {
+			for(Permutation perm2: stab){
+				ArrayList<Permutation> list= new ArrayList<Permutation>();
+				list.add(perm);
+				list.add(perm2);
+				product.add(list);
+			}
+		}
+		return product;
 	}**/
     
 	/**
@@ -1083,124 +1338,6 @@ public class PermutationGroupFunctions {
 		}
 	}
 	
-	/**
-	 * 
-	 * @param group a permutation group
-	 * @param set a set of integers
-	 * @return the list of permutations stabilizing the input set
-	 */
-	
-	public static ArrayList<Permutation> getStabilizers(PermutationGroup group,ArrayList<Integer> set){
-		ArrayList<Permutation> stabilizers = new ArrayList<Permutation>();
-		for(Permutation p:group.all()){
-			ArrayList<Integer> stabilizer = new ArrayList<Integer>();
-			for(Integer i :set) {
-				stabilizer.add(p.get(i));
-			}
-			if(stabilizer.equals(set)) {
-				stabilizers.add(p);
-			}
-		}
-		return stabilizers;
-	}
-	
-	/**
-	 * Rather than the group action on the integer set, the action
-	 * of a permutation is considered.
-	 * 
-	 * @param g a permutation
-	 * @param sets list of subsets
-	 * @return the list of stabilized subsets under the permutation action.
-	 */
-	
-	public static int getStabilizers2(Permutation g, ArrayList<ArrayList<Integer>> sets){
-		ArrayList<ArrayList<Integer>> stabilizedSets = new ArrayList<ArrayList<Integer>>();
-		for(ArrayList<Integer> set: sets) {
-			ArrayList<Integer> stabilize = new ArrayList<Integer>();
-			for(Integer i :set) {
-				stabilize.add(g.get(i));
-			}
-			if(stabilize.equals(set)) {
-				stabilizedSets.add(set);
-			}
-		}
-		return stabilizedSets.size();
-	}
-	
-	/**
-	 * Checks the integer set is stable or not under the permutation action
-	 * 
-	 * @param g a permutation
-	 * @param set a set of integers
-	 * @return 1 or 0 meaning the set is stable or not.
-	 */
-	
-	public static int checkStab(Permutation g, ArrayList<Integer> set){
-		int no=0;
-        if(set.equals(act(set,g))) {
-			no++;
-		}
-		return no;
-	}
-	
-	/**
-	 * Returns the cycle type of a permutation. In the permutation,
-	 * cycles are counted based on their lengths and the counting return
-	 * as the cycle type array of the permutation.
-	 * 
-	 * ( The algorithm is from C.A.G.E.S. Book. )
-	 * 
-	 * @param n the size of the return array (group size +1)
-	 * @param g
-	 * @return cycle type array of the permutation.
-	 */
-	
-	public static int[] type(int n,Permutation g) {
-		boolean[] p = new boolean[size];
-		int[] t = new int[n];
-		for(int i=0;i<n-1;i++) {
-			p[i]=true;
-			t[i+1]=0;
-		}
-		for(int i=0;i<n-1;i++) {
-			if(p[i]) {
-				int l=1;
-				int j=i;
-				p[j]=false;
-				while(p[g.get(j)]) {
-					l=l+1;
-					j=g.get(j);
-					p[j]=false;
-				}
-				t[l]=t[l]+1;
-			}
-		}
-		return t;
-	}
-	
-	/**
-	 * Counting the n combinatoion of m.
-	 * @param m integer
-	 * @param n integer
-	 * @return the combination value of two integers.
-	 */
-	
-	public static int combination(int m, int n) {
-		return factorial(m) / (factorial(n) * factorial(m - n));
-	}
-	
-	/**
-	 * Calculating factorial of an integer.
-	 * @param i integer
-	 * @return factorial of the integer.
-	 */
-	
-	public static int factorial(int i){
-		if (i==0){
-			return 1;
-		}
-		return i * factorial(i - 1);
-	}
 	
 	/**
 	 * Calculating the size of a Youngsubgroup. 
@@ -1793,100 +1930,6 @@ public class PermutationGroupFunctions {
 	}
 	
 	/**
-	 * Calculating the multinomial coefficient for the given power array
-	 * 
-	 * @param n main power over the multinomial.
-	 * @param array power array, the powers of each element in the multinomial
-	 * @return specified moltinomial coefficient
-	 */
-	
-	public static int multiCoef(int n, int[] array) {
-		int mult=1;
-		for(int i=0;i<array.length;i++) {
-			mult=mult*factorial(array[i]);
-		}
-		return factorial(n)/mult;
-	}
-	
-	public static int multiCoefList(int n, ArrayList<Integer> array) {
-		int mult=1;
-		for(int i=0;i<array.size();i++) {
-			mult=mult*factorial(array.get(i));
-		}
-		return factorial(n)/mult;
-	}
-	
-	/**
-	 * Building a monomial for number of variable with the power.
-	 * @param var number of variables
-	 * @param inPower the power of the variables
-	 * @return map representing the multinomials. 
-	 */
-	
-	public static HashMap<ArrayList<Integer>,Integer> monomial(int var, int inPower){
-		HashMap<ArrayList<Integer>,Integer> map= new HashMap<ArrayList<Integer>,Integer>();
-		for(int i=0;i<var;i++) {
-			map.put(multiply(simpleList(var,i),inPower), 1);
-		}
-		return map;
-	}
-	
-	/**
-	 * Construction of a multinomial for the given number of variable and power information 
-	 * @param power power of the multinomial
-	 * @param var number of variables
-	 * @param inPower power of each variable
-	 * @return a multinomial.
-	 */
-	
-	public static HashMap<ArrayList<Integer>,Integer> multinomialList(int power, int var , int inPower ) {
-		if(power==1) {
-			return monomial(var,inPower);
-		}
-		HashMap<ArrayList<Integer>,Integer> map= new HashMap<ArrayList<Integer>, Integer>();
-		for(ArrayList<Integer> arr:partition2(power,var,0)) {
-			map.put(multiply(arr,inPower),multiCoefList(power,arr));
-		}
-		return map;
-	}
-	
-	public static HashMap<int[],Integer> multinomial(int power, int var , int inPower ) {
-		HashMap<int[],Integer> map= new HashMap<int[], Integer>();
-		for(int[] arr:partition(power,var,0)) {
-			map.put(multiply(arr,inPower),multiCoef(power,arr));
-		}
-		return map;
-	}
-	
-	
-	/**
-	 * Group Reduction Function. The formula given in MOLGEN Book pg 77.
-	 * @param group permutation group 
-	 * @param m multiplicity
-	 * @return value of GRF for the multiplicity and permutation group
-	 */
-	
-	public static HashMap<ArrayList<Integer>, Integer> GRF(PermutationGroup group, int m) {
-		Multimap<HashMap<Integer, Integer>, Permutation> map=conjugacyClasses(group);
-		HashMap<ArrayList<Integer>, Integer> sum= new HashMap<ArrayList<Integer>, Integer>();
-		for(HashMap<Integer, Integer> key:map.keySet()) {
-			Permutation perm = (Permutation) map.get(key).toArray()[0];
-			HashMap<ArrayList<Integer>,Integer> mult= idMultinomial(m,map.get(key).size());
-			for(int i=1;i<cycleTypeInduced(perm).length;i++) {
-				if(cycleTypeInduced(perm)[i]!=0) {
-					int power= cycleTypeInduced(perm)[i];
-					mult=multMultinomialList(mult,multinomialList(power,m,i));
-				}
-			}
-			sum=sumLists(sum,mult);
-		}
-		divideByOrder(sum);
-		return sum;
-	}
-	
-	
-	
-	/**
 	 * Coset and Double Cosets on Groups - MOLGEN 1.36
 	 *
 	 */
@@ -1930,51 +1973,6 @@ public class PermutationGroupFunctions {
 		}
 		return map;
 	}
-	
-	/**
-	 * Direct product of two permutation groups is also a group.
-	 * 
-	 * @param group  a permutation group
-	 * @param group2 another permutation group
-	 * @return direct prodcut group
-	 */
-	
-	public static ArrayList<ArrayList<Permutation>> groupDirectProduct(PermutationGroup group, PermutationGroup group2) {
-		ArrayList<ArrayList<Permutation>> product = new ArrayList<ArrayList<Permutation>>(); 
-		for(Permutation perm: group.all()) {
-			for(Permutation perm2: group2.all()){
-				ArrayList<Permutation> list= new ArrayList<Permutation>();
-				list.add(perm);
-				list.add(perm2);
-				product.add(list);
-			}
-		}
-		return product;
-	}
-	
-	
-	
-	
-	/**
-	 * Direct product of a group with a list of stabilizers. The stabilizers set is also a permutation group.
-	 * @param group a permutation group
-	 * @param stab a stabilizier group
-	 * @return direct product of permutation group with the stabilizer group.
-	 */
-	
-	public static ArrayList<ArrayList<Permutation>> groupDirectProduct2(PermutationGroup group, ArrayList<Permutation> stab) {
-		ArrayList<ArrayList<Permutation>> product = new ArrayList<ArrayList<Permutation>>(); 
-		for(Permutation perm: group.all()) {
-			for(Permutation perm2: stab){
-				ArrayList<Permutation> list= new ArrayList<Permutation>();
-				list.add(perm);
-				list.add(perm2);
-				product.add(list);
-			}
-		}
-		return product;
-	}
-	
 	
 	/**
 	 * 
@@ -6485,6 +6483,89 @@ public class PermutationGroupFunctions {
 	}
 	
 	 public static void main(String[] args) throws CloneNotSupportedException, CDKException, IOException {   
+		 AtomContainerDiscretePartitionRefiner refiner = PartitionRefinement.forAtoms().create();
+		 IAtomContainer acon = builder.newInstance(IAtomContainer.class); 
+	     acon.addAtom(builder.newInstance(IAtom.class, "C"));
+	     acon.addAtom(builder.newInstance(IAtom.class, "C"));
+	     acon.addAtom(builder.newInstance(IAtom.class, "C"));
+	     acon.addAtom(builder.newInstance(IAtom.class, "C"));
+	     acon.addAtom(builder.newInstance(IAtom.class, "C"));
+	     acon.addAtom(builder.newInstance(IAtom.class, "C"));
+	     acon.addAtom(builder.newInstance(IAtom.class, "C"));
+	     acon.addAtom(builder.newInstance(IAtom.class, "C"));
+	     acon.addAtom(builder.newInstance(IAtom.class, "C"));
+	     acon.addAtom(builder.newInstance(IAtom.class, "C"));
+	     acon.addAtom(builder.newInstance(IAtom.class, "C"));
+	     acon.addAtom(builder.newInstance(IAtom.class, "C"));
+	     acon.addAtom(builder.newInstance(IAtom.class, "O"));
+	     acon.addAtom(builder.newInstance(IAtom.class, "O"));
+
+	     acon.addBond(0, 1, Order.SINGLE);
+	     acon.addBond(1, 2, Order.DOUBLE);
+	     acon.addBond(2, 3, Order.SINGLE);
+	     acon.addBond(3, 4, Order.DOUBLE);
+	     acon.addBond(4, 5, Order.SINGLE);
+	     acon.addBond(0, 5, Order.DOUBLE);
+	     acon.addBond(2, 12, Order.SINGLE);
+	     acon.addBond(12, 6, Order.SINGLE);
+	     acon.addBond(3, 13, Order.SINGLE);
+	     acon.addBond(13, 11, Order.SINGLE);
+	     acon.addBond(6, 11, Order.SINGLE);
+	     acon.addBond(6, 7, Order.DOUBLE);
+	     acon.addBond(7, 8, Order.SINGLE);
+	     acon.addBond(8, 9, Order.DOUBLE);
+	     acon.addBond(9, 10, Order.SINGLE);
+	     acon.addBond(10, 11, Order.DOUBLE);
+	     depict(acon,"C:\\Users\\mehme\\Desktop\\tst.png");
+	     PermutationGroup autG = refiner.getAutomorphismGroup(acon);
+	     //System.out.println(autG.order());
+	     PermutationGroup s8= PermutationGroup.makeSymN(8);
+	     
+	     ArrayList<Integer> free= getFreeValences(acon);
+	     ArrayList<Permutation> generators= new ArrayList<Permutation>();
+	     Permutation perm1  = new Permutation(1,0,2,3,4,5,6,7);
+	     Permutation perm2  = new Permutation(1,2,3,0,4,5,6,7);
+	     
+	     generators.add(perm1);
+	     generators.add(perm2);
+	     
+	     ArrayList<Permutation> generators2= new ArrayList<Permutation>();
+	     Permutation perm5= new Permutation(0,1,2,3,5,4,6,7);
+	     Permutation perm6= new Permutation(0,1,2,3,5,6,7,4);
+	     
+	     generators2.add(perm5);
+	     generators2.add(perm6);
+	     
+	     PermutationGroup den=generateGroup(generators,8);
+	     PermutationGroup den2=generateGroup(generators2,8);
+	     
+	     System.out.println(den.all().size());
+	     System.out.println(den2.all().size());
+	     System.out.println(truncatedTabloids(den,den2).size());
+	     for(int[] arr:truncatedTabloids(den,den2)) {
+	    	 System.out.println(Arrays.toString(arr));
+	     }
+	     //System.out.println(directProduct.all().size());
+	    
+	     for(Permutation perm: autG.all()) {
+			 //System.out.println(perm.toCycleString());
+		 }
+	     //System.out.println(autG.all().size());
+	     //ArrayList<Integer> free=getFreeValences(acon);
+	     //System.out.println(free);
+	     int si= acon.getAtomCount();
+	     for(Permutation perm: autG.all()) {
+	    	 for(int i=0;i<si;i++) {
+	    		 if(!free.contains(i)) {
+	    			 int temp=perm.get(i);
+	    			 perm.set(i, i);
+	    			 perm.set(temp, temp);
+	    		 }
+	    	 }
+	     }
+	     for(Permutation perm: autG.all()) {
+	    	 //System.out.println(perm.toCycleString());
+	     }
 		 // TODO Auto-generated method stub	
 		 ArrayList<Integer> degrees= new ArrayList<Integer>();
 		 
@@ -6735,13 +6816,13 @@ public class PermutationGroupFunctions {
 		 testPart.add(4);
 		 
 		 PermutationGroup group2 = generateGroup(gens,10);
-		 for(Permutation perm: group2.all()) {
+		 /**for(Permutation perm: group2.all()) {
 			 if(descBlockCheck(testPart,actArray(row,perm),row)) {	
 				 System.out.println(perm.toCycleString());
 				 System.out.println(Arrays.toString(actArray(row,perm)));
 				 System.out.println("Ara");
 			 }
-		 }
+		 }**/
 		 List<Permutation> ilk= new ArrayList<Permutation>();
 		 List<Permutation> iki= new ArrayList<Permutation>();
 		 List<Permutation> uc= new ArrayList<Permutation>();
