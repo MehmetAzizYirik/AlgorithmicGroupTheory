@@ -2578,10 +2578,14 @@ public class PermutationGroupFunctions {
 	 
 		
 	public static boolean saturationChecker(IAtomContainer molecule, int index) throws CloneNotSupportedException, CDKException, IOException{
-		if ((orderSummation(molecule,index))>= (int)valences.get(molecule.getAtom(index).getSymbol())){ 
+		if(molecule.getAtom(index).getSymbol()!="R") { // In case if there is non-specificed atom.
+			if ((orderSummation(molecule,index))>= (int)valences.get(molecule.getAtom(index).getSymbol())){ 
+				return true;
+			}else{
+				return false;
+			}
+		}else {
 			return true;
-		}else{
-			return false;
 		}
 	}
 	
@@ -2594,7 +2598,7 @@ public class PermutationGroupFunctions {
 	 * @throws IOException
 	 */
 	public static SaturationChecker saturation;
-	 public static ArrayList<Integer> getFreeValences(IAtomContainer ac) throws CloneNotSupportedException, CDKException, IOException {
+	public static ArrayList<Integer> getFreeValences(IAtomContainer ac) throws CloneNotSupportedException, CDKException, IOException {
 		 ArrayList<Integer> freeV= new ArrayList<Integer>();
 		 for(int i=0;i<ac.getAtomCount();i++) {
 			 if(!saturationChecker(ac,i)) {
@@ -2602,8 +2606,121 @@ public class PermutationGroupFunctions {
 			 }
 		 }
 		 return freeV;
-	 }
-	 
+	}
+	
+	/**
+	 * Find list of open indices in an IAtomContainer
+	 * @param ac IAtomContainer
+	 * @return ArrayList<Integer> Indices of the Open Sites
+	 * @throws CloneNotSupportedException
+	 * @throws CDKException
+	 * @throws IOException
+	 */
+	
+	public static ArrayList<Integer> getOpenIndices(IAtomContainer ac) throws CloneNotSupportedException, CDKException, IOException {
+		ArrayList<Integer> indices = new ArrayList<Integer>();
+		for(int i=0;i<ac.getAtomCount();i++) {
+			if(ac.getAtom(i).getSymbol()=="R") {
+				indices.add(i);
+			}
+		}
+		return indices;
+	}
+	
+	/**
+	 * Number of open sites for an atom in an AtomContainer
+	 * @param molecule IAtomContainer
+	 * @param index int atom index
+	 * @return int number of open sites
+	 */
+	
+	public static int openSites(IAtomContainer molecule, int index) {
+		return (int)valences.get(molecule.getAtom(index).getSymbol())-orderSummation(molecule,index);
+	}
+	
+	/**
+	 * Adding single bonds to open positions in an atomcontainer
+	 * @param ac IAtomContainer
+	 * @return IAtomContainer 
+	 * @throws CloneNotSupportedException
+	 * @throws CDKException
+	 * @throws IOException
+	 */
+	
+	public static IAtomContainer addSingleBondsToFreePositions(IAtomContainer ac) throws CloneNotSupportedException, CDKException, IOException {
+		 int index=ac.getAtomCount();
+		 for(int i=0;i<ac.getAtomCount();i++) {
+			 if(!saturationChecker(ac,i)) {
+				 int opens= openSites(ac,i);
+				 for(int j=index;j<(index+opens);j++) {
+				     ac.addAtom(new org.openscience.cdk.Atom("R")); 
+				     ac.addBond(i, j, Order.SINGLE);
+				 }
+				 index=index+opens;
+			 }
+		 }
+		 return ac;
+	}
+	
+	/**
+	 * Finding the beginning index of an open site in the atomcontainer
+	 * @param ac IAtomContainer
+	 * @return int beginning index
+	 */
+	
+	public static int beginningOfOpenSites(IAtomContainer ac) {
+		int index=0;
+		for(int i=0;i<ac.getAtomCount();i++) {
+			if(ac.getAtom(i).getSymbol()=="R") {
+				index=index+i;
+				break;
+			}
+		}
+		return index;
+	}
+	
+	/**
+	 * For the permutations from automorphism group of an atomcontainer,
+	 * reset new permutations for the open sites.
+	 * @param size int number of open sites
+	 * @param begin int beginning index for the open sites
+	 * @param openIndices ArrayList<Integer> the indices of open sites
+	 * @param perm Permutation from an automorphism group
+	 * @return Permutation permutation for open sites
+	 */
+	
+	public static Permutation resetPermutation(int size, int begin, ArrayList<Integer> openIndices,Permutation perm) {
+		int[] values= new int[size];
+    	for(Integer index:openIndices) {
+    		values[index-begin]=perm.get(index)-begin;
+    	}
+    	return new Permutation(values);
+	}
+	
+	/**
+	 * Calculating automorphism group of an atomcontainer,
+	 * then setting the permutations for the open sites.
+	 * @param ac IAtomContainer
+	 * @return ArrayList<Permutation>
+	 * @throws CloneNotSupportedException
+	 * @throws CDKException
+	 * @throws IOException
+	 */
+	
+	public static ArrayList<Permutation> automorphismOfOpenSites(IAtomContainer ac) throws CloneNotSupportedException, CDKException, IOException{
+		ac=addSingleBondsToFreePositions(ac);
+		AtomContainerDiscretePartitionRefiner refiner = PartitionRefinement.forAtoms().create();
+	    PermutationGroup autG = refiner.getAutomorphismGroup(ac);
+	    ArrayList<Integer> openIndices=getOpenIndices(ac);
+	    ArrayList<Permutation> openPerms= new ArrayList<Permutation>();
+	    int size= openIndices.size();
+	    int begin=beginningOfOpenSites(ac);
+	    for(Permutation perm: autG.all()) {
+	    	openPerms.add(resetPermutation(size,begin,openIndices,perm));
+	    }
+	    return openPerms;
+	}
+	
 	 /**
 	  * For the list of atom symbol, grouping the same symbols
 	  * and assigning the acting permutation group. 
@@ -6483,7 +6600,7 @@ public class PermutationGroupFunctions {
 	}
 	
 	 public static void main(String[] args) throws CloneNotSupportedException, CDKException, IOException {   
-		 AtomContainerDiscretePartitionRefiner refiner = PartitionRefinement.forAtoms().create();
+		 
 		 IAtomContainer acon = builder.newInstance(IAtomContainer.class); 
 	     acon.addAtom(builder.newInstance(IAtom.class, "C"));
 	     acon.addAtom(builder.newInstance(IAtom.class, "C"));
@@ -6516,12 +6633,33 @@ public class PermutationGroupFunctions {
 	     acon.addBond(8, 9, Order.DOUBLE);
 	     acon.addBond(9, 10, Order.SINGLE);
 	     acon.addBond(10, 11, Order.DOUBLE);
-	     depict(acon,"C:\\Users\\mehme\\Desktop\\tst.png");
+	     
+	     //depict(acon,"C:\\Users\\mehme\\Desktop\\test1.png");
+	     acon=addSingleBondsToFreePositions(acon);
+	     //ArrayList<Integer> free= getFreeValences(acon);
+	     //System.out.println("free"+" "+free);
+	     AtomContainerDiscretePartitionRefiner refiner = PartitionRefinement.forAtoms().create();
 	     PermutationGroup autG = refiner.getAutomorphismGroup(acon);
-	     //System.out.println(autG.order());
+	     System.out.println(getFreeValences(acon));
+	     ArrayList<Integer> openIndices=getOpenIndices(acon);
+	     ArrayList<Permutation> openPerms= new ArrayList<Permutation>();
+	     int oSize= openIndices.size();
+	     int begin=14;
+	     for(Permutation perm: autG.all()) {
+	    	 System.out.println(perm.toCycleString());
+	    	 int[] values= new int[oSize];
+	    	 for(Integer index:openIndices) {
+	    		 values[index-begin]=perm.get(index)-begin;
+	    	 }
+	    	 Permutation nPerm = new Permutation(values); 
+	    	 openPerms.add(nPerm);
+	     }
+	     for(Permutation perm:openPerms) {
+	    	 System.out.println(perm.toCycleString());
+	     }
 	     PermutationGroup s8= PermutationGroup.makeSymN(8);
 	     
-	     ArrayList<Integer> free= getFreeValences(acon);
+	     //System.out.println("free"+" "+free);
 	     ArrayList<Permutation> generators= new ArrayList<Permutation>();
 	     Permutation perm1  = new Permutation(1,0,2,3,4,5,6,7);
 	     Permutation perm2  = new Permutation(1,2,3,0,4,5,6,7);
@@ -6539,11 +6677,11 @@ public class PermutationGroupFunctions {
 	     PermutationGroup den=generateGroup(generators,8);
 	     PermutationGroup den2=generateGroup(generators2,8);
 	     
-	     System.out.println(den.all().size());
-	     System.out.println(den2.all().size());
-	     System.out.println(truncatedTabloids(den,den2).size());
+	     //System.out.println(den.all().size());
+	     //System.out.println(den2.all().size());
+	     //System.out.println(truncatedTabloids(den,den2).size());
 	     for(int[] arr:truncatedTabloids(den,den2)) {
-	    	 System.out.println(Arrays.toString(arr));
+	    	 //System.out.println(Arrays.toString(arr));
 	     }
 	     //System.out.println(directProduct.all().size());
 	    
@@ -6556,11 +6694,11 @@ public class PermutationGroupFunctions {
 	     int si= acon.getAtomCount();
 	     for(Permutation perm: autG.all()) {
 	    	 for(int i=0;i<si;i++) {
-	    		 if(!free.contains(i)) {
+	    		 //if(!free.contains(i)) {
 	    			 int temp=perm.get(i);
 	    			 perm.set(i, i);
 	    			 perm.set(temp, temp);
-	    		 }
+	    		 //}
 	    	 }
 	     }
 	     for(Permutation perm: autG.all()) {
