@@ -1771,7 +1771,7 @@ public class PermutationGroupFunctions {
 		}
 		return id;
 	}
-	
+
 	/**
 	 * Values for the second generator permutation - with the full ( 1,2,..,n)
 	 * @param id the id values
@@ -2721,6 +2721,47 @@ public class PermutationGroupFunctions {
 	    return openPerms;
 	}
 	
+	public static Permutation firstGenerator(int index, int size) {
+		int[] values= idValues(size);
+		values[index]=index+1;
+		values[index+1]=index;
+		return new Permutation(values);
+	}
+	
+	public static Permutation secondGenerator(int index, int setSize, int size) {
+		int[] values = idValues(size);
+		int lastIndex = (index+setSize-1);
+		values[lastIndex]=index;
+		for(int i=index;i<lastIndex;i++) {
+			values[i]=i+1;
+		}
+		return new Permutation(values);
+	}
+	
+	public static List<Permutation> generators(int begin, int setSize, int size){
+		List<Permutation> generators= new ArrayList<Permutation>();
+		if(setSize==1) {
+			generators.add(new Permutation(size));
+		}else if(setSize==2) {
+			generators.add(firstGenerator(begin,size));
+		}else if(setSize>2) {
+			generators.add(firstGenerator(begin,size));
+			generators.add(secondGenerator(begin,setSize,size));
+		}
+		return generators;
+	}
+	
+	public static PermutationGroup generateGroup(ArrayList<Integer> atoms, int size) {
+		List<Permutation> generators= new ArrayList<Permutation>();
+		int begin=0;
+		for(int i=0;i<(atoms.size());i++) {
+			generators.addAll(generators(begin,atoms.get(i),size));
+			begin=begin+atoms.get(i);
+		}
+		return generateGroup(generators,size);
+	}
+	
+	 
 	 /**
 	  * For the list of atom symbol, grouping the same symbols
 	  * and assigning the acting permutation group. 
@@ -6640,13 +6681,13 @@ public class PermutationGroupFunctions {
 	     //System.out.println("free"+" "+free);
 	     AtomContainerDiscretePartitionRefiner refiner = PartitionRefinement.forAtoms().create();
 	     PermutationGroup autG = refiner.getAutomorphismGroup(acon);
-	     System.out.println(getFreeValences(acon));
+	     //System.out.println(getFreeValences(acon));
 	     ArrayList<Integer> openIndices=getOpenIndices(acon);
 	     ArrayList<Permutation> openPerms= new ArrayList<Permutation>();
 	     int oSize= openIndices.size();
 	     int begin=14;
 	     for(Permutation perm: autG.all()) {
-	    	 System.out.println(perm.toCycleString());
+	    	 //System.out.println(perm.toCycleString());
 	    	 int[] values= new int[oSize];
 	    	 for(Integer index:openIndices) {
 	    		 values[index-begin]=perm.get(index)-begin;
@@ -6655,10 +6696,54 @@ public class PermutationGroupFunctions {
 	    	 openPerms.add(nPerm);
 	     }
 	     for(Permutation perm:openPerms) {
-	    	 System.out.println(perm.toCycleString());
+	    	 //System.out.println(perm.toCycleString());
 	     }
 	     PermutationGroup s8= PermutationGroup.makeSymN(8);
+	     PermutationGroup aziz= generateGroup(generators(0,4,8),8);
+	     PermutationGroup elis= generateGroup(generators(4,4,8),8);
+	     ArrayList<int[]> arrl= new ArrayList<int[]>();
+	     //ArrayList<Permutation> lp= new ArrayList<Permutation>();
+	     for(Permutation permutation: s8.all()) {
+	    	 for(Permutation permutation2:elis.all()) {
+	    		 //System.out.println(permutation.toCycleString()+" "+permutation2.toCycleString());
+	    		 Permutation p=permutation.multiply(permutation2);
+	    		 //System.out.println(p.toCycleString()+" "+"multiply");
+	    		 if(ascCheck(p)) {
+	    			 int[] h= getTabloid(p);
+	    			 if(!inTheList(arrl,h)) {
+	    				 arrl.add(h);
+	    				 //lp.add(permutation);
+	    			 } 
+	    		 }
+	    	 } 
+	     }
 	     
+	     
+	     HashSet<HashSet<ArrayList<Integer>>> orbits= new HashSet<HashSet<ArrayList<Integer>>>(); 
+		 ArrayList<int[]> truncated= truncatedTabloids(s8, aziz);
+		 for(int j=0;j<truncated.size();j++) {
+		    HashSet<ArrayList<Integer>> orbit= new HashSet<ArrayList<Integer>>();
+		    for(Permutation perm: openPerms) {
+		    	//System.out.println(perm.toCycleString());
+		    	ArrayList<Integer> l= new ArrayList<Integer>();
+		    	for(int k=0;k<truncated.get(j).length;k++) {
+		    		l.add(perm.get(truncated.get(j)[k]));
+		    	}
+		    	l.sort(ASC_ORDER);
+		    	if(!inTheList(orbit,l)) {
+		    		orbit.add(l);
+		    	}
+		    }
+		    //System.out.println(orbit);
+		    if(!inList(orbits,orbit)) {
+		    	orbits.add(orbit);
+		    }
+		  }
+		 
+		 for(HashSet<ArrayList<Integer>> l:orbits) {
+			 System.out.println(l);
+			 
+		 }
 	     //System.out.println("free"+" "+free);
 	     ArrayList<Permutation> generators= new ArrayList<Permutation>();
 	     Permutation perm1  = new Permutation(1,0,2,3,4,5,6,7);
