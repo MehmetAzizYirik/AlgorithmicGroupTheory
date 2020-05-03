@@ -2709,15 +2709,20 @@ public class PermutationGroupFunctions {
 	
 	public static ArrayList<Permutation> automorphismOfOpenSites(IAtomContainer ac) throws CloneNotSupportedException, CDKException, IOException{
 		ac=addSingleBondsToFreePositions(ac);
+		depict(ac,"C:\\Users\\mehme\\Desktop\\auto.png");
 		AtomContainerDiscretePartitionRefiner refiner = PartitionRefinement.forAtoms().create();
 	    PermutationGroup autG = refiner.getAutomorphismGroup(ac);
 	    ArrayList<Integer> openIndices=getOpenIndices(ac);
 	    ArrayList<Permutation> openPerms= new ArrayList<Permutation>();
 	    int size= openIndices.size();
+	    System.out.println("in size"+" "+size);
 	    int begin=beginningOfOpenSites(ac);
+	    System.out.println("in open begin"+" "+size);
 	    for(Permutation perm: autG.all()) {
+	    	System.out.println(perm.toCycleString());
 	    	openPerms.add(resetPermutation(size,begin,openIndices,perm));
 	    }
+	    System.out.println("in");
 	    return openPerms;
 	}
 	
@@ -3033,17 +3038,19 @@ public class PermutationGroupFunctions {
 		 return check;
 	 }
 	 
-	 public static int[] getTabloid(Permutation perm) {
-		 int[] arr= new int[perm.size()/2];
-	     for(int i=0;i<(perm.size()/2);i++){
+	 public static int[] getTabloid(Permutation perm,int size) {
+		 //int[] arr= new int[perm.size()/2];
+		 int[] arr= new int[size];
+	     for(int i=0;i<size;i++){
 		     arr[i]=perm.get(i);
 		 }
 		 return arr;
 	 }
 	 
-	 public static boolean ascCheck(Permutation perm) {
+	 public static boolean ascCheck(Permutation perm, int size) {
 		 boolean check=true;
-		 for(int i=0;i<(perm.size()/2)-1;i++) {
+		 //for(int i=0;i<(perm.size()/2)-1;i++) {
+		 for(int i=0;i<(size)-1;i++) {
 			 if(perm.get(i)>perm.get(i+1)) {
 				 check=false;
 				 break;
@@ -3098,8 +3105,8 @@ public class PermutationGroupFunctions {
 	     for(Permutation permutation: group.all()) {
 	    	 for(Permutation permutation2:group2.all()) {
 	    		 Permutation p=permutation.multiply(permutation2);
-	    		 if(ascCheck(permutation)) {
-	    			 int[] h= getTabloid(permutation);
+	    		 if(ascCheck(permutation,2)) {
+	    			 int[] h= getTabloid(permutation,2);
 	    			 if(!inTheList(arrl,h)) {
 	    				 arrl.add(h);
 	    				 //lp.add(permutation);
@@ -6675,9 +6682,37 @@ public class PermutationGroupFunctions {
 	     acon.addBond(9, 10, Order.SINGLE);
 	     acon.addBond(10, 11, Order.DOUBLE);
 	     
-	     //depict(acon,"C:\\Users\\mehme\\Desktop\\test1.png");
+	     IAtomContainer alt = builder.newInstance(IAtomContainer.class); 
+	     alt.addAtom(builder.newInstance(IAtom.class, "C"));
+	     alt.addAtom(builder.newInstance(IAtom.class, "C"));
+	     alt.addAtom(builder.newInstance(IAtom.class, "C"));
+	     alt.addAtom(builder.newInstance(IAtom.class, "C"));
+	     alt.addAtom(builder.newInstance(IAtom.class, "C"));
+	     alt.addAtom(builder.newInstance(IAtom.class, "C"));
+	     //alt.addAtom(builder.newInstance(IAtom.class, "R"));
+	     //alt.addAtom(builder.newInstance(IAtom.class, "R"));
+	     //alt.addAtom(builder.newInstance(IAtom.class, "R"));
+	     //alt.addAtom(builder.newInstance(IAtom.class, "R"));
+	     //alt.addAtom(builder.newInstance(IAtom.class, "R"));
+	     //alt.addAtom(builder.newInstance(IAtom.class, "R"));
+	     
+
+	     alt.addBond(0, 1, Order.DOUBLE);
+	     alt.addBond(1, 2, Order.SINGLE);
+	     alt.addBond(2, 3, Order.DOUBLE);
+	     alt.addBond(3, 4, Order.SINGLE);
+	     alt.addBond(4, 5, Order.DOUBLE);
+	     alt.addBond(5, 0, Order.SINGLE);
+	     //alt.addBond(0, 6, Order.SINGLE);
+	     //alt.addBond(1, 7, Order.SINGLE);
+	     //alt.addBond(2, 8, Order.SINGLE);
+	     //alt.addBond(3, 9, Order.SINGLE);
+	     //alt.addBond(4, 10, Order.SINGLE);
+	     //alt.addBond(5, 11, Order.SINGLE);
+	     
+	     
 	     acon=addSingleBondsToFreePositions(acon);
-	     //ArrayList<Integer> free= getFreeValences(acon);
+	     ArrayList<Integer> free= getFreeValences(acon);
 	     //System.out.println("free"+" "+free);
 	     AtomContainerDiscretePartitionRefiner refiner = PartitionRefinement.forAtoms().create();
 	     PermutationGroup autG = refiner.getAutomorphismGroup(acon);
@@ -6698,33 +6733,44 @@ public class PermutationGroupFunctions {
 	     for(Permutation perm:openPerms) {
 	    	 //System.out.println(perm.toCycleString());
 	     }
-	     PermutationGroup s8= PermutationGroup.makeSymN(8);
+	     
+	     ArrayList<Permutation> openAuto=automorphismOfOpenSites(alt);
+	     for(Permutation perm: openAuto) {
+	    	 System.out.println("open"+" "+perm.toCycleString());
+	     }
+	     ArrayList<Integer> atm= new ArrayList<Integer>();
+	     atm.add(2);
+	     atm.add(2);
+	     atm.add(2);
+	     PermutationGroup direct= generateGroup(atm,6);
+	     PermutationGroup s6= PermutationGroup.makeSymN(6);
+	     PermutationGroup s4= PermutationGroup.makeSymN(4);
 	     PermutationGroup aziz= generateGroup(generators(0,4,8),8);
 	     PermutationGroup elis= generateGroup(generators(4,4,8),8);
 	     ArrayList<int[]> arrl= new ArrayList<int[]>();
 	     //ArrayList<Permutation> lp= new ArrayList<Permutation>();
-	     for(Permutation permutation: s8.all()) {
-	    	 for(Permutation permutation2:elis.all()) {
+	     for(Permutation permutation: s6.all()) {
+	    	 for(Permutation permutation2:direct.all()) {
 	    		 //System.out.println(permutation.toCycleString()+" "+permutation2.toCycleString());
 	    		 Permutation p=permutation.multiply(permutation2);
-	    		 //System.out.println(p.toCycleString()+" "+"multiply");
-	    		 if(ascCheck(p)) {
-	    			 int[] h= getTabloid(p);
+	    		 if(ascCheck(p,2)) {
+	    			 int[] h= getTabloid(p,2);
 	    			 if(!inTheList(arrl,h)) {
+	    				 //System.out.println(p.toCycleString()+" "+"multiply");
+	    				 System.out.println("array"+" "+Arrays.toString(h));
 	    				 arrl.add(h);
 	    				 //lp.add(permutation);
 	    			 } 
 	    		 }
 	    	 } 
 	     }
-	     
-	     
+	     System.out.println(arrl.size());
 	     HashSet<HashSet<ArrayList<Integer>>> orbits= new HashSet<HashSet<ArrayList<Integer>>>(); 
-		 ArrayList<int[]> truncated= truncatedTabloids(s8, aziz);
+		 ArrayList<int[]> truncated= truncatedTabloids(s6, direct);
 		 for(int j=0;j<truncated.size();j++) {
-		    HashSet<ArrayList<Integer>> orbit= new HashSet<ArrayList<Integer>>();
-		    for(Permutation perm: openPerms) {
-		    	//System.out.println(perm.toCycleString());
+			 HashSet<ArrayList<Integer>> orbit= new HashSet<ArrayList<Integer>>();
+			 for(Permutation perm: openAuto) {
+				//System.out.println(perm.toCycleString());
 		    	ArrayList<Integer> l= new ArrayList<Integer>();
 		    	for(int k=0;k<truncated.get(j).length;k++) {
 		    		l.add(perm.get(truncated.get(j)[k]));
@@ -6744,6 +6790,7 @@ public class PermutationGroupFunctions {
 			 System.out.println(l);
 			 
 		 }
+		 System.out.println(orbits.size());
 	     //System.out.println("free"+" "+free);
 	     ArrayList<Permutation> generators= new ArrayList<Permutation>();
 	     Permutation perm1  = new Permutation(1,0,2,3,4,5,6,7);
@@ -6770,14 +6817,12 @@ public class PermutationGroupFunctions {
 	     }
 	     //System.out.println(directProduct.all().size());
 	    
-	     for(Permutation perm: autG.all()) {
-			 //System.out.println(perm.toCycleString());
-		 }
+	     
 	     //System.out.println(autG.all().size());
 	     //ArrayList<Integer> free=getFreeValences(acon);
 	     //System.out.println(free);
 	     int si= acon.getAtomCount();
-	     for(Permutation perm: autG.all()) {
+	     /**for(Permutation perm: autG.all()) {
 	    	 for(int i=0;i<si;i++) {
 	    		 //if(!free.contains(i)) {
 	    			 int temp=perm.get(i);
@@ -6785,10 +6830,8 @@ public class PermutationGroupFunctions {
 	    			 perm.set(temp, temp);
 	    		 //}
 	    	 }
-	     }
-	     for(Permutation perm: autG.all()) {
-	    	 //System.out.println(perm.toCycleString());
-	     }
+	     }**/
+	     
 		 // TODO Auto-generated method stub	
 		 ArrayList<Integer> degrees= new ArrayList<Integer>();
 		 
