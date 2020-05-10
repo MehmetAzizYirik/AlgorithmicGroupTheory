@@ -4843,6 +4843,7 @@ public class PermutationGroupFunctions {
 		 }
 	 }
 	 
+	 
 	 public static int[] canonicalRow(PermutationGroup group, ArrayList<Integer> partition, int[] array){
 		 int[] canCheck = new int[array.length];
 		 for(Permutation perm: group.all()) {
