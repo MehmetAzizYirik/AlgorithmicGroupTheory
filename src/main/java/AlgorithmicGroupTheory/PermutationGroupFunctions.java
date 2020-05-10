@@ -4821,6 +4821,27 @@ public class PermutationGroupFunctions {
 		 return perms;
 	 }
 	 
+	 /**
+	  * Find canonical permutation for every transpositions like in 3.3.3. 
+	  * @param index int row index
+	  * @param array int[] row
+	  * @param partition ArrayList<Integer> partition
+	  * @param total int number of atoms
+	  */
+	 
+	 public static void canonicalRepresentative(int index, int[] array, ArrayList<Integer> partition, int total) {
+		 PermutationGroup group=getYoungGroup(partition,total);	 
+		 ArrayList<Permutation> reps= representatives.get(index);
+		 for(int i=0;i<reps.size();i++) {
+			 for(Permutation perm: group.all()) { //TODO: Maybe we dont need id
+				 Permutation newRep = reps.get(i).multiply(perm);
+				 if(descBlockCheck(partition,actArray(array,newRep),array)){
+					 representatives.get(index).set(i, newRep);
+					 break;
+				 }
+			 }
+		 }
+	 }
 	 
 	 public static int[] canonicalRow(PermutationGroup group, ArrayList<Integer> partition, int[] array){
 		 int[] canCheck = new int[array.length];
