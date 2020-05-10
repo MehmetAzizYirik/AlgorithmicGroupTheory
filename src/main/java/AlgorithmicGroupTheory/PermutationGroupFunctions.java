@@ -5500,6 +5500,25 @@ public class PermutationGroupFunctions {
 		 return (sum(partEx,(degree))-(degree)); //In Grund, the numeration starts with 1. Since we start with 0, it should be -(degree+1)+1, so just -degree
 	 }
 	 
+	 public static int factorialOfPartition(ArrayList<Integer> part) {
+		 int m=1;
+		 for(Integer i:part) {
+			 m=m*factorial(i);
+		 }
+		 return m;
+	 }
+	 
+	 /**
+	  * Calculating the L Value based on Lagrange theorem.
+	  * @param partEx ArrayList<Integer> former partition
+	  * @param partNew ArrayList<Integer> new partition
+	  * @return int L value
+	  */
+	 
+	 public static int Lfactorial(ArrayList<Integer> partEx, ArrayList<Integer> partNew) {
+		 return factorialOfPartition(partEx)/factorialOfPartition(partNew);
+	 }
+	 
 	 /**
 	  * Definition 3.3.3.
 	  * The number of left cosets of a subgroup in a group.
@@ -6736,7 +6755,7 @@ public class PermutationGroupFunctions {
 	     
 	     ArrayList<Permutation> openAuto=automorphismOfOpenSites(alt);
 	     for(Permutation perm: openAuto) {
-	    	 System.out.println("open"+" "+perm.toCycleString());
+	    	 //System.out.println("open"+" "+perm.toCycleString());
 	     }
 	     ArrayList<Integer> atm= new ArrayList<Integer>();
 	     atm.add(2);
@@ -6757,14 +6776,14 @@ public class PermutationGroupFunctions {
 	    			 int[] h= getTabloid(p,2);
 	    			 if(!inTheList(arrl,h)) {
 	    				 //System.out.println(p.toCycleString()+" "+"multiply");
-	    				 System.out.println("array"+" "+Arrays.toString(h));
+	    				 //System.out.println("array"+" "+Arrays.toString(h));
 	    				 arrl.add(h);
 	    				 //lp.add(permutation);
 	    			 } 
 	    		 }
 	    	 } 
 	     }
-	     System.out.println(arrl.size());
+	     //System.out.println(arrl.size());
 	     HashSet<HashSet<ArrayList<Integer>>> orbits= new HashSet<HashSet<ArrayList<Integer>>>(); 
 		 ArrayList<int[]> truncated= truncatedTabloids(s6, direct);
 		 for(int j=0;j<truncated.size();j++) {
@@ -6787,11 +6806,21 @@ public class PermutationGroupFunctions {
 		  }
 		 
 		 for(HashSet<ArrayList<Integer>> l:orbits) {
-			 System.out.println(l);
+			 //System.out.println(l);
 			 
 		 }
-		 System.out.println(orbits.size());
+		 //System.out.println(orbits.size());
 	     //System.out.println("free"+" "+free);
+		 
+		 int total=10;
+		 ArrayList<Integer> bol= new ArrayList<Integer>();
+		 bol.add(1);
+		 bol.add(1);
+		 bol.add(4);
+		 bol.add(4);
+		 PermutationGroup zero=getYoungGroup(bol,total);
+		 
+		 System.out.println("size zero"+" "+zero.all().size());
 	     ArrayList<Permutation> generators= new ArrayList<Permutation>();
 	     Permutation perm1  = new Permutation(1,0,2,3,4,5,6,7);
 	     Permutation perm2  = new Permutation(1,2,3,0,4,5,6,7);
