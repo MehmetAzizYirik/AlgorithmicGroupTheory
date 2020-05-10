@@ -4936,23 +4936,50 @@ public class PermutationGroupFunctions {
 		 return check;
 	 }
 	 
+	 /**
+	  * To check an array is in desceding order or not. 
+	  * @param array int[]
+	  * @return boolean
+	  */
+	 
+	 public static boolean descendingOrderCheck(Integer[] array) {
+		 boolean check = true;
+		 for (int i = 0; i < array.length-1; i++) {
+			 if (array[i] < array[i+1]) {
+				 check = false;
+			 }
+		 }
+		 return check;
+	 }
+	 
 	 public static boolean descBlockCheck(ArrayList<Integer> partition, int[] canonical, int[] original){
 		 boolean check=true;
 		 int index=0;
+		 System.out.println("desin");
 		 for(Integer p:partition) {
+			 System.out.println(p);
 			 Integer[] can= getBlocks(canonical,index,p+index);
+			 System.out.println(Arrays.toString(can)+" "+"can");
 			 Integer[] org= getBlocks(original,index,p+index);
+			 System.out.println(Arrays.toString(org)+" "+"org");
 			 if(!Arrays.equals(can,org)) {
 				 if(toInt(can)>toInt(org)) {
 					 check=true;
-					 break;
 				 }else if(toInt(can)<toInt(org)) {
 					 check=false;
 					 break;
 				 }
+			 }else {
+				 if(!descendingOrderCheck(can)) {
+					 check=false;
+					 break;
+				 }
+				 
 			 }
 			 index=index+p;
 		 }
+		 System.out.println("desout");
+		 
 		 return check;
 	 }
 	 
@@ -6818,7 +6845,32 @@ public class PermutationGroupFunctions {
 		 bol.add(1);
 		 bol.add(4);
 		 bol.add(4);
+		 
+		 int[] deneme= new int[10];
+		 deneme[0]=0;
+		 deneme[1]=0;
+		 deneme[2]=1;
+		 deneme[3]=1;
+		 deneme[4]=0;
+		 deneme[5]=1;
+		 deneme[6]=0;
+		 deneme[7]=0;
+		 deneme[8]=0;
+		 deneme[9]=0;
+		 
+		 Permutation first= new Permutation(1,0,2,3,4,5,6,7,8,9);
+		 Permutation second= new Permutation(2,1,0,3,4,5,6,7,8,9);
+		 Permutation third= new Permutation(3,1,2,0,4,5,6,7,8,9);
 		 PermutationGroup zero=getYoungGroup(bol,total);
+		 
+		 for(Permutation perm: zero.all()) {
+			 System.out.println(first.multiply(perm).toCycleString());
+			 System.out.println(descBlockCheck(bol,actArray(deneme,first.multiply(perm)),deneme));
+		 }
+		 //System.out.println(Arrays.toString(actArray(deneme,second)));
+		 
+		
+		 
 		 
 		 System.out.println("size zero"+" "+zero.all().size());
 	     ArrayList<Permutation> generators= new ArrayList<Permutation>();
