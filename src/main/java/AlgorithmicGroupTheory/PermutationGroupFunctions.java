@@ -6049,7 +6049,6 @@ public class PermutationGroupFunctions {
 	 				ArrayList<Integer> modified=successor(indices,max.length);
 	 				if(modified.get(0)>i && j==A.length-1) {  //TODO: Why we create the canonical for i not modified.get(0) ?
 	 					partition=canonicalPartition(i,partition); //TODO: Might need to test again
-	 					
 	 					System.out.println("canonical"+" "+partition+" "+i);
 	 					if(canonicalBlockTest(A[i],r,i,partition)) { //Based on former perms, check canonical or not then add new perms if it is canonical.
 	 						System.out.println("row"+" "+Arrays.toString(A[i])+" "+i);
@@ -6079,7 +6078,7 @@ public class PermutationGroupFunctions {
 	 						}
 	 						//representatives.add(cycleRepresentatives(i,findIndexChanges(refinedPartitions.get(i),refinedPartitions.get(i+1)),size));
 	 						if(i==findZ(r)){
-	 							fillRepresentatives(r,size); 
+	 							//fillRepresentatives(r,size); 
 	 							if(!idRepresentativesCheck(findZ(r))) { 
 	 								r++;
 	 								forwardCanonicalBlock(degrees, partition, A, max, L, C, modified,r);
