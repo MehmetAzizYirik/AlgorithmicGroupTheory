@@ -5763,6 +5763,25 @@ public class PermutationGroupFunctions {
 		 return perms;
 	 }
 	
+	 public static ArrayList<Permutation> cycleTranspositions(int index, ArrayList<Integer> partition, ArrayList<Integer> newPartition) {
+		 ArrayList<Permutation> perms= new ArrayList<Permutation>();
+		 perms.add(idPermutation(size));
+		 int lValue= Lfactorial(partition,newPartition);
+		 for(int i=index;i<=lValue;i++) {
+	    	 int[] values= idValues(size);
+	    	 int former =  values[index];
+			 values[index] =  values[index+i];
+			 values[index+i] = former;
+			 Permutation p = new Permutation(values);
+			 perms.add(p);
+		 }
+		 if(representatives.size()==index) {
+			 representatives.add(perms);
+		 }else {
+			 representatives.set(index,perms);
+		 }
+		 return perms;
+	 }
 	 /**
 	  * Cycle representatives are built based on partitions. For every row,
 	  * there are more than 1 step of partitioning, so for each partitioning,
@@ -5852,6 +5871,17 @@ public class PermutationGroupFunctions {
 			 } 
 		 }
 		 return check;
+	 }
+	 
+	 public static ArrayList<Permutation> canonicalTrans(int index, int[] row, ArrayList<Integer> partition, ArrayList<Integer> newPartition) {
+		 ArrayList<Permutation> trans=cycleTranspositions(index, partition, newPartition);
+		 ArrayList<Permutation> canonicalTrans= new ArrayList<Permutation>();
+		 for(Permutation perm: trans) {
+			 if(descBlockCheck(newPartition,actArray(row,perm),row)) {
+				 canonicalTrans.add(perm);
+			 }
+		 }
+		 return canonicalTrans;
 	 }
 	 
 	 /**
@@ -6033,52 +6063,32 @@ public class PermutationGroupFunctions {
 	public static void forwardCanonicalBlock(ArrayList<Integer> degrees, ArrayList<Integer> partition,int[][] A, int[][]max, int[][]L, int[][]C, ArrayList<Integer> indices, int r) throws IOException {
 		int i=indices.get(0);
 		int j=indices.get(1);
-		System.out.println("forward block indices"+" "+i+" "+j);
 		int l2= LInverse(degrees,i,j,A);
 		int c2= CInverse(degrees,i,j,A);
 	 	int minimal= Math.min(max[i][j],Math.min(l2,c2));
 	 	for(int h=minimal;h>=0;h--) {
-	 		System.out.println("forward if oncesi indices"+" "+i+" "+j+" "+h);
 	 		if((l2-h<=L[i][j]) && (c2-h<=C[i][j])) {
 	 			A[i][j]=A[j][i]=h;
-	 			System.out.println("forward block indices"+" "+i+" "+j);
-	 			System.out.println("h added in forward"+" "+h+" "+Arrays.deepToString(A)+" "+i+" "+j);
 	 			if(i==(max.length-2) && j==(max.length-1)) {
 	 				backwardCanonicalBlock(degrees,partition,A, max, L, C, indices,r);
 	 			}else {
 	 				ArrayList<Integer> modified=successor(indices,max.length);
 	 				if(modified.get(0)>i && j==A.length-1) {  //TODO: Why we create the canonical for i not modified.get(0) ?
 	 					partition=canonicalPartition(i,partition); //TODO: Might need to test again
-	 					System.out.println("canonical"+" "+partition+" "+i);
 	 					if(canonicalBlockTest(A[i],r,i,partition)) { //Based on former perms, check canonical or not then add new perms if it is canonical.
-	 						System.out.println("row"+" "+Arrays.toString(A[i])+" "+i);
 	 						partition=refinedPartitioning(partition,A[i]);
-	 						System.out.println("find refined"+" "+partition+" "+i);
-	 						System.out.println("part size"+" "+refinedPartitions.size());
 	 						//ArrayList<Integer> refinedPart = refinedPartitioning(partition,A[i]);
 	 						if((refinedPartitions.size()-1)==i) {
 	 							refinedPartitions.add(partition);
 	 						}else {
-	 							System.out.println("part size"+" "+refinedPartitions.size()+" "+i);
 	 							refinedPartitions.set(i+1,partition);
 	 						}
-	 						//System.out.println("index"+" "+i);
-	 						for(int s=0;s<refinedPartitions.size();s++) {
-	 							System.out.println("list refined "+" "+s+" "+refinedPartitions.get(s));
-	 						}
-	
-	 						//System.out.println("size"+" "+size);
-	 						System.out.println("i"+" "+i);
-	 						System.out.println(i+" "+refinedPartitions.get(i)+" "+refinedPartitions.get(i+1));
-	 						ArrayList<Integer> changes= findIndexChanges(refinedPartitions.get(i),refinedPartitions.get(i+1)); 
-	 						System.out.println(i+" "+"changes"+" "+findIndexChanges(refinedPartitions.get(i),refinedPartitions.get(i+1)));
-	 						ArrayList<Permutation> representative= cycleRepresentatives(i,findIndexChanges(refinedPartitions.get(i),refinedPartitions.get(i+1)),size);
-	 						for(int g=0;g<representatives.size();g++) {
-	 							System.out.println("list reps"+" "+representatives.get(g));
-	 						}
+
+	 						//ArrayList<Integer> changes= findIndexChanges(refinedPartitions.get(i),refinedPartitions.get(i+1)); 
+	 						//ArrayList<Permutation> representative= cycleRepresentatives(i,findIndexChanges(refinedPartitions.get(i),refinedPartitions.get(i+1)),size);
 	 						//representatives.add(cycleRepresentatives(i,findIndexChanges(refinedPartitions.get(i),refinedPartitions.get(i+1)),size));
 	 						if(i==findZ(r)){
-	 							//fillRepresentatives(r,size); 
+	 							fillRepresentatives(r,size); // TODO: should we update everytime ?
 	 							if(!idRepresentativesCheck(findZ(r))) { 
 	 								r++;
 	 								forwardCanonicalBlock(degrees, partition, A, max, L, C, modified,r);
@@ -6106,11 +6116,9 @@ public class PermutationGroupFunctions {
 	public static void backwardCanonicalBlock(ArrayList<Integer> degrees,ArrayList<Integer> partition,int[][] A, int[][]max, int[][]L, int[][]C, ArrayList<Integer> indices, int r) throws IOException {
 		int i=indices.get(0);
 		int j=indices.get(1);
-		System.out.println("back block girdi"+" "+i+" "+j);
 		int l2= LInverse(degrees,i,j,A);
 		int c2= CInverse(degrees,i,j,A);
 		if(i==max.length-2 && j==max.length-1) {
-			System.out.println("back block tamam");
 			output.add(A);
 			int[][] mat2= new int[A.length][A.length]; 
 			for(int k=0;k<A.length;k++) {
@@ -6123,23 +6131,14 @@ public class PermutationGroupFunctions {
 			System.out.println(Arrays.deepToString(A));
 			//writeMatrix(A);
 		}else{
-			System.out.println("back block devam"+" "+i+" "+j);
 			ArrayList<Integer> modified=predecessor(indices, max.length);
-			System.out.println("back block devam modified"+" "+modified.get(0)+" "+modified.get(1));
 			if(modified.get(0)<i) {
-				System.out.println(i+" "+j+" "+modified.get(0)+" "+modified.get(1)+" "+"rep and ref are cleared");
-				for(int s=0;s<representatives.size();s++) {
-					System.out.println(s+" "+representatives.get(s));
-				}
 				/**
 				 * I am not sure we need to clear or just reset the elements.
 				 */
 				for(int k=i;k<size;k++) {
 					//representatives.get(k).clear();
 					//refinedPartitions.get(k).clear();
-				}
-				for(int s=0;s<representatives.size();s++) {
-					//System.out.println(s+" "+representatives.get(s));
 				}
 			}
 			i= modified.get(0);
