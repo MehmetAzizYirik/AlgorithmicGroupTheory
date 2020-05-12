@@ -4829,23 +4829,25 @@ public class PermutationGroupFunctions {
 	  * @param total int number of atoms
 	  */
 	 
-	 public static void canonicalRepresentative(int index, int y, int[] array, ArrayList<Integer> partition, int total) {
+	 public static ArrayList<Permutation> canonicalRepresentative(int index, int y, int[] array, ArrayList<Integer> partition, ArrayList<Integer> newPartition, int total) {
+		 ArrayList<Permutation> cReps= new ArrayList<Permutation>();
 		 PermutationGroup group=getYoungGroup(partition,total);
 		 ArrayList<Permutation> reps= new ArrayList<Permutation>();
 		 if(index!=y) {
 			 reps=formerPermutations(index,y);
 		 }else {
-			 reps=representatives.get(index);
+			 reps=canonicalTrans(index,array,partition,newPartition);
 		 }
 		 for(int i=0;i<reps.size();i++) {
 			 for(Permutation perm: group.all()) { //TODO: Maybe we dont need id
 				 Permutation newRep = reps.get(i).multiply(perm);
 				 if(descBlockCheck(partition,actArray(array,newRep),array)){
-					 representatives.get(index).set(i, newRep);
+					 cReps.add(newRep);
 					 break;
 				 }
 			 }
 		 }
+		 return cReps;
 	 }
 	 
 	 public static ArrayList<Permutation> canonicalRepresentative(int index, int[] array, ArrayList<Integer> partition, ArrayList<Integer> newPartition) {
@@ -5890,20 +5892,16 @@ public class PermutationGroupFunctions {
 	 
 	 public static boolean canonicalBlockwiseTest(int index, int y,int[] row, ArrayList<Integer> partition, ArrayList<Integer> newPartition) {
 		 boolean check=true;
-		 if(index==y) {
-			 ArrayList<Permutation> canonicalTrans= canonicalTrans(index, row, partition, newPartition);
-			 if(canonicalTrans.size()==0) {
+		 ArrayList<Permutation> canonicalTrans= canonicalTrans(index, row, partition, newPartition);
+		 if(canonicalTrans.size()==0) {
+			 check=false;
+		 }else {
+			 ArrayList<Permutation> canReps=canonicalRepresentative(index,row,partition,newPartition);
+			 if(canReps.size()==0) {
 				 check=false;
 			 }else {
-				 ArrayList<Permutation> canReps=canonicalRepresentative(index,row,partition,newPartition);
-				 if(canReps.size()==0) {
-					 check=false;
-				 }
+				 representatives.set(index, canReps);
 			 }
-		 }else {
-			 ArrayList<Permutation> former=formerPermutations(index,y);
-			 
-			 
 		 }
 		 return check;
 	 }
