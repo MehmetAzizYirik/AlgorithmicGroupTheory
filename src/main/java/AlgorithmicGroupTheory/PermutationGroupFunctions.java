@@ -5893,13 +5893,14 @@ public class PermutationGroupFunctions {
 				 ArrayList<Permutation> canReps=canonicalRepresentative(index,row,partition,newPartition);
 				 if(canReps.size()==0) {
 					 check=false;
-				 }else {
-					 
 				 }
 			 }
+		 }else {
+			 
 		 }
 		 return check;
 	 }
+	 
 	 
 	 public static boolean canonicalRowCheck(int[] row,ArrayList<Integer> partition,ArrayList<Permutation> canonicalTrans) throws IOException {
 			boolean check=true;
