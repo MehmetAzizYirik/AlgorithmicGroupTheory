@@ -4296,7 +4296,7 @@ public class PermutationGroupFunctions {
 	 					//System.out.println("partition before"+" "+partition);
 	 					partition=canonicalPartition(i,partition); //TODO: Might need to test again
 	 					//System.out.println("canonical partition"+" "+partition);
-	 					if(canonicalRowCheck(A[i],i,partition,A.length)) {
+	 					if(canonicalRowCheck(A[i],partition,A.length)) {
 	 						//A[i]=canonicalRow(A[i],group,partition); //TODO: Need to check whether it modifies the A matrix really.
 	 						partition=refinedPartitioning(partition,A[i]);
 	 						//System.out.println("refined partition"+" "+partition);
@@ -4843,6 +4843,22 @@ public class PermutationGroupFunctions {
 		 }
 	 }
 	 
+	 public static ArrayList<Permutation> canonicalRepresentative(int index, int[] array, ArrayList<Integer> partition, ArrayList<Integer> newPartition) {
+		 int total= sum(partition);
+		 PermutationGroup group=getYoungGroup(partition,total);	 
+		 ArrayList<Permutation> cTrans= canonicalTrans(index,array,partition,newPartition);
+		 ArrayList<Permutation> canReps= new ArrayList<Permutation>();
+		 for(Permutation trans: cTrans) {
+			 for(Permutation perm: group.all()) { //TODO: Maybe we dont need id
+				 Permutation newRep = trans.multiply(perm);
+				 if(descBlockCheck(newPartition,actArray(array,newRep),array)){
+					 canReps.add(newRep);
+					 break;
+				 }
+			 }
+		 }
+		 return canReps;
+	 }
 	 
 	 public static int[] canonicalRow(PermutationGroup group, ArrayList<Integer> partition, int[] array){
 		 int[] canCheck = new int[array.length];
@@ -5179,19 +5195,10 @@ public class PermutationGroupFunctions {
 	 * @return
 	 */
 	
-	/**
-	 * Int i added just because of 
-	 * @throws IOException 
-	 **/
-	
-	public static boolean canonicalRowCheck(int[] row,int i, ArrayList<Integer> partition, int total) throws IOException {
+	public static boolean canonicalRowCheck(int[] row,ArrayList<Integer> partition, int total) throws IOException {
 		boolean check=true;
 		PermutationGroup group=getYoungGroup(partition,total);
 		for(Permutation perm: group.all()) {
-			//file.write("canRowCheck"+" "+perm+"\n");
-			//System.out.println("canRowCheck"+" "+perm);
-			//if(!desBlockCheck(partition,row,actArray(row,perm))) {
-			//if(!desBlockwiseCheck(partition,row,actArray(row,perm))) {
 			if(!descBlockCheck(partition,actArray(row,perm),row)) {	
 				check=false;
 				break;
@@ -5252,7 +5259,7 @@ public class PermutationGroupFunctions {
 	public static boolean canonicalRepRowCheck(int[] row, int i, ArrayList<Integer> partition, int total) throws IOException {
 		boolean check=true;
 		if(i==0) { //In the first row, descending order check is performed with its Young subgroup
-			canonicalRowCheck(row,i,partition,total);
+			canonicalRowCheck(row,partition,total);
 		}else {  
 			for(Permutation perm: permTree) {
 				file.write("permTr"+" "+perm.toCycleString()+"\n");
@@ -5834,10 +5841,10 @@ public class PermutationGroupFunctions {
 	 public static boolean canonicalBlockTest(int[] row,int r, int rowIndex, ArrayList<Integer> canonicalPart) throws IOException {
 		 boolean check=true;
 		 if(r==0) {
-			 check=canonicalRowCheck(row,rowIndex,canonicalPart,size);
+			 check=canonicalRowCheck(row,canonicalPart,size);
 		 }else {
 			 if(rowIndex==findY(r)) {
-				 check=yCanonicalRowCheck(row,rowIndex,canonicalPart);
+				 check=yCanonicalRowCheck(row,canonicalPart);
 			 }else {
 				 ArrayList<Permutation> perms= blockPermutations((r+1),rowIndex); //TODO: Without using perms, just arrays ?
 				 //TOOD: Maybe I dont need all just take one from the list ? And check that break rule. 
@@ -5872,7 +5879,41 @@ public class PermutationGroupFunctions {
 		 }
 		 return check;
 	 }
+	 /**
+	  * Modification of the upper one.
+	  */
 	 
+	 public static boolean canonicalBlockwiseTest(int index, int y,int[] row, ArrayList<Integer> partition, ArrayList<Integer> newPartition) {
+		 boolean check=true;
+		 if(index==y) {
+			 ArrayList<Permutation> canonicalTrans= canonicalTrans(index, row, partition, newPartition);
+			 if(canonicalTrans.size()==0) {
+				 check=false;
+			 }else {
+				 ArrayList<Permutation> canReps=canonicalRepresentative(index,row,partition,newPartition);
+				 if(canReps.size()==0) {
+					 check=false;
+				 }else {
+					 
+				 }
+			 }
+		 }
+		 return check;
+	 }
+	 
+	 public static boolean canonicalRowCheck(int[] row,ArrayList<Integer> partition,ArrayList<Permutation> canonicalTrans) throws IOException {
+			boolean check=true;
+			int total=sum(partition);
+			PermutationGroup group=getYoungGroup(partition,total);
+			for()
+			for(Permutation perm: group.all()) {
+				if(!descBlockCheck(partition,actArray(row,perm),row)) {	
+					check=false;
+					break;
+				}
+			}
+			return check;
+	 }
 	 public static ArrayList<Permutation> canonicalTrans(int index, int[] row, ArrayList<Integer> partition, ArrayList<Integer> newPartition) {
 		 ArrayList<Permutation> trans=cycleTranspositions(index, partition, newPartition);
 		 ArrayList<Permutation> canonicalTrans= new ArrayList<Permutation>();
@@ -5918,7 +5959,7 @@ public class PermutationGroupFunctions {
 		 int matSize= A.length;
 		 for(int i=0;i<len;i++) {
 			 partition=canonicalPartition(i,refinedPartitions.get(i));
-			 if(canonicalRowCheck(A[i],i,partition,matSize)) {
+			 if(canonicalRowCheck(A[i],partition,matSize)) {
 				 refinedPartitions.add(refinedPartitioning(partition,A[i]));
 				 representatives.add(cycleRepresentatives(i,findChanges(refinedPartitions.get(i),refinedPartitions.get(i+1)),matSize));
 			 }else {
