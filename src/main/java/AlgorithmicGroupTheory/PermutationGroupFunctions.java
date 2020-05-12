@@ -6123,6 +6123,8 @@ public class PermutationGroupFunctions {
 	 				ArrayList<Integer> modified=successor(indices,max.length);
 	 				if(modified.get(0)>i && j==A.length-1) {  //TODO: Why we create the canonical for i not modified.get(0) ?
 	 					partition=canonicalPartition(i,partition); //TODO: Might need to test again
+	 					//TODO: Canonical Test Block is with the latest partition and the canonical one is the new.
+	 					//TODO:  For the first one, the original partition is used as the first young group.
 	 					if(canonicalBlockTest(A[i],r,i,partition)) { //Based on former perms, check canonical or not then add new perms if it is canonical.
 	 						partition=refinedPartitioning(partition,A[i]);
 	 						//ArrayList<Integer> refinedPart = refinedPartitioning(partition,A[i]);
