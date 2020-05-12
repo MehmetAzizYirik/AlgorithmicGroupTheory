@@ -4829,9 +4829,14 @@ public class PermutationGroupFunctions {
 	  * @param total int number of atoms
 	  */
 	 
-	 public static void canonicalRepresentative(int index, int[] array, ArrayList<Integer> partition, int total) {
-		 PermutationGroup group=getYoungGroup(partition,total);	 
-		 ArrayList<Permutation> reps= representatives.get(index);
+	 public static void canonicalRepresentative(int index, int y, int[] array, ArrayList<Integer> partition, int total) {
+		 PermutationGroup group=getYoungGroup(partition,total);
+		 ArrayList<Permutation> reps= new ArrayList<Permutation>();
+		 if(index!=y) {
+			 reps=formerPermutations(index,y);
+		 }else {
+			 reps=representatives.get(index);
+		 }
 		 for(int i=0;i<reps.size();i++) {
 			 for(Permutation perm: group.all()) { //TODO: Maybe we dont need id
 				 Permutation newRep = reps.get(i).multiply(perm);
@@ -5896,6 +5901,8 @@ public class PermutationGroupFunctions {
 				 }
 			 }
 		 }else {
+			 ArrayList<Permutation> former=formerPermutations(index,y);
+			 
 			 
 		 }
 		 return check;
@@ -6025,14 +6032,15 @@ public class PermutationGroupFunctions {
 	  * the multiplication of the former representatives. So, before
 	  * the beginning of the current strip (or block).
 	  * 
-	  * @param index current row index
+	  * @param index int current row index
+	  * @param y int beginning of the block
 	  * @return
 	  */
 	 
-	 public static ArrayList<Permutation> formerPermutations(int index) {
+	 public static ArrayList<Permutation> formerPermutations(int index, int y) {
 		 ArrayList<Permutation> list= new ArrayList<Permutation>();
 		 list.add(new Permutation(size));
-		 for(int i=0;i<index;i++) {
+		 for(int i=y;i<index;i++) {
 			 for(Permutation perm: representatives.get(i)) {
 				 for(int l=0;l<list.size();l++) {
 					 list.add(l,list.get(l).multiply(perm)); //TODO: Check whether it replace the element with the new one.
