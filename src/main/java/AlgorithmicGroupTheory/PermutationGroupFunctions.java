@@ -6044,18 +6044,18 @@ public class PermutationGroupFunctions {
 	  */
 	 
 	 public static ArrayList<Permutation> formerPermutations(int index, int y) {
-		 System.out.println("former ol");
-		 ArrayList<Permutation> list= new ArrayList<Permutation>();
-		 list.add(new Permutation(size));
-		 for(int i=y;i<index;i++) {
-			 for(Permutation perm: representatives.get(i)) {
-				 System.out.println("permutation"+" "+perm.toCycleString());
-				 for(int l=0;l<list.size();l++) {
-					 list.add(l,list.get(l).multiply(perm)); 
+		 ArrayList<Permutation> list= representatives.get(y);
+		 ArrayList<Permutation> nList= new ArrayList<Permutation>();
+		 for(int i=y+1;i<=index;i++) {
+			 for(int l=0;l<list.size();l++) {
+				 for(Permutation perm: representatives.get(i)) {
+					 nList.add(list.get(l).multiply(perm));
 				 }
 			 }
+			 list.clear();
+			 list.addAll(nList); // list=nList does not work.
+			 nList.clear();
 		 }
-		 System.out.println("former");
 		 return list;
 	 }
 	 
@@ -6792,7 +6792,35 @@ public class PermutationGroupFunctions {
 		
 		 partition.add(3);
 		 partition.add(2);
-		 formerPermutations(1,0);
+		 
+		 Permutation bir= new Permutation(0,2,1,3,4);
+		 Permutation iki= new Permutation(0,1,4,3,2);
+		 Permutation uc= new Permutation(0,1,2,4,3);
+		 Permutation dort= new Permutation(1,0,2,3,4);
+		 Permutation bes= new Permutation(1,0,2,4,3);
+		 Permutation alt= new Permutation(4,1,3,2,0);
+		 Permutation yed= new Permutation(1,0,3,2,4);
+		 ArrayList<Permutation> l1= new ArrayList<Permutation>();
+		 l1.add(bir);
+		 l1.add(iki);
+		 l1.add(uc);
+		 
+		 ArrayList<Permutation> l2= new ArrayList<Permutation>();
+		 l2.add(dort);
+		 l2.add(bes);
+		 
+		 ArrayList<Permutation> l3= new ArrayList<Permutation>();
+		 l3.add(alt);
+		 l3.add(yed);
+		 representatives.add(l1);
+		 representatives.add(l2);
+		 representatives.add(l3);
+		 for(int i=0;i<3;i++) {
+			for(Permutation perm: representatives.get(i)) {
+				System.out.println(i+" "+perm.toCycleString());
+			}
+		 }
+		 formerPermutations(2,0);
 		 //canonicalBlockGenerator(degrees,partition);
 	 }
 }
