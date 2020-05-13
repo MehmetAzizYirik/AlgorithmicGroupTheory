@@ -2715,14 +2715,10 @@ public class PermutationGroupFunctions {
 	    ArrayList<Integer> openIndices=getOpenIndices(ac);
 	    ArrayList<Permutation> openPerms= new ArrayList<Permutation>();
 	    int size= openIndices.size();
-	    System.out.println("in size"+" "+size);
 	    int begin=beginningOfOpenSites(ac);
-	    System.out.println("in open begin"+" "+size);
 	    for(Permutation perm: autG.all()) {
-	    	System.out.println(perm.toCycleString());
 	    	openPerms.add(resetPermutation(size,begin,openIndices,perm));
 	    }
-	    System.out.println("in");
 	    return openPerms;
 	}
 	
@@ -4833,17 +4829,33 @@ public class PermutationGroupFunctions {
 		 ArrayList<Permutation> cReps= new ArrayList<Permutation>();
 		 PermutationGroup group=getYoungGroup(partition,total);
 		 ArrayList<Permutation> reps= new ArrayList<Permutation>();
+		 System.out.println("index and y"+" "+index+" "+y);
 		 if(index!=y) {
+			 for(int i=y;i<=index;i++) {
+				 System.out.println(representatives.get(i)+" "+"bu");
+			 }
+			 System.out.println("former hesapla");
 			 reps=formerPermutations(index,y);
+			 System.out.println("former reps"+" "+index+" "+y);
+			 for(Permutation perm: reps) {
+				 System.out.println(perm.toCycleString());
+			 }
 		 }else {
+			 System.out.println("trans hesapla");
 			 reps=canonicalTrans(index,array,partition,newPartition);
+			 System.out.println("canonical trans "+" "+index+" "+y);
+			 for(Permutation perm: reps) {
+				 System.out.println(perm.toCycleString());
+			 }
 		 }
 		 for(int i=0;i<reps.size();i++) {
 			 for(Permutation perm: group.all()) { //TODO: Maybe we dont need id
 				 Permutation newRep = reps.get(i).multiply(perm);
-				 if(descBlockCheck(partition,actArray(array,newRep),array)){
-					 cReps.add(newRep);
-					 break;
+				 if(!newRep.isIdentity()) {
+					 if(descBlockCheck(partition,actArray(array,newRep),array)){
+						 cReps.add(newRep);
+						 break;
+					 } 
 				 }
 			 }
 		 }
@@ -4936,11 +4948,8 @@ public class PermutationGroupFunctions {
 	 public static boolean desBlockCheck(ArrayList<Integer> partition, int[] row, int[] modified){
 		 boolean check=true;
 		 int index=0;
-		 System.out.println("desBlockCheck");
 		 for(Integer p:partition) {
-			 System.out.println("range"+" "+index+" "+(p+index));
 			 for(int i=index;i<p+index;i++) {
-				 System.out.println("org and modified"+" "+row[i]+" "+modified[i]);
 				 if(row[i]<modified[i]) {
 					 check=false;
 					 break;
@@ -5000,13 +5009,9 @@ public class PermutationGroupFunctions {
 	 public static boolean descBlockCheck(ArrayList<Integer> partition, int[] canonical, int[] original){
 		 boolean check=true;
 		 int index=0;
-		 System.out.println("desin");
 		 for(Integer p:partition) {
-			 System.out.println(p);
 			 Integer[] can= getBlocks(canonical,index,p+index);
-			 System.out.println(Arrays.toString(can)+" "+"can");
 			 Integer[] org= getBlocks(original,index,p+index);
-			 System.out.println(Arrays.toString(org)+" "+"org");
 			 if(!Arrays.equals(can,org)) {
 				 if(toInt(can)>toInt(org)) {
 					 check=true;
@@ -5019,11 +5024,9 @@ public class PermutationGroupFunctions {
 					 check=false;
 					 break;
 				 }
-				 
 			 }
 			 index=index+p;
 		 }
-		 System.out.println("desout");
 		 
 		 return check;
 	 }
@@ -5759,7 +5762,6 @@ public class PermutationGroupFunctions {
 		 //System.out.println(" tek index refined"+" "+refinedPartitions.get(index)+" "+index);
 		 //int lValue= LValue(refinedPartitions.get(index),index);
 		 int lValue= LValue(partition,index);
-	     System.out.println("tek"+" "+lValue);
 		 for(int i=index;i<=lValue;i++) {
 	    	 int[] values= idValues(size);
 	    	 int former =  values[index];
@@ -5892,14 +5894,20 @@ public class PermutationGroupFunctions {
 	 
 	 public static boolean canonicalBlockwiseTest(int index, int y,int[] row, ArrayList<Integer> partition, ArrayList<Integer> newPartition) {
 		 boolean check=true;
+		 int total=sum(newPartition);
 		 ArrayList<Permutation> canonicalTrans= canonicalTrans(index, row, partition, newPartition);
 		 if(canonicalTrans.size()==0) {
 			 check=false;
 		 }else {
-			 ArrayList<Permutation> canReps=canonicalRepresentative(index,row,partition,newPartition);
+			 ArrayList<Permutation> canReps=canonicalRepresentative(index,y,row,partition,newPartition,total);
+			 System.out.println("can reps"+" "+canReps);
 			 if(canReps.size()==0) {
 				 check=false;
 			 }else {
+				 System.out.println(index+" representatives");
+				 for(Permutation perm: canReps) {
+					 System.out.println(index+" "+perm.toCycleString());
+				 }
 				 representatives.set(index, canReps);
 			 }
 		 }
@@ -6036,15 +6044,18 @@ public class PermutationGroupFunctions {
 	  */
 	 
 	 public static ArrayList<Permutation> formerPermutations(int index, int y) {
+		 System.out.println("former ol");
 		 ArrayList<Permutation> list= new ArrayList<Permutation>();
 		 list.add(new Permutation(size));
 		 for(int i=y;i<index;i++) {
 			 for(Permutation perm: representatives.get(i)) {
+				 System.out.println("permutation"+" "+perm.toCycleString());
 				 for(int l=0;l<list.size();l++) {
-					 list.add(l,list.get(l).multiply(perm)); //TODO: Check whether it replace the element with the new one.
+					 list.add(l,list.get(l).multiply(perm)); 
 				 }
 			 }
 		 }
+		 System.out.println("former");
 		 return list;
 	 }
 	 
@@ -6094,7 +6105,7 @@ public class PermutationGroupFunctions {
 		partitionSize=partition.size();
 		inputPartition=partition;
 		refinedPartitions.add(partitionWDegree(partition,1));
-		representatives.add(cycleRepresentatives(0,partition));
+		//representatives.add(cycleRepresentatives(0,partition));
 		int r=0;
 		int[][] A   = new int[size][size];
 		int[][] max = maximalMatrix(degrees);
@@ -6128,8 +6139,12 @@ public class PermutationGroupFunctions {
 	 					//TODO: Canonical Test Block is with the latest partition and the canonical one is the new.
 	 					//TODO:  For the first one, the original partition is used as the first young group.
 	 					if(canonicalBlockwiseTest(i,y,A[i],partition, canonicalPart)) { //Based on former perms, check canonical or not then add new perms if it is canonical.
+	 						System.out.println(i+" "+Arrays.toString(A[i]));
 	 						partition=refinedPartitioning(partition,A[i]);
 	 						//ArrayList<Integer> refinedPart = refinedPartitioning(partition,A[i]);
+	 						/**
+	 						 * We need to update the refinedPartitions since we generate many blocks for the same value.
+	 						 */
 	 						if((refinedPartitions.size()-1)==i) {
 	 							refinedPartitions.add(partition);
 	 						}else {
@@ -6140,7 +6155,6 @@ public class PermutationGroupFunctions {
 	 						//ArrayList<Permutation> representative= cycleRepresentatives(i,findIndexChanges(refinedPartitions.get(i),refinedPartitions.get(i+1)),size);
 	 						//representatives.add(cycleRepresentatives(i,findIndexChanges(refinedPartitions.get(i),refinedPartitions.get(i+1)),size));
 	 						if(i==findZ(r)){
-	 							fillRepresentatives(r,size); // TODO: should we update everytime ?
 	 							if(!idRepresentativesCheck(findZ(r))) { 
 	 								r++;
 	 								forwardCanonicalBlock(degrees, partition, A, max, L, C, modified,r);
@@ -6766,226 +6780,6 @@ public class PermutationGroupFunctions {
 	}
 	
 	 public static void main(String[] args) throws CloneNotSupportedException, CDKException, IOException {   
-		 
-		 IAtomContainer acon = builder.newInstance(IAtomContainer.class); 
-	     acon.addAtom(builder.newInstance(IAtom.class, "C"));
-	     acon.addAtom(builder.newInstance(IAtom.class, "C"));
-	     acon.addAtom(builder.newInstance(IAtom.class, "C"));
-	     acon.addAtom(builder.newInstance(IAtom.class, "C"));
-	     acon.addAtom(builder.newInstance(IAtom.class, "C"));
-	     acon.addAtom(builder.newInstance(IAtom.class, "C"));
-	     acon.addAtom(builder.newInstance(IAtom.class, "C"));
-	     acon.addAtom(builder.newInstance(IAtom.class, "C"));
-	     acon.addAtom(builder.newInstance(IAtom.class, "C"));
-	     acon.addAtom(builder.newInstance(IAtom.class, "C"));
-	     acon.addAtom(builder.newInstance(IAtom.class, "C"));
-	     acon.addAtom(builder.newInstance(IAtom.class, "C"));
-	     acon.addAtom(builder.newInstance(IAtom.class, "O"));
-	     acon.addAtom(builder.newInstance(IAtom.class, "O"));
-
-	     acon.addBond(0, 1, Order.SINGLE);
-	     acon.addBond(1, 2, Order.DOUBLE);
-	     acon.addBond(2, 3, Order.SINGLE);
-	     acon.addBond(3, 4, Order.DOUBLE);
-	     acon.addBond(4, 5, Order.SINGLE);
-	     acon.addBond(0, 5, Order.DOUBLE);
-	     acon.addBond(2, 12, Order.SINGLE);
-	     acon.addBond(12, 6, Order.SINGLE);
-	     acon.addBond(3, 13, Order.SINGLE);
-	     acon.addBond(13, 11, Order.SINGLE);
-	     acon.addBond(6, 11, Order.SINGLE);
-	     acon.addBond(6, 7, Order.DOUBLE);
-	     acon.addBond(7, 8, Order.SINGLE);
-	     acon.addBond(8, 9, Order.DOUBLE);
-	     acon.addBond(9, 10, Order.SINGLE);
-	     acon.addBond(10, 11, Order.DOUBLE);
-	     
-	     IAtomContainer alt = builder.newInstance(IAtomContainer.class); 
-	     alt.addAtom(builder.newInstance(IAtom.class, "C"));
-	     alt.addAtom(builder.newInstance(IAtom.class, "C"));
-	     alt.addAtom(builder.newInstance(IAtom.class, "C"));
-	     alt.addAtom(builder.newInstance(IAtom.class, "C"));
-	     alt.addAtom(builder.newInstance(IAtom.class, "C"));
-	     alt.addAtom(builder.newInstance(IAtom.class, "C"));
-	     //alt.addAtom(builder.newInstance(IAtom.class, "R"));
-	     //alt.addAtom(builder.newInstance(IAtom.class, "R"));
-	     //alt.addAtom(builder.newInstance(IAtom.class, "R"));
-	     //alt.addAtom(builder.newInstance(IAtom.class, "R"));
-	     //alt.addAtom(builder.newInstance(IAtom.class, "R"));
-	     //alt.addAtom(builder.newInstance(IAtom.class, "R"));
-	     
-
-	     alt.addBond(0, 1, Order.DOUBLE);
-	     alt.addBond(1, 2, Order.SINGLE);
-	     alt.addBond(2, 3, Order.DOUBLE);
-	     alt.addBond(3, 4, Order.SINGLE);
-	     alt.addBond(4, 5, Order.DOUBLE);
-	     alt.addBond(5, 0, Order.SINGLE);
-	     //alt.addBond(0, 6, Order.SINGLE);
-	     //alt.addBond(1, 7, Order.SINGLE);
-	     //alt.addBond(2, 8, Order.SINGLE);
-	     //alt.addBond(3, 9, Order.SINGLE);
-	     //alt.addBond(4, 10, Order.SINGLE);
-	     //alt.addBond(5, 11, Order.SINGLE);
-	     
-	     
-	     acon=addSingleBondsToFreePositions(acon);
-	     ArrayList<Integer> free= getFreeValences(acon);
-	     //System.out.println("free"+" "+free);
-	     AtomContainerDiscretePartitionRefiner refiner = PartitionRefinement.forAtoms().create();
-	     PermutationGroup autG = refiner.getAutomorphismGroup(acon);
-	     //System.out.println(getFreeValences(acon));
-	     ArrayList<Integer> openIndices=getOpenIndices(acon);
-	     ArrayList<Permutation> openPerms= new ArrayList<Permutation>();
-	     int oSize= openIndices.size();
-	     int begin=14;
-	     for(Permutation perm: autG.all()) {
-	    	 //System.out.println(perm.toCycleString());
-	    	 int[] values= new int[oSize];
-	    	 for(Integer index:openIndices) {
-	    		 values[index-begin]=perm.get(index)-begin;
-	    	 }
-	    	 Permutation nPerm = new Permutation(values); 
-	    	 openPerms.add(nPerm);
-	     }
-	     for(Permutation perm:openPerms) {
-	    	 //System.out.println(perm.toCycleString());
-	     }
-	     
-	     ArrayList<Permutation> openAuto=automorphismOfOpenSites(alt);
-	     for(Permutation perm: openAuto) {
-	    	 //System.out.println("open"+" "+perm.toCycleString());
-	     }
-	     ArrayList<Integer> atm= new ArrayList<Integer>();
-	     atm.add(2);
-	     atm.add(2);
-	     atm.add(2);
-	     PermutationGroup direct= generateGroup(atm,6);
-	     PermutationGroup s6= PermutationGroup.makeSymN(6);
-	     PermutationGroup s4= PermutationGroup.makeSymN(4);
-	     PermutationGroup aziz= generateGroup(generators(0,4,8),8);
-	     PermutationGroup elis= generateGroup(generators(4,4,8),8);
-	     ArrayList<int[]> arrl= new ArrayList<int[]>();
-	     //ArrayList<Permutation> lp= new ArrayList<Permutation>();
-	     for(Permutation permutation: s6.all()) {
-	    	 for(Permutation permutation2:direct.all()) {
-	    		 //System.out.println(permutation.toCycleString()+" "+permutation2.toCycleString());
-	    		 Permutation p=permutation.multiply(permutation2);
-	    		 if(ascCheck(p,2)) {
-	    			 int[] h= getTabloid(p,2);
-	    			 if(!inTheList(arrl,h)) {
-	    				 //System.out.println(p.toCycleString()+" "+"multiply");
-	    				 //System.out.println("array"+" "+Arrays.toString(h));
-	    				 arrl.add(h);
-	    				 //lp.add(permutation);
-	    			 } 
-	    		 }
-	    	 } 
-	     }
-	     //System.out.println(arrl.size());
-	     HashSet<HashSet<ArrayList<Integer>>> orbits= new HashSet<HashSet<ArrayList<Integer>>>(); 
-		 ArrayList<int[]> truncated= truncatedTabloids(s6, direct);
-		 for(int j=0;j<truncated.size();j++) {
-			 HashSet<ArrayList<Integer>> orbit= new HashSet<ArrayList<Integer>>();
-			 for(Permutation perm: openAuto) {
-				//System.out.println(perm.toCycleString());
-		    	ArrayList<Integer> l= new ArrayList<Integer>();
-		    	for(int k=0;k<truncated.get(j).length;k++) {
-		    		l.add(perm.get(truncated.get(j)[k]));
-		    	}
-		    	l.sort(ASC_ORDER);
-		    	if(!inTheList(orbit,l)) {
-		    		orbit.add(l);
-		    	}
-		    }
-		    //System.out.println(orbit);
-		    if(!inList(orbits,orbit)) {
-		    	orbits.add(orbit);
-		    }
-		  }
-		 
-		 for(HashSet<ArrayList<Integer>> l:orbits) {
-			 //System.out.println(l);
-			 
-		 }
-		 //System.out.println(orbits.size());
-	     //System.out.println("free"+" "+free);
-		 
-		 int total=10;
-		 ArrayList<Integer> bol= new ArrayList<Integer>();
-		 bol.add(1);
-		 bol.add(1);
-		 bol.add(4);
-		 bol.add(4);
-		 
-		 int[] deneme= new int[10];
-		 deneme[0]=0;
-		 deneme[1]=0;
-		 deneme[2]=1;
-		 deneme[3]=1;
-		 deneme[4]=0;
-		 deneme[5]=1;
-		 deneme[6]=0;
-		 deneme[7]=0;
-		 deneme[8]=0;
-		 deneme[9]=0;
-		 
-		 Permutation first= new Permutation(1,0,2,3,4,5,6,7,8,9);
-		 Permutation second= new Permutation(2,1,0,3,4,5,6,7,8,9);
-		 Permutation third= new Permutation(3,1,2,0,4,5,6,7,8,9);
-		 PermutationGroup zero=getYoungGroup(bol,total);
-		 
-		 for(Permutation perm: zero.all()) {
-			 System.out.println(first.multiply(perm).toCycleString());
-			 System.out.println(descBlockCheck(bol,actArray(deneme,first.multiply(perm)),deneme));
-		 }
-		 //System.out.println(Arrays.toString(actArray(deneme,second)));
-		 
-		
-		 
-		 
-		 System.out.println("size zero"+" "+zero.all().size());
-	     ArrayList<Permutation> generators= new ArrayList<Permutation>();
-	     Permutation perm1  = new Permutation(1,0,2,3,4,5,6,7);
-	     Permutation perm2  = new Permutation(1,2,3,0,4,5,6,7);
-	     
-	     generators.add(perm1);
-	     generators.add(perm2);
-	     
-	     ArrayList<Permutation> generators2= new ArrayList<Permutation>();
-	     Permutation perm5= new Permutation(0,1,2,3,5,4,6,7);
-	     Permutation perm6= new Permutation(0,1,2,3,5,6,7,4);
-	     
-	     generators2.add(perm5);
-	     generators2.add(perm6);
-	     
-	     PermutationGroup den=generateGroup(generators,8);
-	     PermutationGroup den2=generateGroup(generators2,8);
-	     
-	     //System.out.println(den.all().size());
-	     //System.out.println(den2.all().size());
-	     //System.out.println(truncatedTabloids(den,den2).size());
-	     for(int[] arr:truncatedTabloids(den,den2)) {
-	    	 //System.out.println(Arrays.toString(arr));
-	     }
-	     //System.out.println(directProduct.all().size());
-	    
-	     
-	     //System.out.println(autG.all().size());
-	     //ArrayList<Integer> free=getFreeValences(acon);
-	     //System.out.println(free);
-	     int si= acon.getAtomCount();
-	     /**for(Permutation perm: autG.all()) {
-	    	 for(int i=0;i<si;i++) {
-	    		 //if(!free.contains(i)) {
-	    			 int temp=perm.get(i);
-	    			 perm.set(i, i);
-	    			 perm.set(temp, temp);
-	    		 //}
-	    	 }
-	     }**/
-	     
-		 // TODO Auto-generated method stub	
 		 ArrayList<Integer> degrees= new ArrayList<Integer>();
 		 
 		 degrees.add(4);
@@ -6998,439 +6792,7 @@ public class PermutationGroupFunctions {
 		
 		 partition.add(3);
 		 partition.add(2);
-		 
-		 
-		 ArrayList<Integer> partition2= new ArrayList<Integer>();
-		 
-		 partition2.add(1);
-		 partition2.add(1);
-		 partition2.add(3);
-		 partition2.add(1);
-		 partition2.add(4);
-		 
-		 //refinedPartitions.add(0, partition);
-		 //System.out.println(cycleRepresentatives(0,findIndexChanges(partition,partition2),10));
-		 PermutationGroup group = PermutationGroup.makeSymN(4);
-		 List<Permutation> gens= new ArrayList<Permutation>();
-		 
-		 int[] firstV= new int[10];
-		 
-		 firstV[0]=1;
-		 firstV[1]=0;
-		 firstV[2]=2;
-		 firstV[3]=3;
-		 firstV[4]=4;
-		 firstV[5]=5;
-		 firstV[6]=6;
-		 firstV[7]=7;
-		 firstV[8]=8;
-		 firstV[9]=9;
-		 
-		 Permutation firstPerm= new Permutation(firstV);
-		 
-		 gens.add(firstPerm);
-		 
-		 int[] uzun= new int[10];
-		 
-		 uzun[0]=0;
-		 uzun[1]=1;
-		 uzun[2]=3;
-		 uzun[3]=2;
-		 uzun[4]=4;
-		 uzun[5]=5;
-		 uzun[6]=6;
-		 uzun[7]=7;
-		 uzun[8]=8;
-		 uzun[9]=9;
-		 
-		 Permutation uPerm= new Permutation(uzun);
-		 
-		 int[] uzun2= new int[10];
-		 
-		 uzun2[0]=0;
-		 uzun2[1]=1;
-		 uzun2[2]=2;
-		 uzun2[3]=4;
-		 uzun2[4]=3;
-		 uzun2[5]=5;
-		 uzun2[6]=6;
-		 uzun2[7]=7;
-		 uzun2[8]=8;
-		 uzun2[9]=9;
-		 
-		 Permutation uPerm2= new Permutation(uzun2);
-		 
-		 int[] uzun3= new int[10];
-		 
-		 uzun3[0]=0;
-		 uzun3[1]=1;
-		 uzun3[2]=2;
-		 uzun3[3]=3;
-		 uzun3[4]=5;
-		 uzun3[5]=4;
-		 uzun3[6]=6;
-		 uzun3[7]=7;
-		 uzun3[8]=8;
-		 uzun3[9]=9;
-		 
-		 Permutation uPerm3= new Permutation(uzun3);
-		 
-		 int[] uzun4= new int[10];
-		 
-		 uzun4[0]=0;
-		 uzun4[1]=1;
-		 uzun4[2]=2;
-		 uzun4[3]=3;
-		 uzun4[4]=4;
-		 uzun4[5]=5;
-		 uzun4[6]=7;
-		 uzun4[7]=6;
-		 uzun4[8]=8;
-		 uzun4[9]=9;
-		 
-		 Permutation uPerm4= new Permutation(uzun4);
-		 
-		 int[] uzun5= new int[10];
-		 
-		 uzun5[0]=0;
-		 uzun5[1]=1;
-		 uzun5[2]=2;
-		 uzun5[3]=3;
-		 uzun5[4]=4;
-		 uzun5[5]=5;
-		 uzun5[6]=6;
-		 uzun5[7]=8;
-		 uzun5[8]=7;
-		 uzun5[9]=9;
-		 
-		 Permutation uPerm5= new Permutation(uzun5);
-		 
-		 int[] uzun6= new int[10];
-		 
-		 uzun6[0]=0;
-		 uzun6[1]=1;
-		 uzun6[2]=2;
-		 uzun6[3]=3;
-		 uzun6[4]=4;
-		 uzun6[5]=5;
-		 uzun6[6]=6;
-		 uzun6[7]=7;
-		 uzun6[8]=9;
-		 uzun6[9]=8;
-		 
-		 Permutation uPerm6= new Permutation(uzun6);
-		 
-		 gens.add(uPerm);
-		 gens.add(uPerm2);
-		 gens.add(uPerm3);
-		 gens.add(uPerm4);
-		 gens.add(uPerm5);
-		 gens.add(uPerm6);
-		 
-		 int[] dene= new int[10];
-		 
-		 dene[0]=1;
-		 dene[1]=0;
-		 dene[2]=5;
-		 dene[3]=3;
-		 dene[4]=4;
-		 dene[5]=2;
-		 dene[6]=6;
-		 dene[7]=7;
-		 dene[8]=8;
-		 dene[9]=9;
-		 
-		 Permutation deneP= new Permutation(dene);
-		 
-		 int[] dene2= new int[10];
-		 
-		 dene2[0]=1;
-		 dene2[1]=0;
-		 dene2[2]=2;
-		 dene2[3]=5;
-		 dene2[4]=4;
-		 dene2[5]=3;
-		 dene2[6]=6;
-		 dene2[7]=7;
-		 dene2[8]=8;
-		 dene2[9]=9;
-		 
-		 Permutation deneP2= new Permutation(dene2);
-		 
-		 int[] dene3= new int[10];
-		 
-		 dene3[0]=1;
-		 dene3[1]=0;
-		 dene3[2]=2;
-		 dene3[3]=3;
-		 dene3[4]=5;
-		 dene3[5]=4;
-		 dene3[6]=6;
-		 dene3[7]=7;
-		 dene3[8]=8;
-		 dene3[9]=9;
-		 
-		 Permutation deneP3= new Permutation(dene3);
-		 
-		 List<Permutation> uPerms= new ArrayList<Permutation>();
-		 uPerms.add(uPerm);
-		 uPerms.add(uPerm2);
-		 uPerms.add(uPerm3);
-		 uPerms.add(uPerm4);
-		 uPerms.add(uPerm5);
-		 
-		 int[] val2= new int[4];
-		 val2[0]=0;
-		 val2[1]=2;
-		 val2[2]=1;
-		 val2[3]=3;
-		 
-		 int[] val3= new int[4];
-		 val3[0]=0;
-		 val3[1]=1;
-		 val3[2]=3;
-		 val3[3]=2;
-		 
-		 int[] val4= new int[4];
-		 val4[0]=3;
-		 val4[1]=1;
-		 val4[2]=2;
-		 val4[3]=0;
-		 Permutation carp2= new Permutation(val4);
-		 int[] val5= new int[4];
-		 val5[0]=0;
-		 val5[1]=3;
-		 val5[2]=2;
-		 val5[3]=1;
-		 Permutation carp3= new Permutation(val5);
-		 
-		 
-		 Permutation carp= new Permutation(val3);
-		 //Permutation generator= new Permutation(val);
-		 Permutation generator2= new Permutation(val2);
-		 //gens.add(generator);
-		 //gens.add(generator2);
-		 
-		 List<Permutation> lit= new ArrayList<Permutation>();
-		 lit.add(new Permutation(3));
-		 //lit.add(generator);
-		 lit.add(generator2);
-		 
-		 int[] row= new int[10];
-		 row[0]=0;
-		 row[1]=0;
-		 row[2]=1;
-		 row[3]=1;
-		 row[4]=1;
-		 row[5]=0;
-		 row[6]=0;
-		 row[7]=0;
-		 row[8]=0;
-		 row[9]=0;
-		 
-		 ArrayList<Integer> testPart= new ArrayList<Integer>();
-		 testPart.add(1);
-		 testPart.add(1);
-		 testPart.add(4);
-		 testPart.add(4);
-		 
-		 PermutationGroup group2 = generateGroup(gens,10);
-		 /**for(Permutation perm: group2.all()) {
-			 if(descBlockCheck(testPart,actArray(row,perm),row)) {	
-				 System.out.println(perm.toCycleString());
-				 System.out.println(Arrays.toString(actArray(row,perm)));
-				 System.out.println("Ara");
-			 }
-		 }**/
-		 List<Permutation> ilk= new ArrayList<Permutation>();
-		 List<Permutation> iki= new ArrayList<Permutation>();
-		 List<Permutation> uc= new ArrayList<Permutation>();
-		 //System.out.println(group2.all().size());
-		 for(Permutation yap: group2.all()) {
-			 //System.out.println(yap.toCycleString());
-		 }
-		 
-		 
+		 formerPermutations(1,0);
 		 //canonicalBlockGenerator(degrees,partition);
-		
-		 /**ArrayList<Integer> part= new ArrayList<Integer>();
-		 part.add(1);
-		 part.add(1);
-		 part.add(2);
-		 part.add(1);
-		 part.add(1);
-		 part.add(4);
-		 
-		 ArrayList<Integer> part2= new ArrayList<Integer>();
-		 part2.add(1);
-		 part2.add(1);
-		 part2.add(1);
-		 part2.add(1);
-		 part2.add(1);
-		 part2.add(1);
-		 part2.add(4);
-		 
-		 
-		 int[] row= new int[5];
-		 row[0]=0;
-		 row[1]=3;
-		 row[2]=0;
-		 row[3]=0;
-		 row[4]=1;
-		 
-		 //System.out.println(part);
-		 PermutationGroup group1=getYoungGroup(part,10);
-		 //System.out.println(part2);
-		 PermutationGroup group2=getYoungGroup(part2,10);
-		 /**for(Permutation perm:group1.transversal(group2)) {
-			 System.out.println(perm.toCycleString());
-		 }**/
-		 
-		 //System.out.println(permTreeCycles(3,part,part2));
-		
-		 /**
-		 for(Permutation perm1: group1.all()) {
-			 System.out.println("bu"+" "+perm1.toCycleString());
-			 for(Permutation perm2: group2.all()) {
-				 System.out.println(perm2.multiply(perm1));
-			 }
-		 }**/
-		 
-		 //canMatGen(degrees,partition);
-		 //file.close();
-		 //PermutationGroup hep= PermutationGroup.makeSymN(3);
-		 //System.out.println(hep);
-		 /**for(Permutation perm:hep.all()) {
-			 //System.out.println(perm.toCycleString());
-		 }**/
-		 
-		 /**for(int[] ar: cycleComponents(1,simp2)) {
-			 System.out.println(Arrays.toString(ar));
-		 }**/
-		 
-		 //System.out.println(finalInt);
-		 //desBlockwiseCheck(simp2,arr);
-		 //PermutationGroup grp= PermutationGroup.makeSymN(3);
-		 //System.out.println(grp);
-		 //canonicalMatrixGenerator(simple,simp2);
-		 //PermutationGroupFunctions.fileWriter = new BufferedWriter(new FileWriter("C:\\Users\\mehme\\Desktop\\test.txt"));
-		 //canonicalMatrixGenerator(simple,simp2);
-		 //System.out.println(can.toCycleString());
-		 //matrixGenerator(simple);
-		 //canonicalMatrixGenerator(simple,simp2);
-		 
-		 /**IAtomContainer ac = new AtomContainer();
-	     ac.addAtom(new org.openscience.cdk.Atom("C"));
-	     ac.addAtom(new org.openscience.cdk.Atom("C"));
-	     ac.addAtom(new org.openscience.cdk.Atom("O"));
-	     ac.addAtom(new org.openscience.cdk.Atom("H"));
-	     ac.addAtom(new org.openscience.cdk.Atom("H"));
-
-	     ArrayList<IAtomContainer> acs= new ArrayList<IAtomContainer>();
-	     ArrayList<String> inc= new ArrayList<String>();
-	     for(int i=0;i<output.size();i++) {
-	    	 //System.out.println(i+" "+Arrays.deepToString(output.get(i)));
-	    	 IAtomContainer acm=mat2AC(output.get(i));
-	    	 depict(acm,"C:\\Users\\mehme\\Desktop\\output\\"+i+".png");
-	    	 String in= inchiGeneration(acm);
-	    	 if(!inc.contains((String)in)){
-	    		 inc.add(in);
-	    		 acs.add(acm);
-	    	 }
-	    	 //depict(mat2AC(output.get(i)),"C:\\Users\\mehme\\Desktop\\"+i+".png");
-	     }
-	     int c=0;
-	     for(IAtomContainer a: acs) {
-	    	 depict(a,"C:\\Users\\mehme\\Desktop\\"+c+".png");
-	    	 c++;
-	     }
-	     System.out.println(acs.size());**/
-		 //list.add(4);
-		 //list.add(5);
-		 
-		 /**for(Permutation perm:getYoungsubgroupGenerators(list,6)) {
-			 System.out.println("young"+" "+perm.toCycleString());
-		 }**/
-		 
-		 
-		 /**IAtomContainer ac = new AtomContainer();
-	     ac.addAtom(new org.openscience.cdk.Atom("C"));
-	     ac.addAtom(new org.openscience.cdk.Atom("C"));
-	     ac.addAtom(new org.openscience.cdk.Atom("H"));
-	     ac.addAtom(new org.openscience.cdk.Atom("H"));
-	     ac.addAtom(new org.openscience.cdk.Atom("H"));
-	     ac.addAtom(new org.openscience.cdk.Atom("H"));
-	     ac.addAtom(new org.openscience.cdk.Atom("N"));
-	     ac.addAtom(new org.openscience.cdk.Atom("H"));
-		 //PermutationGroup group=getPermutationGroup(list2,5);
-		 //System.out.println(group.getSize());
-		 canonicalMatrix(list,list2);
-		 System.out.println(output.size());
-		 
-		 int[] w= new int[10];
-		 w[0]=0;
-		 w[1]=2;
-		 w[2]=1;
-		 w[3]=0;
-		 w[4]=3;
-		 w[5]=0;
-		 w[6]=0;
-		 w[7]=1;
-		 w[8]=1;
-		 w[9]=1;
-		 
-		 int[] arr= new int[4];
-		 arr[0]=1;
-		 arr[1]=1;
-		 arr[2]=1;
-		 arr[3]=2;
-		 
-		 
-		 int[] v= new int[10];
-		 v[0]=2;
-		 v[1]=1;
-		 v[2]=0;
-		 v[3]=0;
-		 v[4]=3;
-		 v[5]=1;
-		 v[6]=1;
-		 v[7]=1;
-		 v[8]=0;
-		 v[9]=0;
-		//System.out.println(blockBasedEqual(v,w,list));
-		 //System.out.println(partition(list,1));
-		 //System.out.println(LValue(list,4));
-		 //canonicalMatrix2(mat,2);
-		 
-		 /**IAtomContainer ac = new AtomContainer();
-	     ac.addAtom(new org.openscience.cdk.Atom("C"));
-	     ac.addAtom(new org.openscience.cdk.Atom("C"));
-	     ac.addAtom(new org.openscience.cdk.Atom("H"));
-	     ac.addAtom(new org.openscience.cdk.Atom("H"));
-	     ac.addAtom(new org.openscience.cdk.Atom("H"));
-	     ac.addAtom(new org.openscience.cdk.Atom("H"));
-	     ac.addAtom(new org.openscience.cdk.Atom("N"));
-	     ac.addAtom(new org.openscience.cdk.Atom("H"));
-	     ac.addBond(0, 2, Order.SINGLE);
-	     ac.addBond(1, 3, Order.SINGLE);
-	     ac.addBond(0, 4, Order.SINGLE);
-	     ac.addBond(1, 5, Order.SINGLE);
-	     ac.addBond(6, 7, Order.SINGLE);
-	     AtomContainerDiscretePartitionRefiner refiner = PartitionRefinement.forAtoms().create();
-		 PermutationGroup autoGroup = refiner.getAutomorphismGroup(ac);
-		 for(Permutation perm: autoGroup.all()) {
-			 System.out.println(perm.toCycleString());
-		 }
-		 autoGroup**/
-		 /**PermutationGroupFunctions gen = null;
-		 String[] args1= {"-f","C2H2O", "-v","-d", "C:\\Users\\mehme\\Desktop\\output.txt"};
-		 try {
-			 gen = new PermutationGroupFunctions();
-			 gen.parseArgs(args1);
-			 PermutationGroupFunctions.generate(PermutationGroupFunctions.molecularFormula, PermutationGroupFunctions.filedir);
-		 } catch (Exception e) {
-		 // We don't do anything here. Apache CLI will print a usage text.
-			 if (PermutationGroupFunctions.verbose) e.getCause(); 
-		 }**/
 	 }
 }
