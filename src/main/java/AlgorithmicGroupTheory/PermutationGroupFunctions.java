@@ -6122,10 +6122,12 @@ public class PermutationGroupFunctions {
 	 			}else {
 	 				ArrayList<Integer> modified=successor(indices,max.length);
 	 				if(modified.get(0)>i && j==A.length-1) {  //TODO: Why we create the canonical for i not modified.get(0) ?
+	 					int y=findY(r);
 	 					partition=canonicalPartition(i,partition); //TODO: Might need to test again
+	 					ArrayList<Integer> canonicalPart=canonicalPartition(i,partition);
 	 					//TODO: Canonical Test Block is with the latest partition and the canonical one is the new.
 	 					//TODO:  For the first one, the original partition is used as the first young group.
-	 					if(canonicalBlockTest(A[i],r,i,partition)) { //Based on former perms, check canonical or not then add new perms if it is canonical.
+	 					if(canonicalBlockwiseTest(i,y,A[i],partition, canonicalPart)) { //Based on former perms, check canonical or not then add new perms if it is canonical.
 	 						partition=refinedPartitioning(partition,A[i]);
 	 						//ArrayList<Integer> refinedPart = refinedPartitioning(partition,A[i]);
 	 						if((refinedPartitions.size()-1)==i) {
@@ -6133,7 +6135,7 @@ public class PermutationGroupFunctions {
 	 						}else {
 	 							refinedPartitions.set(i+1,partition);
 	 						}
-
+	 						representatives.set(i, canonicalRepresentative(i,A[i],partition,canonicalPart));
 	 						//ArrayList<Integer> changes= findIndexChanges(refinedPartitions.get(i),refinedPartitions.get(i+1)); 
 	 						//ArrayList<Permutation> representative= cycleRepresentatives(i,findIndexChanges(refinedPartitions.get(i),refinedPartitions.get(i+1)),size);
 	 						//representatives.add(cycleRepresentatives(i,findIndexChanges(refinedPartitions.get(i),refinedPartitions.get(i+1)),size));
