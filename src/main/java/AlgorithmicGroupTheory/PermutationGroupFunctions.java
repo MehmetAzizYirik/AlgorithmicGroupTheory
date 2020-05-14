@@ -4829,17 +4829,8 @@ public class PermutationGroupFunctions {
 		 ArrayList<Permutation> cReps= new ArrayList<Permutation>();
 		 PermutationGroup group=getYoungGroup(partition,total);
 		 ArrayList<Permutation> reps= new ArrayList<Permutation>();
-		 System.out.println("index and y"+" "+index+" "+y);
 		 if(index!=y) {
-			 for(int i=y;i<=index;i++) {
-				 System.out.println(representatives.get(i)+" "+"bu");
-			 }
-			 System.out.println("former hesapla");
 			 reps=formerPermutations(index,y);
-			 System.out.println("former reps"+" "+index+" "+y);
-			 for(Permutation perm: reps) {
-				 System.out.println(perm.toCycleString());
-			 }
 		 }else {
 			 System.out.println("trans hesapla");
 			 reps=canonicalTrans(index,array,partition,newPartition);
@@ -6039,7 +6030,7 @@ public class PermutationGroupFunctions {
 	 public static ArrayList<Permutation> formerPermutations(int index, int y) {
 		 ArrayList<Permutation> list= representatives.get(y);
 		 ArrayList<Permutation> nList= new ArrayList<Permutation>();
-		 for(int i=y+1;i<=index;i++) {
+		 for(int i=y+1;i<index;i++) {
 			 for(int l=0;l<list.size();l++) {
 				 for(Permutation perm: representatives.get(i)) {
 					 nList.add(list.get(l).multiply(perm));
