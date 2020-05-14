@@ -4827,17 +4827,17 @@ public class PermutationGroupFunctions {
 	 
 	 public static ArrayList<Permutation> canonicalRepresentative(int index, int y, int[] array, ArrayList<Integer> partition, ArrayList<Integer> newPartition, int total) {
 		 ArrayList<Permutation> cReps= new ArrayList<Permutation>();
-		 PermutationGroup group=getYoungGroup(partition,total);
+		 PermutationGroup group= new PermutationGroup(total);
+		 if(index==0) {
+			 group= PermutationGroup.makeSymN(total);
+		 }else {
+			 group=getYoungGroup(partition,total); 
+		 }
 		 ArrayList<Permutation> reps= new ArrayList<Permutation>();
 		 if(index!=y) {
 			 reps=formerPermutations(index,y);
 		 }else {
-			 System.out.println("trans hesapla");
 			 reps=canonicalTrans(index,array,partition,newPartition);
-			 System.out.println("canonical trans "+" "+index+" "+y);
-			 for(Permutation perm: reps) {
-				 System.out.println(perm.toCycleString());
-			 }
 		 }
 		 for(int i=0;i<reps.size();i++) {
 			 for(Permutation perm: group.all()) { //TODO: Maybe we dont need id
@@ -5912,6 +5912,12 @@ public class PermutationGroupFunctions {
 			return check;
 	 }
 	 
+	 /**
+	  *No need for this canonicalTrans function. Even if all the transpositions are not canonical;
+	  *then we can use the permutation groups to find a canonical permutation. 
+	  *That is a part of canonicalRepresentative function.
+	  */
+	 
 	 public static ArrayList<Permutation> canonicalTrans(int index, int[] row, ArrayList<Integer> partition, ArrayList<Integer> newPartition) {
 		 ArrayList<Permutation> trans=cycleTranspositions(index, partition, newPartition);
 		 ArrayList<Permutation> canonicalTrans= new ArrayList<Permutation>();
@@ -6777,7 +6783,6 @@ public class PermutationGroupFunctions {
 		
 		 partition.add(3);
 		 partition.add(2);
-		 
-		 canonicalBlockGenerator(degrees,partition);
+		 //canonicalBlockGenerator(degrees,partition);
 	 }
 }
