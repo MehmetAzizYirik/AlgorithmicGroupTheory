@@ -5581,8 +5581,12 @@ public class PermutationGroupFunctions {
 	  * @return int L value
 	  */
 	 
-	 public static int Lfactorial(ArrayList<Integer> partEx, ArrayList<Integer> partNew) {
-		 return factorialOfPartition(partEx)/factorialOfPartition(partNew);
+	 public static int Lfactorial(int index, ArrayList<Integer> partEx, ArrayList<Integer> partNew) {
+		 if(index==0) {
+			 return factorial(sum(partEx))/factorialOfPartition(partEx);
+		 }else {
+			 return factorialOfPartition(partEx)/factorialOfPartition(partNew);
+		 }
 	 }
 	 
 	 /**
@@ -5895,31 +5899,19 @@ public class PermutationGroupFunctions {
 	 public static boolean canonicalBlockwiseTest(int index, int y,int[] row, ArrayList<Integer> partition, ArrayList<Integer> newPartition) {
 		 boolean check=true;
 		 int total=sum(newPartition);
-		 ArrayList<Permutation> canonicalTrans= canonicalTrans(index, row, partition, newPartition);
-		 if(canonicalTrans.size()==0) {
+		 ArrayList<Permutation> canReps=canonicalRepresentative(index,y,row,partition,newPartition,total);
+		 if(canReps.size()==0) {
 			 check=false;
 		 }else {
-			 ArrayList<Permutation> canReps=canonicalRepresentative(index,y,row,partition,newPartition,total);
-			 System.out.println("can reps"+" "+canReps);
-			 if(canReps.size()==0) {
-				 check=false;
-			 }else {
-				 System.out.println(index+" representatives");
-				 for(Permutation perm: canReps) {
-					 System.out.println(index+" "+perm.toCycleString());
-				 }
-				 representatives.set(index, canReps);
-			 }
-		 }
+			 representatives.set(index, canReps);
+		 } 
 		 return check;
 	 }
-	 
 	 
 	 public static boolean canonicalRowCheck(int[] row,ArrayList<Integer> partition,ArrayList<Permutation> canonicalTrans) throws IOException {
 			boolean check=true;
 			int total=sum(partition);
 			PermutationGroup group=getYoungGroup(partition,total);
-			for()
 			for(Permutation perm: group.all()) {
 				if(!descBlockCheck(partition,actArray(row,perm),row)) {	
 					check=false;
@@ -5928,6 +5920,7 @@ public class PermutationGroupFunctions {
 			}
 			return check;
 	 }
+	 
 	 public static ArrayList<Permutation> canonicalTrans(int index, int[] row, ArrayList<Integer> partition, ArrayList<Integer> newPartition) {
 		 ArrayList<Permutation> trans=cycleTranspositions(index, partition, newPartition);
 		 ArrayList<Permutation> canonicalTrans= new ArrayList<Permutation>();
@@ -6104,7 +6097,8 @@ public class PermutationGroupFunctions {
 		size = degrees.size();
 		partitionSize=partition.size();
 		inputPartition=partition;
-		refinedPartitions.add(partitionWDegree(partition,1));
+		System.out.println("input partition"+" "+inputPartition);
+		//refinedPartitions.add(partitionWDegree(partition,1));
 		//representatives.add(cycleRepresentatives(0,partition));
 		int r=0;
 		int[][] A   = new int[size][size];
@@ -6134,7 +6128,7 @@ public class PermutationGroupFunctions {
 	 				ArrayList<Integer> modified=successor(indices,max.length);
 	 				if(modified.get(0)>i && j==A.length-1) {  //TODO: Why we create the canonical for i not modified.get(0) ?
 	 					int y=findY(r);
-	 					partition=canonicalPartition(i,partition); //TODO: Might need to test again
+	 					//partition=canonicalPartition(i,partition); 
 	 					ArrayList<Integer> canonicalPart=canonicalPartition(i,partition);
 	 					//TODO: Canonical Test Block is with the latest partition and the canonical one is the new.
 	 					//TODO:  For the first one, the original partition is used as the first young group.
