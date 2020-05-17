@@ -4825,32 +4825,267 @@ public class PermutationGroupFunctions {
 	  * @param total int number of atoms
 	  */
 	 
-	 public static ArrayList<Permutation> canonicalRepresentative(int index, int y, int[] array, ArrayList<Integer> partition, ArrayList<Integer> newPartition, int total) {
+	 public static ArrayList<Permutation> canonicalRepresentative(int index, int y, int[][] A, ArrayList<Integer> partition, ArrayList<Integer> newPartition, int total) {
 		 ArrayList<Permutation> cReps= new ArrayList<Permutation>();
-		 PermutationGroup group= new PermutationGroup(total);
-		 if(index==0) {
-			 group= PermutationGroup.makeSymN(total);
+		 PermutationGroup group= getYoungGroup(partition,total); 
+		 ArrayList<Permutation> reps= new ArrayList<Permutation>();
+		 System.out.println("canonical test basladi");
+		 System.out.println("index and y"+" "+index+" "+y);
+		 if(index!=y) {
+			 reps=formerPermutations(index,y);
 		 }else {
-			 group=getYoungGroup(partition,total); 
+			 reps=cycleTranspositions(index, partition, newPartition);
 		 }
+		 for(Permutation perm: reps) {
+			 System.out.println(" former perm"+" "+perm.toCycleString());
+		 }
+		 for(int i=0;i<reps.size();i++) {
+			 if(!reps.get(i).isIdentity()) { // In the table id is id.
+				 for(Permutation perm: group.all()) { //TODO: Maybe we dont need id
+					 Permutation newRep = reps.get(i).multiply(perm);
+					 System.out.println("can check "+index+" "+newPartition+" "+Arrays.toString(actArray(A[index],newRep))+" "+Arrays.toString(A[index])+" "+reps.get(i).toCycleString()+" "+perm.toCycleString());
+					 if(!newRep.isIdentity()) {
+						 System.out.println("des block check"+" "+descBlockCheck(newPartition,actArray(A[index],newRep),A[index]));
+						 if(descBlockCheck(newPartition,actArray(A[index],newRep),A[index])){
+							 if(!cReps.contains(newRep)) {
+								cReps.add(newRep); 
+							 }
+							 break;
+						 }
+					 }
+				 }
+			 }
+					 /**
+					 //if(desBlockCheck(newPartition,actArray(A[index],newRep))) {
+						 if(y!=index) {
+							 //if(descBlockCheck(newPartition,A[index-1],actArray(A[index],newRep))){
+								 System.out.println("des on"+" "+newPartition+" "+Arrays.toString(A[index-1])+" "+Arrays.toString(actArray(A[index],newRep)));
+								 if(!cReps.contains(newRep)) {
+							 		cReps.add(newRep);
+									break; 
+							 	 }
+							 //}  
+						 }else {
+							 if(!cReps.contains(newRep)) {
+								 cReps.add(newRep);
+								 break; 
+							 }
+						 }
+					 //}**/
+						 /** 
+						  * cReps.add(newRep);
+						  * break;
+						  **/
+
+					 
+					 /**if(descBlockCheck(newPartition,actArray(A[index],newRep),A[index])){
+					 	 cReps.add(newRep);
+						 break;
+					 } 
+					 
+					 if(y!=index) {
+						 System.out.println("i"+" "+i);
+						 if(descBlockCheck(partition,A[index-1],actArray(A[index],newRep))){
+						 	 cReps.add(newRep);
+							 break;
+						 }  
+					 }else {
+						 if(descBlockCheck(partition,actArray(A[index],newRep),A[index])){
+						 	 cReps.add(newRep);
+							 break;
+						 } 
+					 }**/
+		 }
+		 return cReps;
+	 }
+	 
+	 public static void alternativeTest(int index, int r, int[][] A, ArrayList<Integer> partition, ArrayList<Integer> newPartition, int total) {
+		 int y=findY(r);
+		 ArrayList<Permutation> cReps= new ArrayList<Permutation>();
+		 PermutationGroup group= getYoungGroup(partition,total); 
 		 ArrayList<Permutation> reps= new ArrayList<Permutation>();
 		 if(index!=y) {
 			 reps=formerPermutations(index,y);
 		 }else {
-			 reps=canonicalTrans(index,array,partition,newPartition);
+			 reps=cycleTranspositions(index, partition, newPartition);
 		 }
 		 for(int i=0;i<reps.size();i++) {
-			 for(Permutation perm: group.all()) { //TODO: Maybe we dont need id
-				 Permutation newRep = reps.get(i).multiply(perm);
-				 if(!newRep.isIdentity()) {
-					 if(descBlockCheck(partition,actArray(array,newRep),array)){
-						 cReps.add(newRep);
-						 break;
-					 } 
+			 if(!reps.get(i).isIdentity()) { // In the table id is id.
+				 for(Permutation perm: group.all()) { //TODO: Maybe we dont need id
+					 Permutation newRep = reps.get(i).multiply(perm);
+					 if(!newRep.isIdentity()) {
+						 if(descBlockCheck(newPartition,actArray(A[index],newRep),A[index])){
+							 if(!cReps.contains(newRep)) {
+								cReps.add(newRep); 
+							 }
+							 break;
+						 }
+					 }
 				 }
 			 }
 		 }
-		 return cReps;
+	 }
+	 
+	 public static void firstSet(int index, ArrayList<Integer> partition, ArrayList<Integer> newPartition) {
+		 ArrayList<Permutation> reps=cycleTranspositions(index, partition, newPartition);
+		 if(representatives.size()==index) {
+			 representatives.add(index, reps);
+		 }else {
+			 representatives.set(index, reps);
+		 }
+	 }
+	 
+	 /**
+	  * To check whether a block is canonical or not. Also updating the canonical
+	  * representatives table. 
+	  * @param index array index
+	  * @param r 	 block index
+	  * @param A     adjacency matrix
+	  * @param partition	former partition
+	  * @param newPartition	latter partition
+	  * @return boolean true if canonical
+	  */
+	 
+	 public static boolean blockTest(int index, int r, int[][] A,ArrayList<Integer> partition, ArrayList<Integer> newPartition) {
+		 boolean check= true;
+		 int total = sum(partition);
+		 int y= findY(r);
+		 ArrayList<Permutation> cycleTrans= cycleTranspositions(index,partition,newPartition);
+		 if(!cycleCanonicalCheck(index,A,cycleTrans,newPartition)) {
+			 check=false;
+		 }else {
+			 ArrayList<Permutation> formerReps=formerPermutations(index,y); // No need of (-1). It is already the former representatives.
+			 for(Permutation cycle: cycleTrans) {
+				 for(Permutation former: formerReps) {
+					 Permutation perm = cycle.multiply(former);
+					 if(!perm.isIdentity()) {
+						 if(noCanonicalPermutation(perm,index,A,newPartition)) {
+							 addRepresentatives(index,idPermutation(total));
+						 }else {
+							 Permutation canonical=getCanonicalPermutation(perm, index, A, partition, newPartition);
+							 if(canonical.isIdentity()) {
+								 check=false;
+								 break;
+							 }else {
+								 addRepresentatives(index, canonical);
+							 }
+						 }
+					 }
+				 }
+			 } 
+		 }
+		 return check;
+	 }
+	 
+	 /**
+	  * Checking whether all the cycle transpositions keep the array in descending
+	  * or not.
+	  * @param index array index
+	  * @param A adjacency matrix
+	  * @param cycleTrans ArrayList<Permutation> cycle transpositions
+	  * @param newPartition the last partition
+	  * @return boolean
+	  */
+	 
+	 public static boolean cycleCanonicalCheck(int index,int[][] A, ArrayList<Permutation> cycleTrans, ArrayList<Integer> newPartition) {
+		 boolean check=true;
+		 for(Permutation cycle: cycleTrans) {
+			 if(!descBlockCheck(newPartition,actArray(A[index],cycle),A[index-1])) {
+				 check=false;
+				 break;
+			 }
+		 }
+		 return check;
+	 }
+	 
+	 /**
+	  * To add a permutation to representatives.
+	  * @param index representatives table index
+	  * @param perm  Permutation
+	  */
+	 
+	 public static void addRepresentatives(int index, Permutation perm) {
+		 ArrayList<Permutation> perms = new ArrayList<Permutation>();
+		 perms.add(perm);
+		 if(representatives.size()==index) {
+			 representatives.add(perms);
+		 }else {
+			 representatives.set(index,perms);
+		 }
+	 }
+	 
+	 /**
+	  * To check if there is need of a canonical permutation or not. 
+	  * @param cycleM Permutation cycle transposition multiplied with M(i-1) members
+	  * @param index the row index
+	  * @param A adjacency matrix
+	  * @param partition atom partition
+	  * @return boolean if true, then already descending, no need for permutation.
+	  */
+	 
+	 public static boolean noCanonicalPermutation(Permutation cycleM, int index, int[][] A, ArrayList<Integer> partition) {
+		 return descBlockCheck(partition,actArray(A[index],cycleM),A[index]);
+	 }
+	 
+	 /**
+	  * If the multiplication of cycle transposition and the M(i-1) permutation 
+	  * does not satisfy the canonical form, then we need to find a canonical 
+	  * permutation.
+	  * @param cycleM Permutation multiplication of cycle transposition and M(i-1) permutation
+	  * @param index array index
+	  * @param A	adjacency matrix
+	  * @param partition first Partition 			
+	  * @param newPartition canonical partition
+	  * @return
+	  */
+	 
+	 public static Permutation getCanonicalPermutation(Permutation cycleM, int index, int[][] A, ArrayList<Integer> partition, ArrayList<Integer> newPartition) {
+		 int total= sum(partition);
+		 PermutationGroup group= getYoungGroup(partition,total);
+		 Permutation canonical = idPermutation(total);
+		 for(Permutation perm: group.all()) {
+			 Permutation newRep = cycleM.multiply(perm);
+			 if(!newRep.isIdentity()) {
+				 if(descBlockCheck(newPartition,actArray(A[index],newRep),A[index])){
+					 canonical = newRep;
+					 break;
+				 }
+			 }
+		 }
+		 return canonical;
+	 }
+	 
+	 public static void formerRepresentativesTest(int index, int r, int[][] A, ArrayList<Integer> partition, ArrayList<Integer> newPartition) {
+		 int y= findY(r);
+		 int total= sum(partition);
+		 Permutation mult = new Permutation(); 
+		 PermutationGroup group = getYoungGroup(partition,total);
+		 ArrayList<Permutation> last = representatives.get(index);
+		 for(int i=0;i<y;i++) {
+			 ArrayList<Permutation> canRep= new ArrayList<Permutation>();
+			 canRep.add(idPermutation(total)); 
+			 for(Permutation perm: representatives.get(i)) {
+				 for(Permutation perm2: last) {
+					 mult=perm.multiply(perm2);
+					 if(!mult.isIdentity()) {
+						 if(!descBlockCheck(newPartition,actArray(A[index],mult),A[index])){
+							 for(Permutation p: group.all()) {
+								 Permutation newRep = mult.multiply(p);
+								 if(!newRep.isIdentity()) {
+									 if(descBlockCheck(newPartition,actArray(A[index],newRep),A[index])){
+										 if(!canRep.contains(mult)) {
+											 canRep.add(mult); 
+										 }
+										 break;
+									 }
+								 }
+							 }
+						 }
+					 }
+				 }
+			 }
+			 representatives.set(i, canRep);
+		 }
 	 }
 	 
 	 public static ArrayList<Permutation> canonicalRepresentative(int index, int[] array, ArrayList<Integer> partition, ArrayList<Integer> newPartition) {
@@ -5276,11 +5511,7 @@ public class PermutationGroupFunctions {
 	}
 	
 	public static ArrayList<Integer> canonicalPartition(int i, ArrayList<Integer> partition){
-		if(i==0) {
-			return partitionWDegree(partition,2);
-		}else {
-			return partitionWDegree(partition,1);
-		}
+		return partitionWDegree(partition,1);
 	}
 	
 	/**
@@ -5573,11 +5804,7 @@ public class PermutationGroupFunctions {
 	  */
 	 
 	 public static int Lfactorial(int index, ArrayList<Integer> partEx, ArrayList<Integer> partNew) {
-		 if(index==0) {
-			 return factorial(sum(partEx))/factorialOfPartition(partEx);
-		 }else {
-			 return factorialOfPartition(partEx)/factorialOfPartition(partNew);
-		 }
+		 return factorialOfPartition(partEx)/factorialOfPartition(partNew);
 	 }
 	 
 	 /**
@@ -5776,9 +6003,11 @@ public class PermutationGroupFunctions {
 	
 	 public static ArrayList<Permutation> cycleTranspositions(int index, ArrayList<Integer> partition, ArrayList<Integer> newPartition) {
 		 ArrayList<Permutation> perms= new ArrayList<Permutation>();
-		 perms.add(idPermutation(size));
-		 int lValue= Lfactorial(partition,newPartition);
-		 for(int i=index;i<=lValue;i++) {
+		 //perms.add(idPermutation(size));
+		 int lValue= Lfactorial(index,partition,newPartition);
+		 System.out.println("partitions"+" "+partition+" "+newPartition);
+		 System.out.println("trans index and L"+" "+index+" "+lValue);
+		 for(int i=index;i<lValue;i++) {
 	    	 int[] values= idValues(size);
 	    	 int former =  values[index];
 			 values[index] =  values[index+i];
@@ -5786,11 +6015,11 @@ public class PermutationGroupFunctions {
 			 Permutation p = new Permutation(values);
 			 perms.add(p);
 		 }
-		 if(representatives.size()==index) {
+		 /**if(representatives.size()==index) {
 			 representatives.add(perms);
 		 }else {
 			 representatives.set(index,perms);
-		 }
+		 }**/
 		 return perms;
 	 }
 	 /**
@@ -5887,15 +6116,35 @@ public class PermutationGroupFunctions {
 	  * Modification of the upper one.
 	  */
 	 
-	 public static boolean canonicalBlockwiseTest(int index, int y,int[] row, ArrayList<Integer> partition, ArrayList<Integer> newPartition) {
+	 /**
+	  * Burada önceki row ile kıyaslıyoruz descending de mi blockwise da. 
+	  * 
+	  * permuted haldekinin descending olup olmamasına bakıyor. 
+	  * 
+	  * Ayrıca block former permutations ile ettikten sonra onceki block unkilerle de test et
+	  * ona göre onları silip sadece id yazıyor. 
+	  */
+	 
+	 public static boolean canonicalBlockwiseTest(int index, int y,int[][] A , ArrayList<Integer> partition, ArrayList<Integer> newPartition) {
 		 boolean check=true;
 		 int total=sum(newPartition);
-		 ArrayList<Permutation> canReps=canonicalRepresentative(index,y,row,partition,newPartition,total);
+		 ArrayList<Permutation> canReps=canonicalRepresentative(index,y,A,partition,newPartition,total);
+		 System.out.println("first part"+" "+partition);
+		 System.out.println("second part"+" "+newPartition);
+		 for(Permutation perm: canReps) {
+			 System.out.println("can reps"+" "+perm.toCycleString()+" index "+index+" "+Arrays.toString(A[index])+" "+Arrays.toString(actArray(A[index],perm)));
+		 }
 		 if(canReps.size()==0) {
 			 check=false;
 		 }else {
-			 representatives.set(index, canReps);
+			 if(representatives.size()==index) {
+				 representatives.add(canReps);
+			 }else {
+				 representatives.set(index, canReps); 
+			 }
 		 } 
+		 
+		 System.out.println("check"+" "+check+" "+canReps.size()+" "+Arrays.toString(A[index])+" "+index);
 		 return check;
 	 }
 	 
@@ -6028,6 +6277,8 @@ public class PermutationGroupFunctions {
 	  * the multiplication of the former representatives. So, before
 	  * the beginning of the current strip (or block).
 	  * 
+	  * These are M(i) members.
+	  * 
 	  * @param index int current row index
 	  * @param y int beginning of the block
 	  * @return
@@ -6036,10 +6287,14 @@ public class PermutationGroupFunctions {
 	 public static ArrayList<Permutation> formerPermutations(int index, int y) {
 		 ArrayList<Permutation> list= representatives.get(y);
 		 ArrayList<Permutation> nList= new ArrayList<Permutation>();
+		 System.out.println("former perms"+" "+index);
 		 for(int i=y+1;i<index;i++) {
 			 for(int l=0;l<list.size();l++) {
 				 for(Permutation perm: representatives.get(i)) {
-					 nList.add(list.get(l).multiply(perm));
+					 Permutation mult= list.get(l).multiply(perm);
+					 if(!mult.isIdentity()) {
+						 nList.add(mult); 
+					 }
 				 }
 			 }
 			 list.clear();
@@ -6129,19 +6384,19 @@ public class PermutationGroupFunctions {
 	 					ArrayList<Integer> canonicalPart=canonicalPartition(i,partition);
 	 					//TODO: Canonical Test Block is with the latest partition and the canonical one is the new.
 	 					//TODO:  For the first one, the original partition is used as the first young group.
-	 					if(canonicalBlockwiseTest(i,y,A[i],partition, canonicalPart)) { //Based on former perms, check canonical or not then add new perms if it is canonical.
+	 					if(canonicalBlockwiseTest(i,y,A,partition, canonicalPart)) { //Based on former perms, check canonical or not then add new perms if it is canonical.
 	 						System.out.println(i+" "+Arrays.toString(A[i]));
 	 						partition=refinedPartitioning(partition,A[i]);
 	 						//ArrayList<Integer> refinedPart = refinedPartitioning(partition,A[i]);
 	 						/**
 	 						 * We need to update the refinedPartitions since we generate many blocks for the same value.
 	 						 */
-	 						if((refinedPartitions.size()-1)==i) {
+	 						/**if((refinedPartitions.size()-1)==i) {
 	 							refinedPartitions.add(partition);
 	 						}else {
 	 							refinedPartitions.set(i+1,partition);
-	 						}
-	 						representatives.set(i, canonicalRepresentative(i,A[i],partition,canonicalPart));
+	 						}**/
+	 						//representatives.set(i, canonicalRepresentative(i,A[i],partition,canonicalPart));
 	 						//ArrayList<Integer> changes= findIndexChanges(refinedPartitions.get(i),refinedPartitions.get(i+1)); 
 	 						//ArrayList<Permutation> representative= cycleRepresentatives(i,findIndexChanges(refinedPartitions.get(i),refinedPartitions.get(i+1)),size);
 	 						//representatives.add(cycleRepresentatives(i,findIndexChanges(refinedPartitions.get(i),refinedPartitions.get(i+1)),size));
@@ -6783,6 +7038,9 @@ public class PermutationGroupFunctions {
 		
 		 partition.add(3);
 		 partition.add(2);
-		 //canonicalBlockGenerator(degrees,partition);
+		
+		 //canonicalBlockGenerator(degrees,partition); 
+		 
+
 	 }
 }
