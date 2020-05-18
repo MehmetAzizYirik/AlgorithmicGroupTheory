@@ -4926,15 +4926,6 @@ public class PermutationGroupFunctions {
 		 }
 	 }
 	 
-	 public static void firstSet(int index, ArrayList<Integer> partition, ArrayList<Integer> newPartition) {
-		 ArrayList<Permutation> reps=cycleTranspositions(index, partition, newPartition);
-		 if(representatives.size()==index) {
-			 representatives.add(index, reps);
-		 }else {
-			 representatives.set(index, reps);
-		 }
-	 }
-	 
 	 /**
 	  * To check whether a block is canonical or not. Also updating the canonical
 	  * representatives table. 
@@ -4952,27 +4943,64 @@ public class PermutationGroupFunctions {
 		 int y= findY(r);
 		 ArrayList<Permutation> cycleTrans= cycleTranspositions(index,partition,newPartition);
 		 if(!cycleCanonicalCheck(index,A,cycleTrans,newPartition)) {
-			 check=false;
+			 return false;
 		 }else {
-			 ArrayList<Permutation> formerReps=formerPermutations(index,y); // No need of (-1). It is already the former representatives.
-			 for(Permutation cycle: cycleTrans) {
-				 for(Permutation former: formerReps) {
-					 Permutation perm = cycle.multiply(former);
-					 if(!perm.isIdentity()) {
-						 if(noCanonicalPermutation(perm,index,A,newPartition)) {
-							 addRepresentatives(index,idPermutation(total));
-						 }else {
-							 Permutation canonical=getCanonicalPermutation(perm, index, A, partition, newPartition);
-							 if(canonical.isIdentity()) {
-								 check=false;
-								 break;
+			 if(index==y) {
+				return yTest(index, total, A, cycleTrans, partition, newPartition); 
+			 }else {
+				 ArrayList<Permutation> formerReps=formerPermutations(index,y); // No need of (-1). It is already the former representatives.
+				 for(Permutation cycle: cycleTrans) {
+					 for(Permutation former: formerReps) {
+						 Permutation perm = cycle.multiply(former);
+						 if(!perm.isIdentity()) {
+							 if(noCanonicalPermutation(perm,index,A,newPartition)) {
+								 addRepresentatives(index,idPermutation(total));
 							 }else {
-								 addRepresentatives(index, canonical);
+								 Permutation canonical=getCanonicalPermutation(perm, index, A, partition, newPartition);
+								 if(canonical.isIdentity()) {
+									 check=false;
+									 break;
+								 }else {
+									 addRepresentatives(index, canonical);
+								 }
 							 }
 						 }
 					 }
+				 }  
+			 }
+		 }
+		 return check;
+	 }
+	 
+	 /**
+	  * In a block, we test the first row separately since there is no M(i-1)
+	  * permutations and we built the first M(i) permutations of the block.
+	  * 
+	  * @param index array index
+	  * @param total total number of atoms
+	  * @param A adjacency matrix
+	  * @param cycleTrans ArrayList<Permutation> cycle transpositions
+	  * @param partition  ArrayList<Integer> former permutation
+	  * @param newPartition	ArrayList<Integer> latter permutation
+	  * @return boolean 
+	  */
+	 
+	 public static boolean yTest(int index, int total,int[][] A, ArrayList<Permutation> cycleTrans, ArrayList<Integer> partition, ArrayList<Integer> newPartition) {
+		 boolean check=true;
+		 for(Permutation perm: cycleTrans) {
+			 if(!perm.isIdentity()) { // Grund and Meringer do not test id
+				 if(noCanonicalPermutation(perm,index,A,newPartition)) {
+					 addRepresentatives(index, perm);
+				 }else {
+					 Permutation canonical=getCanonicalPermutation(perm, index, A, partition, newPartition);
+					 if(canonical.isIdentity()) { //TODO: Should be something else rather than id. Group can also return id
+						 check=false;
+						 break;
+					 }else {
+						 addRepresentatives(index, canonical);
+					 } 
 				 }
-			 } 
+			 }
 		 }
 		 return check;
 	 }
