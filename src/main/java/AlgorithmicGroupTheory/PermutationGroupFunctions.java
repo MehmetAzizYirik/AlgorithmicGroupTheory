@@ -4940,7 +4940,6 @@ public class PermutationGroupFunctions {
 	  */
 	 
 	 public static boolean updateFormerBlocksPermutations(int index, int[][] A, ArrayList<Integer> partition, ArrayList<Integer> newPartition){
-		 int total= sum(partition);
 		 boolean check=true;
 		 ArrayList<Permutation> firstOnes = representatives.get(0);
 		 ArrayList<Permutation> formerPerms= formerPermutations(1,index);
@@ -5074,6 +5073,20 @@ public class PermutationGroupFunctions {
 	 public static void addRepresentatives(int index, Permutation perm) {
 		 ArrayList<Permutation> perms = new ArrayList<Permutation>();
 		 perms.add(perm);
+		 if(representatives.size()==index) {
+			 representatives.add(perms);
+		 }else {
+			 representatives.set(index,perms);
+		 }
+	 }
+	 
+	 /**
+	  * Same as the former function just we add a list of permutations not a single one.
+	  * @param index row index
+	  * @param perms list of permutations
+	  */
+	 
+	 public static void addRepresentatives(int index, ArrayList<Permutation> perms) {
 		 if(representatives.size()==index) {
 			 representatives.add(perms);
 		 }else {
@@ -6300,43 +6313,17 @@ public class PermutationGroupFunctions {
 	  * @param total number of atoms. 
 	  */
 	 
-	 public static void fillRepresentatives(int r, int total) { 
-		 int z=findZ(r)+1; //TODO: +1 or -1 just decide how to define the indices.
-		 System.out.println("fill z"+" "+z);
-		 System.out.println("fill reps"+" "+r+" "+total);
-		 System.out.println("Printing refined partition in fill representatives function");
-		 for(int k=0;k<refinedPartitions.size();k++) {
-			 System.out.println(k+" "+refinedPartitions.get(k));
-		 }
-		 System.out.println("Printing representatives in fill representatives function");
-		 for(int l=0;l<representatives.size();l++) {
-			 System.out.println(l+" "+representatives.get(l));
-		 }
-		 System.out.println("once"+" "+refinedPartitions.size());
-		 boolean check= false;
-		 if(refinedPartitions.size()>(z+1)) {
-			 check=true;
-		 }
-		 for(int i=z;i<total;i++) {
-			 System.out.println(i+" "+"girdi");
-			 System.out.println(i+" "+refinedPartitions.get(i));
-			 System.out.println("par degree"+" "+partitionWDegree(refinedPartitions.get(i),1));
-			 System.out.println("cikti"+" "+refinedPartitions.get(i).size());
-			 System.out.println("refined add before size"+" "+refinedPartitions.size());
+	 public static void fillRepresentatives(int r, ArrayList<Integer> partition, int total) { 
+		 int z=findZ(r)+1; //TODO: +1 or -1 just decide how to define the indices;
+		 ArrayList<Integer> newPartition = partitionWDegree(partition,1);
+		 for(int i=z;i<total;i++) { 
+			 addRepresentatives(i,cycleTranspositions(i,partition,newPartition));
+			 partition=newPartition;
 			 
-			 if(!check) {
-				 refinedPartitions.add((i+1), partitionWDegree(refinedPartitions.get(i),1));
-				 representatives.add((i+1), cycleRepresentatives(i,refinedPartitions.get(i))); //TODO: Need to update the list. Otherwise it keeps adding
-			 }else {
-				 refinedPartitions.set((i+1), partitionWDegree(refinedPartitions.get(i),1));
-				 representatives.set((i+1), cycleRepresentatives(i,refinedPartitions.get(i))); //TODO: Need to update the list. Otherwise it keeps adding 
-			 }
-		 }
-		 for(int l=0;l<representatives.size();l++) {
-			 System.out.println(l+" "+representatives.get(l));
 		 }
 	 }
 	 
+	 public static ArrayList<Integer> resetPartition()
 	 
 	 /**
 	  * Like in Grund Example 3.3.19; We need to check with the permutations 
