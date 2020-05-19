@@ -4933,10 +4933,10 @@ public class PermutationGroupFunctions {
 	  * If the former permutation keeps it canonical then ignore it otherwise
 	  * find a canonical permutation.
 	  * @param index current array index
-	  * @param A
-	  * @param partition
-	  * @param newPartition
-	  * @return
+	  * @param A adjacency matrix
+	  * @param partition atom partition
+	  * @param newPartition canonical atom partition
+	  * @return 
 	  */
 	 
 	 public static boolean updateFormerBlocksPermutations(int index, int[][] A, ArrayList<Integer> partition, ArrayList<Integer> newPartition){
