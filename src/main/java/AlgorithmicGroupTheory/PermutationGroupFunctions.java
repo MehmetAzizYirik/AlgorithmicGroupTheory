@@ -4942,14 +4942,14 @@ public class PermutationGroupFunctions {
 	 public static boolean updateFormerBlocksPermutations(int index, int[][] A, ArrayList<Integer> partition, ArrayList<Integer> newPartition){
 		 int total= sum(partition);
 		 boolean check=true;
+		 ArrayList<Permutation> firstOnes = representatives.get(0);
 		 ArrayList<Permutation> formerPerms= formerPermutations(1,index);
-		 ArrayList<Permutation> firstRepresentatives = representatives.get(0);
-		 for(int i=0;i<firstRepresentatives.size();i++) {
+		 for(int i=0;i<firstOnes.size();i++) {
 			 for(Permutation perm: formerPerms) {
-				 Permutation mult= firstRepresentatives.get(i).multiply(perm);
+				 Permutation mult = firstOnes.get(i).multiply(perm); 
 				 if(!mult.isIdentity()) {
-					 if(noCanonicalPermutation(perm,index,A,partition)) {
-						 addRepresentatives(index,idPermutation(total));
+					 if(noCanonicalPermutation(mult,index,A,partition)) {
+						 representatives.get(0).remove(i);
 					 }else {
 						 Permutation canonical=getCanonicalPermutation(perm, index, A, partition, newPartition);
 						 if(canonical.isIdentity()) {
@@ -4960,7 +4960,7 @@ public class PermutationGroupFunctions {
 						 }
 					 }
 				 }
-			 }
+			 } 
 		 }
 		 return check;
 	 }
