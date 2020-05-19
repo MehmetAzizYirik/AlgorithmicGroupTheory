@@ -6313,7 +6313,8 @@ public class PermutationGroupFunctions {
 	  * @param total number of atoms. 
 	  */
 	 
-	 public static void fillRepresentatives(int r, ArrayList<Integer> partition, int total) { 
+	 public static void fillRepresentatives(int r, ArrayList<Integer> partition) { 
+		 int total= sum(partition);
 		 int z=findZ(r)+1; //TODO: +1 or -1 just decide how to define the indices;
 		 ArrayList<Integer> newPartition = partitionWDegree(partition,1);
 		 for(int i=z;i<total;i++) { 
@@ -6436,36 +6437,19 @@ public class PermutationGroupFunctions {
 	 				backwardCanonicalBlock(degrees,partition,A, max, L, C, indices,r);
 	 			}else {
 	 				ArrayList<Integer> modified=successor(indices,max.length);
-	 				if(modified.get(0)>i && j==A.length-1) {  //TODO: Why we create the canonical for i not modified.get(0) ?
+	 				if(modified.get(0)>i && j==A.length-1) {  
 	 					int y=findY(r);
-	 					//partition=canonicalPartition(i,partition); 
 	 					ArrayList<Integer> canonicalPart=canonicalPartition(i,partition);
-	 					//TODO: Canonical Test Block is with the latest partition and the canonical one is the new.
-	 					//TODO:  For the first one, the original partition is used as the first young group.
-	 					if(canonicalBlockwiseTest(i,y,A,partition, canonicalPart)) { //Based on former perms, check canonical or not then add new perms if it is canonical.
-	 						System.out.println(i+" "+Arrays.toString(A[i]));
+	 					if(blockTest(i,y,A,partition, canonicalPart) && updateFormerBlocksPermutations(i, A, partition, canonicalPart)) { 	 						
 	 						partition=refinedPartitioning(partition,A[i]);
-	 						//ArrayList<Integer> refinedPart = refinedPartitioning(partition,A[i]);
-	 						/**
-	 						 * We need to update the refinedPartitions since we generate many blocks for the same value.
-	 						 */
-	 						/**if((refinedPartitions.size()-1)==i) {
-	 							refinedPartitions.add(partition);
-	 						}else {
-	 							refinedPartitions.set(i+1,partition);
-	 						}**/
-	 						//representatives.set(i, canonicalRepresentative(i,A[i],partition,canonicalPart));
-	 						//ArrayList<Integer> changes= findIndexChanges(refinedPartitions.get(i),refinedPartitions.get(i+1)); 
-	 						//ArrayList<Permutation> representative= cycleRepresentatives(i,findIndexChanges(refinedPartitions.get(i),refinedPartitions.get(i+1)),size);
-	 						//representatives.add(cycleRepresentatives(i,findIndexChanges(refinedPartitions.get(i),refinedPartitions.get(i+1)),size));
 	 						if(i==findZ(r)){
 	 							if(!idRepresentativesCheck(findZ(r))) { 
+	 								fillRepresentatives(r,partition);
 	 								r++;
 	 								forwardCanonicalBlock(degrees, partition, A, max, L, C, modified,r);
 	 							}else{
-	 								if(r==(inputPartition.size()-2)){ //TODO: sadece son block a id kalınca mı yoksa herhangi step sonrası da id olması işe yarar mı ?
+	 								if(r==(inputPartition.size()-2)){ 
 	 									System.out.println(" The automorphism group is trivial; no need for further test.");
-		 								//TODO: Fill remaining without test but test how this works.
 		 								forward(degrees,A,max,L,C,modified);
 	 								}
 	 							} 
