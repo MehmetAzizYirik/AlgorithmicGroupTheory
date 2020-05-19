@@ -4926,6 +4926,45 @@ public class PermutationGroupFunctions {
 		 }
 	 }
 	 
+	 //TODO: Do I need to just remove the first permutation from the former set or how can we decide which perm to remove ?
+	 
+	 /**
+	  * After block test, testing the permutations in from the former blocks.
+	  * If the former permutation keeps it canonical then ignore it otherwise
+	  * find a canonical permutation.
+	  * @param index current array index
+	  * @param A
+	  * @param partition
+	  * @param newPartition
+	  * @return
+	  */
+	 
+	 public static boolean updateFormerBlocksPermutations(int index, int[][] A, ArrayList<Integer> partition, ArrayList<Integer> newPartition){
+		 int total= sum(partition);
+		 boolean check=true;
+		 ArrayList<Permutation> formerPerms= formerPermutations(1,index);
+		 ArrayList<Permutation> firstRepresentatives = representatives.get(0);
+		 for(int i=0;i<firstRepresentatives.size();i++) {
+			 for(Permutation perm: formerPerms) {
+				 Permutation mult= firstRepresentatives.get(i).multiply(perm);
+				 if(!mult.isIdentity()) {
+					 if(noCanonicalPermutation(perm,index,A,partition)) {
+						 addRepresentatives(index,idPermutation(total));
+					 }else {
+						 Permutation canonical=getCanonicalPermutation(perm, index, A, partition, newPartition);
+						 if(canonical.isIdentity()) {
+							 check=false;
+							 break;
+						 }else {
+							 addRepresentatives(index, canonical);
+						 }
+					 }
+				 }
+			 }
+		 }
+		 return check;
+	 }
+	 
 	 /**
 	  * To check whether a block is canonical or not. Also updating the canonical
 	  * representatives table. 
