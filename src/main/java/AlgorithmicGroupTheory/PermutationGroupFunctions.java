@@ -4845,8 +4845,8 @@ public class PermutationGroupFunctions {
 					 Permutation newRep = reps.get(i).multiply(perm);
 					 System.out.println("can check "+index+" "+newPartition+" "+Arrays.toString(actArray(A[index],newRep))+" "+Arrays.toString(A[index])+" "+reps.get(i).toCycleString()+" "+perm.toCycleString());
 					 if(!newRep.isIdentity()) {
-						 System.out.println("des block check"+" "+descBlockCheck(newPartition,actArray(A[index],newRep),A[index]));
-						 if(descBlockCheck(newPartition,actArray(A[index],newRep),A[index])){
+						 System.out.println("des block check"+" "+descBlockCheck(newPartition,A[index-1],actArray(A[index],newRep)));
+						 if(descBlockCheck(newPartition,A[index-1],actArray(A[index],newRep))){
 							 if(!cReps.contains(newRep)) {
 								cReps.add(newRep); 
 							 }
@@ -4914,7 +4914,7 @@ public class PermutationGroupFunctions {
 				 for(Permutation perm: group.all()) { //TODO: Maybe we dont need id
 					 Permutation newRep = reps.get(i).multiply(perm);
 					 if(!newRep.isIdentity()) {
-						 if(descBlockCheck(newPartition,actArray(A[index],newRep),A[index])){
+						 if(descBlockCheck(newPartition,A[index-1],actArray(A[index],newRep))){
 							 if(!cReps.contains(newRep)) {
 								cReps.add(newRep); 
 							 }
@@ -5056,7 +5056,7 @@ public class PermutationGroupFunctions {
 	 public static boolean cycleCanonicalCheck(int index,int[][] A, ArrayList<Permutation> cycleTrans, ArrayList<Integer> newPartition) {
 		 boolean check=true;
 		 for(Permutation cycle: cycleTrans) {
-			 if(!descBlockCheck(newPartition,actArray(A[index],cycle),A[index-1])) {
+			 if(!descBlockCheck(newPartition,A[index-1],actArray(A[index],cycle))) {
 				 check=false;
 				 break;
 			 }
@@ -5104,7 +5104,7 @@ public class PermutationGroupFunctions {
 	  */
 	 
 	 public static boolean noCanonicalPermutation(Permutation cycleM, int index, int[][] A, ArrayList<Integer> partition) {
-		 return descBlockCheck(partition,actArray(A[index],cycleM),A[index]);
+		 return descBlockCheck(partition,A[index-1],actArray(A[index],cycleM));
 	 }
 	 
 	 /**
@@ -5126,7 +5126,7 @@ public class PermutationGroupFunctions {
 		 for(Permutation perm: group.all()) {
 			 Permutation newRep = cycleM.multiply(perm);
 			 if(!newRep.isIdentity()) {
-				 if(descBlockCheck(newPartition,actArray(A[index],newRep),A[index])){
+				 if(descBlockCheck(newPartition,A[index-1],actArray(A[index],newRep))){
 					 canonical = newRep;
 					 break;
 				 }
@@ -5148,11 +5148,11 @@ public class PermutationGroupFunctions {
 				 for(Permutation perm2: last) {
 					 mult=perm.multiply(perm2);
 					 if(!mult.isIdentity()) {
-						 if(!descBlockCheck(newPartition,actArray(A[index],mult),A[index])){
+						 if(!descBlockCheck(newPartition,A[index-1],actArray(A[index],mult))){
 							 for(Permutation p: group.all()) {
 								 Permutation newRep = mult.multiply(p);
 								 if(!newRep.isIdentity()) {
-									 if(descBlockCheck(newPartition,actArray(A[index],newRep),A[index])){
+									 if(descBlockCheck(newPartition,A[index-1],actArray(A[index],newRep))){
 										 if(!canRep.contains(mult)) {
 											 canRep.add(mult); 
 										 }
