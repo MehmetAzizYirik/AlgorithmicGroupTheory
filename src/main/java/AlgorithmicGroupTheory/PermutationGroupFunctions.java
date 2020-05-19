@@ -6318,12 +6318,16 @@ public class PermutationGroupFunctions {
 		 ArrayList<Integer> newPartition = partitionWDegree(partition,1);
 		 for(int i=z;i<total;i++) { 
 			 addRepresentatives(i,cycleTranspositions(i,partition,newPartition));
-			 partition=newPartition;
-			 
+			 partition=resetPartition(newPartition);
+			 newPartition = partitionWDegree(newPartition,1);
 		 }
 	 }
 	 
-	 public static ArrayList<Integer> resetPartition()
+	 public static ArrayList<Integer> resetPartition(ArrayList<Integer> partition){
+		 ArrayList<Integer> newOne= new ArrayList<Integer>();
+		 newOne.addAll(partition);
+		 return newOne;
+	 }
 	 
 	 /**
 	  * Like in Grund Example 3.3.19; We need to check with the permutations 
