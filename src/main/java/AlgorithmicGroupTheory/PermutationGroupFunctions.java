@@ -5312,12 +5312,28 @@ public class PermutationGroupFunctions {
 		 return check;
 	 }
 	 
-	 public static boolean descBlockCheck(ArrayList<Integer> partition, int[] canonical, int[] original){
+	 /**
+	  * Blockwise descending order check. If the row is the yth row, compare it by itself; if not, 
+	  * compare every line with the former row in the matrix.
+	  * @param partition atom partition
+	  * @param index row index
+	  * @param y the yth row of a block
+	  * @param A adjacency matrix
+	  * @param perm permutation for canonical test
+	  * @return boolean
+	  */
+	 
+	 public static boolean descBlockCheck(ArrayList<Integer> partition, int index, int y, int[][] A, Permutation perm){
 		 boolean check=true;
-		 int index=0;
+		 int[] canonical= A[index];
+		 if(index!=y) {
+			 canonical=A[index-1];
+		 }
+		 int[] original=actArray(A[index],perm);
+		 int i=0;
 		 for(Integer p:partition) {
-			 Integer[] can= getBlocks(canonical,index,p+index);
-			 Integer[] org= getBlocks(original,index,p+index);
+			 Integer[] can= getBlocks(canonical,i,p+i);
+			 Integer[] org= getBlocks(original,i,p+i);
 			 if(!Arrays.equals(can,org)) {
 				 if(toInt(can)>toInt(org)) {
 					 check=true;
@@ -5331,7 +5347,7 @@ public class PermutationGroupFunctions {
 					 break;
 				 }
 			 }
-			 index=index+p;
+			 i=i+p;
 		 }
 		 
 		 return check;
@@ -7081,8 +7097,6 @@ public class PermutationGroupFunctions {
 		 partition.add(3);
 		 partition.add(2);
 		
-		 //canonicalBlockGenerator(degrees,partition); 
-		 
-
+		 canonicalBlockGenerator(degrees,partition); 
 	 }
 }
