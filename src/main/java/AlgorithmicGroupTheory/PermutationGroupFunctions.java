@@ -4674,13 +4674,13 @@ public class PermutationGroupFunctions {
 	  * @return
 	  */
 	 
-	 public static ArrayList<Integer> partitionWDegree(ArrayList<Integer> partEx, int degree){
+	 /**public static ArrayList<Integer> partitionWDegree(ArrayList<Integer> partEx, int degree){
 		 for(int i=1;i<=degree;i++) {
 			 partEx=partitionCriteria(partEx,i);
 		 }
 		 return partEx;
-	 }
-	 
+	 }**/
+	
 	 /**
 	  * Inverse partition functions.
 	  */
@@ -5676,9 +5676,9 @@ public class PermutationGroupFunctions {
 	
 	public static ArrayList<Integer> canonicalPartition(int i, ArrayList<Integer> partition){
 		if(i==0) {
-			return partitionWDegree(partition,2);
+			return partitionCriteria(partition,1);
 		}else {
-			return partitionWDegree(partition,1);
+			return partitionCriteria(partition,2);
 		}
 	}
 	
@@ -7167,7 +7167,8 @@ public class PermutationGroupFunctions {
 		
 		 partition.add(3);
 		 partition.add(2);
-		
-		 canonicalBlockGenerator(degrees,partition); 
+		 
+		 System.out.println(canonicalPartition(1,partition));
+		 //canonicalBlockGenerator(degrees,partition); 
 	 }
 }
