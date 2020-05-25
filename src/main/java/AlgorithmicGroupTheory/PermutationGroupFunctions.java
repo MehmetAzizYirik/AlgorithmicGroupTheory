@@ -5013,25 +5013,25 @@ public class PermutationGroupFunctions {
 				 for(Permutation form: formerReps) {
 					 System.out.println("former reps"+" "+form.toCycleString());
 				 }
-				 //for(Permutation cycle: cycleTrans) {
-					 //System.out.println("index cycle"+" "+index+" "+cycle.toCycleString());
+				 for(Permutation cycle: cycleTrans) {
+					 System.out.println("index cycle"+" "+index+" "+cycle.toCycleString());
 					 for(Permutation former: formerReps) {
 						 System.out.println("index former"+" "+index+" "+former.toCycleString());
-						 //Permutation perm = cycle.multiply(former);
-						 //System.out.println("index mult"+" "+index+" "+perm.toCycleString());
+						 Permutation perm = cycle.multiply(former);
+						 System.out.println("index mult"+" "+index+" "+perm.toCycleString());
 						 if(!former.isIdentity()) {
-							 if(noCanonicalPermutation(former,index,y,A,newPartition)) {
+							 if(noCanonicalPermutation(perm,index,y,A,newPartition)) {
 								 //System.out.println("In the former check,no Canonical needed, the used perm is"+" "+perm.toCycleString());
-								 addRepresentatives(index,idPermutation(total));
+								 addRepresentatives(index,cycle);
 							 }else {
-								 Permutation canonical=getCanonicalPermutation(former, index, y, A, partition, newPartition);
+								 Permutation canonical=getCanonicalPermutation(perm, index, y, A, partition, newPartition);
 								 System.out.println("In the former check, canonical perm"+" "+canonical.toCycleString());
 								 /**if(canonical.isIdentity()) {
 									 check=false;
 									 break;
 								 }else {**/
 								 if(!canonical.isIdentity()) {
-									 addRepresentatives(index, canonical);
+									 addRepresentatives(index, cycle.multiply(canonical));
 									 for(int i=0;i<index;i++) {
 										 System.out.println("reps are updated in former check"+" "+representatives.get(i));
 									 }
@@ -5039,7 +5039,7 @@ public class PermutationGroupFunctions {
 							 }
 						 }
 					 }
-				 //}  
+				 }  
 			 }
 		 //}
 		 if(representatives.size()<(index+1)) {
