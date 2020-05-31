@@ -5355,8 +5355,7 @@ public class PermutationGroupFunctions {
 	  */
 	 
 	 public static boolean noEqualPermutation(Permutation cycleM, int index, int y, int[][] A, ArrayList<Integer> partition) {
-		 System.out.println("noEqual"+" "+equalBlockCheck(partition,index,y,A,cycleM));
-		 return equalBlockCheck(cycleM,partition,index,y,A,cycleM,1);
+		 return descBlockCheck2(cycleM,partition,index,y,A,cycleM,1);
 	 }
 	 
 	 /**
@@ -5380,6 +5379,7 @@ public class PermutationGroupFunctions {
 		 System.out.println("noPerm"+" "+check);
 		 return check;
 	 }
+	 
 	 /**
 	  * If the multiplication of cycle transposition and the M(i-1) permutation 
 	  * does not satisfy the canonical form, then we need to find a canonical 
@@ -5431,7 +5431,7 @@ public class PermutationGroupFunctions {
 		 for(Permutation perm : group.all()) {
 			 System.out.println(perm.toCycleString());
 			 if(!perm.isIdentity()) {
-				 if(equalBlockCheck(cycleM,newPartition,index,y,A,perm,2)){
+				 if(descBlockCheck2(cycleM,newPartition,index,y,A,perm,2)){
 					 canonical = perm;
 					 break;
 				 }
@@ -5714,6 +5714,21 @@ public class PermutationGroupFunctions {
 		 return check;
 	 }
 	 
+	 public static boolean equalDesOrderCheck(Permutation cycleM,ArrayList<Integer> partition, int index, int y, int[][] A, Permutation perm, int order) {
+		 boolean check=true;
+		 int[] canonical= A[index];
+		 int[] original= A[index];
+		 if(order==1) {
+			 original=actArray(A[cycleM.get(index)],perm);
+		 }else {
+			 original=actArray(A[cycleM.get(index)],perm); 
+		 }
+		 System.out.println("equal"+" "+Arrays.toString(canonical)+" "+Arrays.toString(original));
+		 if(!Arrays.equals(canonical,original)) {
+			 check=false;
+		 }
+		 return check;
+	 }
 	 public static boolean equalBlockCheck(ArrayList<Integer> partition, int index, int y, int[][] A, Permutation perm){
 		 boolean check=true;
 		 int[] canonical= A[index];
@@ -5729,11 +5744,7 @@ public class PermutationGroupFunctions {
 		 boolean check=true;
 		 int[] canonical= A[index];
 		 int[] original= A[index];
-		 if(order==1) {
-			 original=A[perm.get(index)];
-		 }else {
-			 original=actArray(A[cycleM.get(index)],perm); 
-		 }
+		 original=actArray(A[cycleM.get(index)],perm);
 		 System.out.println("desBlockCheck2");
 		 System.out.println(index+" "+perm.toCycleString()+" "+cycleM.toCycleString());
 		 System.out.println("array to compare first"+" "+Arrays.toString(canonical));
@@ -7526,13 +7537,15 @@ public class PermutationGroupFunctions {
 		 
 		 degrees.add(4);
 		 degrees.add(4);
-		 degrees.add(4);
+		 degrees.add(2);
 		 degrees.add(1);
 		 degrees.add(1);
 		 
+		 
 		 ArrayList<Integer> partition= new ArrayList<Integer>();
 		
-		 partition.add(3);
+		 partition.add(2);
+		 partition.add(1);
 		 partition.add(2);
 		 
 		 canonicalBlockbasedGenerator(degrees,partition); 
