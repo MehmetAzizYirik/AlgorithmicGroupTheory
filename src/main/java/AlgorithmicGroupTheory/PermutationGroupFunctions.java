@@ -4322,10 +4322,14 @@ public class PermutationGroupFunctions {
 	 	for(int h=minimal;h>=0;h--) {
 	 		if((l2-h<=L[i][j]) && (c2-h<=C[i][j])) {
 	 			A[i][j]=A[j][i]=h;
+	 			for(int s=0;s<partitionList.size();s++) {
+	 				System.out.println(i+" "+partitionList.get(s));
+	 			}
 	 			if(i==(max.length-2) && j==(max.length-1)) {
-	 				backwardBuild(r, degrees,partitionList.get(indices.get(0)+1),A, max, L, C, indices);
+	 				backwardBuild(r, degrees,partitionList.get(y),A, max, L, C, indices);
 	 			}else {
 	 				ArrayList<Integer> modified=successor(indices,max.length);
+	 				System.out.println(modified);
 	 				if(modified.get(0)>z) { // If its higher than z value. 
 	 					//System.out.println(r+" "+y+" "+z+" "+"matrix"+" "+Arrays.deepToString(A));
 	 					if(blockTest(i, r, A)) {
@@ -4333,11 +4337,11 @@ public class PermutationGroupFunctions {
 	 						forwardBuild(r, degrees, partitionList.get(z+1), A, max, L, C, modified);
 	 					}
 	 				}else {
-	 					forwardBuild(r, degrees, partitionList.get(modified.get(0)+1), A, max, L, C, modified);
+	 					forwardBuild(r, degrees, partitionList.get(y), A, max, L, C, modified);
 	 				}
 	 			}
 	 		}else {
-	 			backwardBuild(r, degrees, partitionList.get(indices.get(0)+1),A, max, L, C, indices);
+	 			backwardBuild(r, degrees, partitionList.get(y),A, max, L, C, indices);
 	 		}
 	 	}
 	}
@@ -4509,6 +4513,7 @@ public class PermutationGroupFunctions {
 	
 	public static void backwardBuild(int r, ArrayList<Integer> degrees,ArrayList<Integer> partition,int[][] A, int[][]max, int[][]L, int[][]C, ArrayList<Integer> indices) throws IOException {
 		r=updateR(r,indices);
+		int y=findY(r);
 		int i=indices.get(0);
 		int j=indices.get(1);
 		int l2= LInverse(degrees,i,j,A);
@@ -4521,10 +4526,10 @@ public class PermutationGroupFunctions {
 					mat2[k][l]=A[k][l];
 				}
 			}
-			//System.out.println("done");
+			System.out.println("done");
 			hoppa++;
-			//System.out.println(Arrays.deepToString(A));
-			int y=findY(r);
+			System.out.println(Arrays.deepToString(A));
+			
 			for(int h=y; h<representatives.size(); h++) {
 				representatives.get(h).clear();
 			}
@@ -4540,9 +4545,9 @@ public class PermutationGroupFunctions {
 				if(x>0 && (l2-(x-1)<=L[i][j]) && (c2-(x-1)<=C[i][j])) {
 					A[i][j]=A[j][i]=x-1;
 					ArrayList<Integer> modified2=successor(modified,max.length);
-					forwardBuild(r, degrees, partitionList.get(modified2.get(0)+1), A, max, L, C, modified2);
+					forwardBuild(r, degrees, partitionList.get(y), A, max, L, C, modified2);
 				}else {
-					backwardBuild(r, degrees,partitionList.get(modified.get(0)+1), A, max, L, C, modified);
+					backwardBuild(r, degrees,partitionList.get(y), A, max, L, C, modified);
 				}
 			}
 		}
