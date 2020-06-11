@@ -5310,16 +5310,12 @@ public class PermutationGroupFunctions {
 		 for(Permutation former: formerPerms) {
 			 Permutation test=former.multiply(cycleM);
 			 canonical=getCanonicalPermutation(index, y, total, A, partition, newPartition, test, pWriter);
-			 /**
-			  * Here canonical wont be the cycle but the test.
-			  * needs to update that part.
-			  */
-			 if(!canonical.isIdentity()) {
+			 if(test.equals(canonical)) { //When it is just cycle
+				 addRepresentatives(index,idPermutation(total));
+			 }else if(!canonical.isIdentity()) {
 				 canonical=test.multiply(canonical);
 				 addRepresentatives(index, canonical);
-			 }else{
-				 canonical=idPermutation(total);
-				 //TODO: Clean all the added reps.
+			 }else if(canonical.isIdentity()){
 				 break;
 			 }
 		 }
@@ -5334,16 +5330,19 @@ public class PermutationGroupFunctions {
 				 canonical=getEqualPermutation(cycleM, index, y, total,A, partition, newPartition, pWriter);
 				 if(!canonical.isIdentity()) {
 					 canonical=cycleM.multiply(canonical);
-					 addRepresentatives(index, canonical);
 				 }
 			 }else {
+				 /**
+				  * If id then not canonical but if cycle then 
+				  * no need to add anything to reps and ignore
+				  * that cycle for the further steps.
+				  */
 				 canonical=canonical.multiply(cycleM);
 			 }
 		 }else {
 			 canonical=getEqualPermutation(cycleM, index, y, total, A, partition, newPartition, pWriter);
 			 if(!canonical.isIdentity()) {
 				 canonical=cycleM.multiply(canonical);
-				 addRepresentatives(index, canonical);
 			 }
 		 }
 		 return canonical;
