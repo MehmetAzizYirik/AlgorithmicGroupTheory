@@ -7038,6 +7038,21 @@ public class PermutationGroupFunctions {
 		 }
 	 }
 	 
+	
+	 public static boolean formerRepresentativesCheckFromFormerBlocks(int index, int y, int total, int[][] A, ArrayList<Integer> partition, ArrayList<Integer> newPartition, Permutation perm, PrintWriter pWriter) {
+		 boolean check=true;
+		 ArrayList<Permutation> formerPerms= formerPermutationsFromFormerBlocks(y);
+		 for(Permutation former: formerPerms) {
+			 if(!equalBlockCheck(perm,newPartition,index,y,A,former)){
+				 if(!descBlockCheck2(perm,newPartition,index,y,A,former,2,pWriter)) {
+					 check=false;
+					 break;
+				 }
+			 }
+		 }
+		 return check;
+	 }
+	 
 	 public static ArrayList<Permutation> formerPermutationsFromFormerBlocks(int y) {
 		 ArrayList<Permutation> list= representatives.get(0);
 		 ArrayList<Permutation> nList= new ArrayList<Permutation>();
