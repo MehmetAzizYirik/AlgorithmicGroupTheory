@@ -5273,39 +5273,7 @@ public class PermutationGroupFunctions {
 		 return canonical;
 	 }
 	 
-	 /**
-	  * To perform the canonical test with the perms from the former blocks.
-	  * 
-	  * @param index int row index
-	  * @param y int the first index of the block
-	  * @param total int number of atoms
-	  * @param A int[][] adjacency matrix
-	  * @param partition ArrayList<Integer> atom partition
-	  * @param newPartition ArrayList<Integer> canonical partition
-	  * @param perm Permutation perm
-	  * @param formerBlocks boolean true if permutations are from former blocks
-	  * @return Permutation
-	  */
 	 
-	 public static boolean formerPermutationFromBlocksCheck(int index, int y, int total, int[][] A, ArrayList<Integer> partition, ArrayList<Integer> newPartition, Permutation cycle, Permutation canonical, boolean formerBlocks, PrintWriter pWriter){
-		 boolean check=true;
-		 ArrayList<Permutation> formerPerms= formerPermutations( formerBlocks,index, y, total);
-		 for(Permutation former: formerPerms) {
-			 Permutation test=former.multiply(canonical);
-			 if(!descBlockCheck2(cycle,newPartition,index,y,A,test,2,pWriter)) {
-				 check=false;
-				 break;
-			 }else {
-				 if(!equalBlockCheck(cycle,newPartition,index,y,A,test)) {
-					 /**
-					  * need to remove the first entry from the former block
-					  * representatives list.
-					  */
-					 
-				 }
-			 }
-		 }
-	 }
 	 public static Permutation getCanonicalPermutation(int index, int y, int total, int[][] A, ArrayList<Integer> partition, ArrayList<Integer> newPartition, Permutation cycleM, PrintWriter pWriter) {
 		 PermutationGroup group= getYoungGroup(newPartition,total);
 		 Permutation canonical = idPermutation(total);
@@ -7035,7 +7003,7 @@ public class PermutationGroupFunctions {
 	 public static ArrayList<Permutation> formerPermutationsFromFormerBlocks(int y) {
 		 ArrayList<Permutation> list= representatives.get(0);
 		 ArrayList<Permutation> nList= new ArrayList<Permutation>();
-		 for(int i=0;i<y;i++) {
+		 for(int i=1;i<y;i++) {
 			 for(int l=0;l<list.size();l++) {
 				 for(Permutation perm: representatives.get(i)) {
 					 Permutation mult= list.get(l).multiply(perm);
@@ -7051,11 +7019,10 @@ public class PermutationGroupFunctions {
 		 return list; 
 	 }
 	 
-	 public static HashMap<Integer,Permutation> formerBlocksReps(int y) {
-		 HashMap<Integer,Permutation> map= new HashMap<Integer,Permutation>();
-		 ArrayList<Permutation> list= representatives.get(0);
+	 public static ArrayList<Permutation> formerPermutationsFromFormerBlocks(int index, int y) {
+		 ArrayList<Permutation> list= representatives.get(index);
 		 ArrayList<Permutation> nList= new ArrayList<Permutation>();
-		 for(int i=0;i<y;i++) {
+		 for(int i=(index+1);i<y;i++) {
 			 for(int l=0;l<list.size();l++) {
 				 for(Permutation perm: representatives.get(i)) {
 					 Permutation mult= list.get(l).multiply(perm);
@@ -7071,6 +7038,64 @@ public class PermutationGroupFunctions {
 		 return list; 
 	 }
 	 
+	 /**
+	  * Former block representatives: After the test within the block,
+	  * we test the row with the former blocks representatives. 
+	  * @param index int row index
+	  * @param y int first row index in block
+	  * @param A int[][] adjacency matrix
+	  * @param newPartition ArrayList<Integer> atom partition
+	  * @param perm Permutation
+	  * @return boolean
+	  */
+	 
+	 public static boolean formerBlocksRepresentatives(int index, int y, int[][] A, ArrayList<Integer> newPartition, Permutation perm, PrintWriter pWriter) {
+		 boolean check=true;
+		 ArrayList<ArrayList<Permutation>> removeList = new ArrayList<ArrayList<Permutation>>();
+		 /**
+		  * If we break within  the nested loop, need to put a label to 
+		  * the outer loop also to break.
+		  */
+		 
+		 outer: for(int i=(y-1);i>=0;i--) {
+			 ArrayList<Permutation> toRemove= new ArrayList<Permutation>();
+			 
+			 /**
+			  * No need to multiply them all since we test line by line
+			  * in the list of representatives.
+			  */
+			 
+			 for(Permutation rep: representatives.get(i)) { 
+				 Permutation test= rep.multiply(perm);
+				 if(!descBlockCheck2(test,newPartition,index,y,A,test,2,pWriter)) {
+					 check=false;
+					 break outer;
+				 }else {
+					 if(!equalBlockCheck(test,newPartition,index,y,A,test)) {
+						 toRemove.add(rep);
+					 }
+				 }
+			 }
+			 removeList.add(i,toRemove);
+		 }
+		 return check; 
+	 }
+	 
+	 /**
+	  * To perform the canonical test with the perms from the former blocks.
+	  * 
+	  * @param index int row index
+	  * @param y int the first index of the block
+	  * @param total int number of atoms
+	  * @param A int[][] adjacency matrix
+	  * @param partition ArrayList<Integer> atom partition
+	  * @param newPartition ArrayList<Integer> canonical partition
+	  * @param perm Permutation perm
+	  * @param formerBlocks boolean true if permutations are from former blocks
+	  * @return Permutation
+	  */
+	 
+
 	 /**
 	  * At the end of every strip, check whether all the representatives are
 	  * id permutation. If yes, no need to check the further strips.
