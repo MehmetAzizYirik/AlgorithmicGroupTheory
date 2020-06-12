@@ -5169,6 +5169,11 @@ public class PermutationGroupFunctions {
 							 check=false;
 							 break;
 						 }else {**/
+						 /**
+						  * No perm is for the descending order check with cycle.
+						  * But that does not mean we cannot find a cao perm.
+						  * So no need to check.
+						  */
 							 if(noPermutation(perm,index,y,A,newPartition, pWriter)) {
 								 pWriter.print("noPerm add id perm"+" "+perm+" "+index+" "+newPartition+"\n");
 								 addPartition(index, newPartition, A);
@@ -5210,112 +5215,59 @@ public class PermutationGroupFunctions {
 	 }
 	 
 	 public static boolean blockDemo(int index, int r, int[][] A, ArrayList<Integer> partition, ArrayList<Integer> newPartition,PrintWriter pWriter) {
-		 pWriter.println("block"+" "+index+" "+r+" "+Arrays.deepToString(A)+" "+partition+" "+newPartition);
 		 int y = findY(r);
-		 for(int i=0;i<representatives.size();i++) {
-			 pWriter.print(y+" "+i+" "+representatives.get(i)+"\n");
-		 }
 		 boolean check= true;
 		 int total = sum(partition);
 		 ArrayList<Permutation> cycleTrans= cycleTranspositions(index,partition);
 		 for(Permutation cycle: cycleTrans) {
-			 pWriter.print("cycle"+" "+cycle.toCycleString()+"\n");
-		 }
-		 
-		 /**
-		  * Even if it is in bigger form, then need to check perm
-		  * again.
-		  */
-		 
-		 /**if(!cycleCanonicalCheck(index,y,A,cycleTrans,newPartition)) {
-			 return false;
-		 }else {**/
-			 ArrayList<Permutation> formerReps=formerPermutations(index,y,total);
-			 for(int i=0;i<formerReps.size();i++) {
-				 pWriter.print("former"+" "+formerReps.get(i)+"\n");
-			 }
-			 for(Permutation former: formerReps) { //TODO: Not clear.
-				 for(Permutation cycle: cycleTrans) {
-					 //if(!cycle.isIdentity()) { //3.3.19 T3(v) but just continue with cycle id so check the former perms
-						 Permutation perm = former.multiply(cycle); //3.3.18 Grund
-						 pWriter.print("perm mult"+" "+perm.toCycleString()+"\n");
-						 /**
-						  * Even if it is in bigger form then need to check perm
-						  * again.
-						  */
-						 /**if(descBlockCheck2(perm,newPartition,index,y,A,perm,1)) { //3.3.17 Grund first criteria
-							 check=false;
-							 break;
-						 }else {**/
-							 if(noPermutation(perm,index,y,A,newPartition, pWriter)) {
-								 pWriter.print("noPerm add id perm"+" "+perm+" "+index+" "+newPartition+"\n");
-								 addPartition(index, newPartition, A);
-								 if(equalBlockCheck(perm,partition,index,y,A,perm,1)) {
-									 addRepresentatives(index,perm);
-								 }else {
-									 addRepresentatives(index,idPermutation(total)); 
-								 }
-							 }else {
-								 pWriter.print("perm is needed"+"\n");
-								 Permutation canonical=getThePermutation(perm, index, y, A, partition, newPartition, pWriter);
-								 pWriter.print("canonical perm"+" "+canonical.toCycleString()+"\n");
-								 if(canonical.isIdentity()) {
-									 check=false;
-									 break;
-								 }else {
-									 pWriter.print("canonical add  perm"+" "+perm+" "+perm.multiply(canonical).toCycleString()+" "+index+" "+newPartition+"\n");
-									 addPartition(index, newPartition, A);
-									 if(equalBlockCheck(perm,partition,index,y,A,canonical,1)) {
-										 addRepresentatives(index,perm.multiply(canonical));
-									 }else {
-										 addRepresentatives(index,idPermutation(total)); 
-									 }
-								 }
-							 }  
-						 //}
-					 /**}else {
-						 System.out.println("cycle is id add id perm"+" "+cycle.toCycleString()+" "+index+" "+newPartition);
-						 addPartition(index, newPartition, A);
-						 addRepresentatives(index,idPermutation(total));
-					 }**/
-				 }
-			 }
-		 //}
-		 /**if(representatives.size()<(index+1)) {
-			 check=false; //TODO Why ?
-		 }**/
-		 return check;
-	 }
-	 
-	 public static boolean formerPermutationsCheck(int index, int y, int total, int[][] A, ArrayList<Integer> partition, ArrayList<Integer> newPartition, Permutation cycle, ArrayList<Permutation> formerBlocksReps, PrintWriter pWriter ) {
-		 boolean check=true;
-		 Permutation canonical=getCanonicalPermutation(index, y, total, A, partition, newPartition, cycle, pWriter);
-		 if(!canonical.isIdentity()) {
-			 for(Permutation former:formerBlocksReps) {
-				 Permutation perm = former.multiply(canonical);
-				 if(!descBlockCheck2(perm,newPartition,index,y,A,perm,1,pWriter)) {
+			 Permutation canonicalPerm = formerPermutationsCheck(index,y, total, A, partition, newPartition, cycle,false,pWriter);
+			 if(canonicalPerm.isIdentity()) {
+				 check=false;
+				 break;
+			 }else {
+				 Permutation formerTest = formerPermutationsCheck(index,y, total, A, partition, newPartition, cycle,true,pWriter);
+				 if(formerTest.isIdentity()) {
 					 check=false;
 					 break;
+				 }else {
+					 addPartition(index, newPartition, A);
 				 }
 			 }
-		 }else {
-			 check=false;
-		 }
+		 } 
 		 return check;
 	 }
 	 
-	 public static Permutation formerRepresentativesCheckInBlock(int index, int y, int total, int[][] A, ArrayList<Integer> partition, ArrayList<Integer> newPartition, Permutation cycleM, PrintWriter pWriter) {
+	 /**
+	  * This function performs the canonical test with the former representatives.
+	  * That can be the reps from the former blocks or the former representatives
+	  * in the block. If it outputs the canonical permutation as id, then not
+	  * passed the canonical test and remove already added new entries from the
+	  * list of representatives.
+	  * @param index int row index
+	  * @param y int the first index of the block
+	  * @param total int number of atoms
+	  * @param A int[][] adjacency matrix
+	  * @param partition ArrayList<Integer> atom partition
+	  * @param newPartition ArrayList<Integer> canonical partition
+	  * @param perm Permutation perm
+	  * @param formerBlocks boolean true if permutations are from former blocks
+	  * @return Permutation
+	  */
+	 
+	 public static Permutation formerPermutationsCheck(int index, int y, int total, int[][] A, ArrayList<Integer> partition, ArrayList<Integer> newPartition, Permutation perm, boolean formerBlocks, PrintWriter pWriter ) {
+		 ArrayList<Permutation> formerReps= formerPermutations( formerBlocks,index, y, total);
 		 Permutation canonical = idPermutation(total);
 		 ArrayList<Permutation> formerPerms= formerPermutationsInBlock(index,  y,  total);
 		 for(Permutation former: formerPerms) {
-			 Permutation test=former.multiply(cycleM);
+			 Permutation test=former.multiply(perm);
 			 canonical=getCanonicalPermutation(index, y, total, A, partition, newPartition, test, pWriter);
-			 if(test.equals(canonical)) { //When it is just cycle
+			 if(test.equals(canonical)) { 
 				 addRepresentatives(index,idPermutation(total));
 			 }else if(!canonical.isIdentity()) {
 				 canonical=test.multiply(canonical);
 				 addRepresentatives(index, canonical);
 			 }else if(canonical.isIdentity()){
+				 cleanRepresentatives(index);
 				 break;
 			 }
 		 }
@@ -5425,8 +5377,8 @@ public class PermutationGroupFunctions {
 	  */
 	 
 	 public static void cleanRepresentatives(int index) {
-		 if(representatives.size()==index+1) {
-			 representatives.get(index).clear();
+		 if(representatives.size()!=0) {
+			 representatives.remove(index);
 		 }
 	 }
 	 
@@ -5991,12 +5943,13 @@ public class PermutationGroupFunctions {
 						 check=false;
 						 break;
 					 }
-				 }else {
+				 }
+				 /**else {
 					 if(!descendingOrderCheck(can)) {
 						 check=false;
 						 break;
 					 }
-				 }
+				 }**/
 				 i=i+p;
 			 }else {
 				 check=false;
@@ -7039,18 +6992,12 @@ public class PermutationGroupFunctions {
 	 }
 	 
 	
-	 public static boolean formerRepresentativesCheckFromFormerBlocks(int index, int y, int total, int[][] A, ArrayList<Integer> partition, ArrayList<Integer> newPartition, Permutation perm, PrintWriter pWriter) {
-		 boolean check=true;
-		 ArrayList<Permutation> formerPerms= formerPermutationsFromFormerBlocks(y);
-		 for(Permutation former: formerPerms) {
-			 if(!equalBlockCheck(perm,newPartition,index,y,A,former)){
-				 if(!descBlockCheck2(perm,newPartition,index,y,A,former,2,pWriter)) {
-					 check=false;
-					 break;
-				 }
-			 }
+	 public static ArrayList<Permutation> formerPermutations(boolean formerBlocks,int index, int y, int total){
+		 if(formerBlocks) {
+			 return formerPermutationsFromFormerBlocks(y);
+		 }else {
+			 return formerPermutationsInBlock(index,y,total);
 		 }
-		 return check;
 	 }
 	 
 	 public static ArrayList<Permutation> formerPermutationsFromFormerBlocks(int y) {
