@@ -5239,8 +5239,8 @@ public class PermutationGroupFunctions {
 	 
 	 /**
 	  * This function performs the canonical test with the former representatives.
-	  * That can be the reps from the former blocks or the former representatives
-	  * in the block. If it outputs the canonical permutation as id, then not
+	  * That can be the reps from the former representatives in the block. 
+	  * If it outputs the canonical permutation as id, then not
 	  * passed the canonical test and remove already added new entries from the
 	  * list of representatives.
 	  * @param index int row index
@@ -5255,9 +5255,8 @@ public class PermutationGroupFunctions {
 	  */
 	 
 	 public static Permutation formerPermutationsCheck(int index, int y, int total, int[][] A, ArrayList<Integer> partition, ArrayList<Integer> newPartition, Permutation perm, boolean formerBlocks, PrintWriter pWriter ) {
-		 ArrayList<Permutation> formerReps= formerPermutations( formerBlocks,index, y, total);
+		 ArrayList<Permutation> formerPerms= formerPermutations( formerBlocks,index, y, total);
 		 Permutation canonical = idPermutation(total);
-		 ArrayList<Permutation> formerPerms= formerPermutationsInBlock(index,  y,  total);
 		 for(Permutation former: formerPerms) {
 			 Permutation test=former.multiply(perm);
 			 canonical=getCanonicalPermutation(index, y, total, A, partition, newPartition, test, pWriter);
@@ -5265,7 +5264,7 @@ public class PermutationGroupFunctions {
 				 addRepresentatives(index,idPermutation(total));
 			 }else if(!canonical.isIdentity()) {
 				 canonical=test.multiply(canonical);
-				 addRepresentatives(index, canonical);
+				 addRepresentatives(index, perm.multiply(canonical));
 			 }else if(canonical.isIdentity()){
 				 cleanRepresentatives(index);
 				 break;
@@ -5274,6 +5273,39 @@ public class PermutationGroupFunctions {
 		 return canonical;
 	 }
 	 
+	 /**
+	  * To perform the canonical test with the perms from the former blocks.
+	  * 
+	  * @param index int row index
+	  * @param y int the first index of the block
+	  * @param total int number of atoms
+	  * @param A int[][] adjacency matrix
+	  * @param partition ArrayList<Integer> atom partition
+	  * @param newPartition ArrayList<Integer> canonical partition
+	  * @param perm Permutation perm
+	  * @param formerBlocks boolean true if permutations are from former blocks
+	  * @return Permutation
+	  */
+	 
+	 public static boolean formerPermutationFromBlocksCheck(int index, int y, int total, int[][] A, ArrayList<Integer> partition, ArrayList<Integer> newPartition, Permutation cycle, Permutation canonical, boolean formerBlocks, PrintWriter pWriter){
+		 boolean check=true;
+		 ArrayList<Permutation> formerPerms= formerPermutations( formerBlocks,index, y, total);
+		 for(Permutation former: formerPerms) {
+			 Permutation test=former.multiply(canonical);
+			 if(!descBlockCheck2(cycle,newPartition,index,y,A,test,2,pWriter)) {
+				 check=false;
+				 break;
+			 }else {
+				 if(!equalBlockCheck(cycle,newPartition,index,y,A,test)) {
+					 /**
+					  * need to remove the first entry from the former block
+					  * representatives list.
+					  */
+					 
+				 }
+			 }
+		 }
+	 }
 	 public static Permutation getCanonicalPermutation(int index, int y, int total, int[][] A, ArrayList<Integer> partition, ArrayList<Integer> newPartition, Permutation cycleM, PrintWriter pWriter) {
 		 PermutationGroup group= getYoungGroup(newPartition,total);
 		 Permutation canonical = idPermutation(total);
@@ -7001,6 +7033,26 @@ public class PermutationGroupFunctions {
 	 }
 	 
 	 public static ArrayList<Permutation> formerPermutationsFromFormerBlocks(int y) {
+		 ArrayList<Permutation> list= representatives.get(0);
+		 ArrayList<Permutation> nList= new ArrayList<Permutation>();
+		 for(int i=0;i<y;i++) {
+			 for(int l=0;l<list.size();l++) {
+				 for(Permutation perm: representatives.get(i)) {
+					 Permutation mult= list.get(l).multiply(perm);
+					 if(!nList.contains(mult)) {
+						 nList.add(mult); 
+					 }
+				 }
+			 }
+			 list.clear();
+			 list.addAll(nList); // list=nList does not work.
+			 nList.clear();
+		 }
+		 return list; 
+	 }
+	 
+	 public static HashMap<Integer,Permutation> formerBlocksReps(int y) {
+		 HashMap<Integer,Permutation> map= new HashMap<Integer,Permutation>();
 		 ArrayList<Permutation> list= representatives.get(0);
 		 ArrayList<Permutation> nList= new ArrayList<Permutation>();
 		 for(int i=0;i<y;i++) {
