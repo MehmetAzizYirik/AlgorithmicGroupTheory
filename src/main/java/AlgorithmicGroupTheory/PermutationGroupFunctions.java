@@ -5225,8 +5225,8 @@ public class PermutationGroupFunctions {
 				 check=false;
 				 break;
 			 }else {
-				 Permutation formerTest = formerPermutationsCheck(index,y, total, A, partition, newPartition, cycle,true,pWriter);
-				 if(formerTest.isIdentity()) {
+				 boolean formerTest = formerBlocksRepresentatives(index,y, A, newPartition, cycle.multiply(canonicalPerm), pWriter);
+				 if(!formerTest) {
 					 check=false;
 					 break;
 				 }else {
@@ -7051,15 +7051,13 @@ public class PermutationGroupFunctions {
 	 
 	 public static boolean formerBlocksRepresentatives(int index, int y, int[][] A, ArrayList<Integer> newPartition, Permutation perm, PrintWriter pWriter) {
 		 boolean check=true;
-		 ArrayList<ArrayList<Permutation>> removeList = new ArrayList<ArrayList<Permutation>>();
+		 ArrayList<ArrayList<Permutation>> removeList = describeRemovalList(y);
 		 /**
 		  * If we break within  the nested loop, need to put a label to 
 		  * the outer loop also to break.
 		  */
 		 
-		 outer: for(int i=(y-1);i>=0;i--) {
-			 ArrayList<Permutation> toRemove= new ArrayList<Permutation>();
-			 
+		 outer: for(int i=(y-1);i>=0;i--) {			 
 			 /**
 			  * No need to multiply them all since we test line by line
 			  * in the list of representatives.
@@ -7072,13 +7070,39 @@ public class PermutationGroupFunctions {
 					 break outer;
 				 }else {
 					 if(!equalBlockCheck(test,newPartition,index,y,A,test)) {
-						 toRemove.add(rep);
+						 removeList.get(i).add(rep);
 					 }
 				 }
 			 }
-			 removeList.add(i,toRemove);
 		 }
 		 return check; 
+	 }
+	 
+	 /**
+	  * Describing ArrayList<ArrayList<Permutation>>
+	  * for formerBlocksRepresentatives function.
+	  * 
+	  * @param y int index of the first row in block
+	  * @return ArrayList<ArrayList<Permutation>> permutations to remove.
+	  */
+	 public static ArrayList<ArrayList<Permutation>> describeRemovalList(int y){
+		 ArrayList<ArrayList<Permutation>> removeList = new ArrayList<ArrayList<Permutation>>();
+		 for(int i=0;i<y;i++) {
+			 ArrayList<Permutation> list = new ArrayList<Permutation>();
+			 removeList.add(i,list);
+		 }
+		 return removeList;
+	 }
+	 
+	 /**
+	  * Remove the detected list of permutations from representatives list.
+	  * @param list ArrayList<ArrayList<Permutation>>
+	  */
+	 
+	 public static void removePermutations(ArrayList<ArrayList<Permutation>> list) {
+		 for(int i=0;i<list.size();i++) {
+			 representatives.get(i).removeAll(list.get(i));
+		 }
 	 }
 	 
 	 /**
@@ -7843,7 +7867,7 @@ public class PermutationGroupFunctions {
 		 partition.add(4);
 		 
 		 //matrixGenerator(degrees);
-		 canonicalBlockbasedGenerator(degrees,partition);
+		 //canonicalBlockbasedGenerator(degrees,partition);
 		 Integer[] ord= new Integer[2];
 		 ord[0]=1;
 		 ord[1]=0;
@@ -7909,6 +7933,6 @@ public class PermutationGroupFunctions {
 		 //reps.add(0,ilkA);
 		 //reps.add(1,ikiA);
 		 //reps.add(2,partition);
-		 
+		
 	 }
 }
