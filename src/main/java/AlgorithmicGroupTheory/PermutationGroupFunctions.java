@@ -4315,10 +4315,10 @@ public class PermutationGroupFunctions {
 	public static void forwardBuild(int r, ArrayList<Integer> degrees, ArrayList<Integer> partition,int[][] A, int[][]max, int[][]L, int[][]C, ArrayList<Integer> indices, PrintWriter pWriter) throws IOException {
 		int y=findY(r);
 		int z=findZ(r);
-		//System.out.println("forward build r y z"+" "+r+" "+y+" "+z);
+		pWriter.print("forward build r y z"+" "+r+" "+y+" "+z+"\n");
 		int i=indices.get(0);
 		int j=indices.get(1);
-		//System.out.println("forward indices"+" "+i+" "+j);
+		pWriter.print("forward indices"+" "+i+" "+j+"\n");
 		int l2= LInverse(degrees,i,j,A);
 		int c2= CInverse(degrees,i,j,A);
 	 	int minimal= Math.min(max[i][j],Math.min(l2,c2));
@@ -4326,13 +4326,13 @@ public class PermutationGroupFunctions {
 	 		if((l2-h<=L[i][j]) && (c2-h<=C[i][j])) {
 	 			A[i][j]=A[j][i]=h;
 	 			if(i==(max.length-2) && j==(max.length-1)) {
-	 				//System.out.println("last entry");
+	 				pWriter.print("last entry"+"\n");
 	 				backwardBuild(r, degrees,partitionList.get(y),A, max, L, C, indices, pWriter);
 	 			}else {
 	 				ArrayList<Integer> modified=successor(indices,max.length);
-	 				//System.out.println("successor"+" "+modified.get(0)+" "+modified.get(1));
+	 				pWriter.print("successor"+" "+modified.get(0)+" "+modified.get(1)+"\n");
 	 				if(modified.get(0)>z) { // If its higher than z value. 
-	 					//System.out.println("forward block is done i r y z"+" "+i+" "+r+" "+y+" "+z+" "+"matrix"+" "+Arrays.deepToString(A));
+	 					pWriter.print("forward block is done i r y z"+" "+i+" "+r+" "+y+" "+z+" "+"matrix"+" "+Arrays.deepToString(A)+"\n");
 	 					if(blockTest(i, r, A,pWriter)) {
 	 						r++;
 	 						forwardBuild(r, degrees, partitionList.get(z+1), A, max, L, C, modified, pWriter);
@@ -4528,15 +4528,39 @@ public class PermutationGroupFunctions {
 				}
 			}
 			pWriter.println("done");
+			//System.out.println("done");
 			hoppa++;
+			//System.out.println(Arrays.deepToString(A));
 			pWriter.print(Arrays.deepToString(A)+"\n");
+			pWriter.print("test bu"+" "+y+" "+representatives.size()+" "+partitionList.size()+"\n");
+			for(int h=0; h<representatives.size(); h++) {
+				pWriter.print(h+" "+representatives.get(h)+"\n");
+			}
+			for(int k=(1); k<partitionList.size(); k++) {
+				pWriter.print(k+" "+partitionList.get(k)+"\n");
+			}
 			
-			for(int h=y; h<representatives.size(); h++) {
-				representatives.remove(h);
+			for(int h=1; h<representatives.size(); h++) {
+				pWriter.print(h+" "+representatives.size()+"\n");
 			}
-			for(int k=(y+1); k<partitionList.size(); k++) {
-				partitionList.remove(k);
+			
+			for(int k=(2); k<partitionList.size(); k++) {
+				pWriter.print(k+" "+partitionList.size()+"\n");
 			}
+			for(int h=0; h<representatives.size(); h++) {
+				representatives.get(h).removeAll(representatives.get(h));
+			}
+			for(int k=(1); k<partitionList.size(); k++) {
+				partitionList.get(k).removeAll(partitionList.get(k));
+			}
+			
+			for(int h=0; h<representatives.size(); h++) {
+				pWriter.print(h+" "+representatives.get(h)+"\n");
+			}
+			for(int k=(1); k<partitionList.size(); k++) {
+				pWriter.print(k+" "+partitionList.get(k)+"\n");
+			}
+			
 		}else{
 			ArrayList<Integer> modified=predecessor(indices, max.length);
 			i= modified.get(0);
@@ -5152,7 +5176,7 @@ public class PermutationGroupFunctions {
 		 /**if(!cycleCanonicalCheck(index,y,A,cycleTrans,newPartition)) {
 			 return false;
 		 }else {**/
-			 ArrayList<Permutation> formerReps=formerPermutations(index,y,total);
+			 ArrayList<Permutation> formerReps=formerPermutations(false,index,y,total);
 			 for(int i=0;i<formerReps.size();i++) {
 				 pWriter.print("former"+" "+formerReps.get(i)+"\n");
 			 }
@@ -5215,23 +5239,23 @@ public class PermutationGroupFunctions {
 	 }
 	 
 	 public static boolean blockDemo(int index, int r, int[][] A, ArrayList<Integer> partition, ArrayList<Integer> newPartition,PrintWriter pWriter) {
+		 pWriter.print(Arrays.deepToString(A)+"\n");
 		 int y = findY(r);
 		 boolean check= true;
+		 pWriter.print("index r and y"+" "+index+" "+r+" "+y+"\n");
 		 int total = sum(partition);
 		 ArrayList<Permutation> cycleTrans= cycleTranspositions(index,partition);
 		 for(Permutation cycle: cycleTrans) {
-			 Permutation canonicalPerm = formerPermutationsCheck(index,y, total, A, partition, newPartition, cycle,false,pWriter);
-			 if(canonicalPerm.isIdentity()) {
+			 pWriter.print("cycle"+" "+cycle.toCycleString()+"\n");
+		 }
+		 for(Permutation cycle: cycleTrans) {
+			 boolean formerCheck = formerPermutationsCheck(index,y, total, A, partition, newPartition, cycle,false,pWriter);
+			 if(!formerCheck) {
+				 pWriter.print("check is false"+"\n");
 				 check=false;
 				 break;
 			 }else {
-				 boolean formerTest = formerBlocksRepresentatives(index,y, A, newPartition, cycle.multiply(canonicalPerm), pWriter);
-				 if(!formerTest) {
-					 check=false;
-					 break;
-				 }else {
-					 addPartition(index, newPartition, A);
-				 }
+				 addPartition(index, newPartition, A);
 			 }
 		 } 
 		 return check;
@@ -5254,50 +5278,129 @@ public class PermutationGroupFunctions {
 	  * @return Permutation
 	  */
 	 
-	 public static Permutation formerPermutationsCheck(int index, int y, int total, int[][] A, ArrayList<Integer> partition, ArrayList<Integer> newPartition, Permutation perm, boolean formerBlocks, PrintWriter pWriter ) {
-		 ArrayList<Permutation> formerPerms= formerPermutations( formerBlocks,index, y, total);
+	 public static boolean formerPermutationsCheck(int index, int y, int total, int[][] A, ArrayList<Integer> partition, ArrayList<Integer> newPartition, Permutation perm, boolean formerBlocks, PrintWriter pWriter ) {
+		 boolean check=true;
+		 pWriter.print("index y and formerBlocks"+" "+index+" "+y+" "+formerBlocks+"\n");
+		 ArrayList<Permutation> formerPerms= formerPermutations( formerBlocks,index, y, total, pWriter);
+		 for(Permutation former: formerPerms) {
+			 pWriter.print("formerPERMS"+" "+former+"\n");
+		 }
 		 Permutation canonical = idPermutation(total);
 		 for(Permutation former: formerPerms) {
+			 pWriter.print("perm nedir"+" "+perm.toCycleString()+"\n");
 			 Permutation test=former.multiply(perm);
-			 canonical=getCanonicalPermutation(index, y, total, A, partition, newPartition, test, pWriter);
-			 if(test.equals(canonical)) { 
-				 addRepresentatives(index,idPermutation(total));
-			 }else if(!canonical.isIdentity()) {
-				 canonical=test.multiply(canonical);
-				 addRepresentatives(index, perm.multiply(canonical));
-			 }else if(canonical.isIdentity()){
-				 cleanRepresentatives(index);
+			 pWriter.print("cycle multiply by the former"+" "+test+"\n");
+			 //if(getCanonicalTest(index, y, total, A, partition, newPartition, test, pWriter)) {
+				 canonical=getCanonicalPermutation(index, y, total, A, partition, newPartition, test, pWriter);
+				 pWriter.print("getCanonical in former perms check"+" "+index+" "+canonical+" "+test+"\n");
+				 pWriter.print(canonical.isIdentity()+" "+test.equals(canonical)+" "+descBlockwiseCheck2(index,y,A,newPartition)+" "+Arrays.toString(A)+" "+index+" "+y+" "+partition+" "+"\n");
+				 if(canonical.isIdentity()) {
+					 if(descBlockwiseCheck2(index,y,A,newPartition) &&descBlockCheck2(test,newPartition,index,y,A,idPermutation(total),2,pWriter)) { //TODO: Not enought for the example. Not des but id so if the array is desc but the comparison is not. Then we cant say continue.
+						 boolean formerTest = formerBlocksRepresentatives(index,y, A, newPartition, canonical, pWriter);
+						 if(!formerTest) {
+							 check=false;
+							 break;
+						 }else {
+							 addRepresentatives(index,idPermutation(total)); 
+						 }
+					 }else {
+						 check=false;
+						 break;
+					 }
+				 }else {
+					 if(test.equals(canonical)) {
+						 boolean formerTest = formerBlocksRepresentatives(index,y, A, newPartition, canonical, pWriter);
+						 if(!formerTest) {
+							 check=false;
+							 break;
+						 }else {
+							 addRepresentatives(index,idPermutation(total)); 
+						 }
+					 }else {
+						 boolean formerTest = formerBlocksRepresentatives(index,y, A, newPartition, canonical, pWriter);
+						 if(!formerTest) {
+							 check=false;
+							 break;
+						 }else {
+							 addRepresentatives(index, canonical);
+						 }
+					 }
+				 }
+				 
+				 /**if(test.equals(canonical)) { 
+					 boolean formerTest = formerBlocksRepresentatives(index,y, A, newPartition, canonical, pWriter);
+					 if(!formerTest) {
+						 check=false;
+						 break;
+					 }else {
+						 addRepresentatives(index,idPermutation(total)); 
+					 //}
+				 }else if(!canonical.isIdentity()) {
+					 canonical=test.multiply(canonical);
+					 addRepresentatives(index, perm.multiply(canonical));
+					 boolean formerTest = formerBlocksRepresentatives(index,y, A, newPartition, canonical, pWriter);
+					 if(!formerTest) {
+						 check=false;
+						 break;
+					 }else {
+						 addRepresentatives(index, canonical);
+					 }
+				 }else if(canonical.isIdentity() && descBlockwiseCheck2(index,y,A,partition)){
+					 addRepresentatives(index,idPermutation(total));
+				 }else {
+					 check=false;
+					 break;
+				 }
+			 }else {
+				 check=false;
 				 break;
-			 }
+			 }**/
 		 }
-		 return canonical;
+		 System.out.println("former permutation check"+" "+check);
+		 return check;
 	 }
 	 
 	 
 	 public static Permutation getCanonicalPermutation(int index, int y, int total, int[][] A, ArrayList<Integer> partition, ArrayList<Integer> newPartition, Permutation cycleM, PrintWriter pWriter) {
-		 PermutationGroup group= getYoungGroup(newPartition,total);
+		 pWriter.print("getCanonicalPermutation"+"\n");
+		 pWriter.print("permutation"+" "+cycleM+"\n");
+		 //PermutationGroup group= getYoungGroup(newPartition,total);
 		 Permutation canonical = idPermutation(total);
-		 if(descBlockCheck2(cycleM,newPartition,index,y,A,cycleM,2,pWriter)){
-			 if(!equalBlockCheck(cycleM,newPartition,index,y,A,cycleM)) {
+		 pWriter.print("des"+" "+descBlockCheck2(cycleM,newPartition,index,y,A,idPermutation(total),2,pWriter)+" "+"\n");
+		 pWriter.print("equal"+" "+equalBlockCheck(cycleM,newPartition,index,y,A,idPermutation(total), pWriter)+" "+"\n");
+		 if(descBlockCheck2(cycleM,newPartition,index,y,A,idPermutation(total),2,pWriter)){
+			 if(!equalBlockCheck(cycleM,newPartition,index,y,A,idPermutation(total), pWriter)) {
 				 canonical=getEqualPermutation(cycleM, index, y, total,A, partition, newPartition, pWriter);
-				 if(!canonical.isIdentity()) {
-					 canonical=cycleM.multiply(canonical);
-				 }
+				 pWriter.print("equal perm"+" "+canonical.toCycleString()+"\n");
+				 canonical=cycleM.multiply(canonical);
 			 }else {
 				 /**
 				  * If id then not canonical but if cycle then 
 				  * no need to add anything to reps and ignore
 				  * that cycle for the further steps.
 				  */
-				 canonical=canonical.multiply(cycleM);
-			 }
-		 }else {
-			 canonical=getEqualPermutation(cycleM, index, y, total, A, partition, newPartition, pWriter);
-			 if(!canonical.isIdentity()) {
 				 canonical=cycleM.multiply(canonical);
 			 }
+		 }else {
+			 
+			 /**
+			  * des already check equal or descending.
+			  */
+			 
+			 /**canonical=getEqualPermutation(cycleM, index, y, total, A, partition, newPartition, pWriter);
+			 if(!canonical.isIdentity()) {
+				 canonical=cycleM.multiply(canonical);
+			 }**/
 		 }
 		 return canonical;
+	 }
+	 
+	 public static boolean getCanonicalTest(int index, int y, int total, int[][] A, ArrayList<Integer> partition, ArrayList<Integer> newPartition, Permutation cycleM, PrintWriter pWriter) {
+		 boolean check=true;
+		 if(!descBlockwiseCheck2(index,y,A,partition,pWriter)){
+			 check=false;
+		 }
+		 return check;
 	 }
 	 
 	 public static void updateRepresentativesList(int index, int y, int total, int[][] A, Permutation perm, ArrayList<Integer> partition) {
@@ -5319,7 +5422,7 @@ public class PermutationGroupFunctions {
 	  */
 	 
 	 public static boolean blockTest(int index, int r, int[][] A, PrintWriter pWriter) {
-		 //System.out.println("block test started"+" "+index+" "+r+" "+Arrays.deepToString(A));
+		 pWriter.print("block test started"+" "+index+" "+r+" "+Arrays.deepToString(A)+"\n");
 		 boolean check=true;
 		 int y=findY(r);
 		 int z=findZ(r);
@@ -5333,7 +5436,7 @@ public class PermutationGroupFunctions {
 		 }
 		 for(int i=y;i<=z;i++) {
 			 pWriter.print(i+" "+Arrays.deepToString(A)+" "+partitionList.get(i)+" "+canonicalPartition(i,partitionList.get(i))+"\n");
-			 if(!block(i,r, A, partitionList.get(i),canonicalPartition(i,partitionList.get(i)),pWriter)){
+			 if(!blockDemo(i,r, A, partitionList.get(i),canonicalPartition(i,partitionList.get(i)),pWriter)){
 				 check=false;
 				 break;
 			 }
@@ -5343,6 +5446,28 @@ public class PermutationGroupFunctions {
 	 }
 	 
 	 /**
+	  * When we reach the last block in an adjacency matrix,
+	  * if all the former permutations are id; no need to
+	  * perform the canonical test to the last block.
+	  * @return boolean
+	  */
+
+	 public static boolean trivialGroupCheck() {
+		 boolean check=true;
+		 outer : for(int i=0;i<representatives.size();i++) {
+			 System.out.println("line"+" "+i);
+			 ArrayList<Permutation>  reps = representatives.get(i);
+			 for(int j=0;j<reps.size();j++) {
+				 System.out.println("permutation"+" "+reps.get(j).toCycleString());
+				 if(!reps.get(j).isIdentity()) {
+					 check=false;
+					 break outer;
+				 }
+			 }
+		 }
+		 return check;
+	 }
+	 /**
 	  * If the blockTest is false, clear the reps and representatives 
 	  * of the tested block. 
 	  * @param check boolean blockTest
@@ -5350,7 +5475,7 @@ public class PermutationGroupFunctions {
 	  */
 	 
 	 public static void clear(boolean check, int y,PrintWriter pWriter) {
-		 pWriter.print("clear check"+" "+check+"\n");
+		 pWriter.print("clear check"+" "+y+" "+check+"\n");
 		 
 		 for(int i=y;i<representatives.size();i++) {
 			 pWriter.print("reps"+" "+i+" "+representatives.get(i)+"\n");
@@ -5362,12 +5487,21 @@ public class PermutationGroupFunctions {
 		 
 		 if(check==false) {
 			 for(int i=y;i<representatives.size();i++) {
-				 representatives.remove(i);
+				 representatives.get(i).removeAll(representatives.get(i));
 			 }
 			 for(int i=y+1;i<partitionList.size();i++) {
-				 partitionList.remove(i);
+				 partitionList.get(i).removeAll(partitionList.get(i));
 			 }
 		 }
+		 
+		 for(int i=y;i<representatives.size();i++) {
+			 pWriter.print("sildi reps"+" "+i+" "+representatives.get(i)+"\n");
+		 }
+		 
+		 for(int i=y+1;i<partitionList.size();i++) {
+			 pWriter.print("sildi parts"+" "+i+" "+partitionList.get(i)+"\n");
+		 }
+		 
 	 }
 	 
 	 /**
@@ -5378,7 +5512,7 @@ public class PermutationGroupFunctions {
 	 
 	 public static void cleanRepresentatives(int index) {
 		 if(representatives.size()!=0) {
-			 representatives.remove(index);
+			 representatives.removeAll(representatives.get(index));
 		 }
 	 }
 	 
@@ -5601,11 +5735,13 @@ public class PermutationGroupFunctions {
 	 }
 	 
 	 public static Permutation getEqualPermutation(Permutation cycleM, int index, int y, int total, int[][] A, ArrayList<Integer> partition, ArrayList<Integer> newPartition, PrintWriter pWriter) {
+		 pWriter.print("getEqualPermutation"+"\n");
 		 PermutationGroup group= getYoungGroup(newPartition,total);
 		 Permutation canonical = idPermutation(total);
 		 for(Permutation perm : group.all()) {
+			 pWriter.print("equalda check"+" "+perm.toCycleString()+"\n");
 			 if(!perm.isIdentity()) {
-				 if(equalBlockCheck(cycleM,newPartition,index,y,A,perm)){
+				 if(equalBlockCheck(cycleM,newPartition,index,y,A,perm,pWriter)){
 					 canonical = perm;
 					 break;
 				 }
@@ -5872,17 +6008,23 @@ public class PermutationGroupFunctions {
 	  * @return
 	  */
 	 
-	 public static boolean equalBlockCheck(Permutation cycleM,ArrayList<Integer> partition, int index, int y, int[][] A, Permutation perm){
+	 public static boolean equalBlockCheck(Permutation cycleM,ArrayList<Integer> partition, int index, int y, int[][] A, Permutation perm, PrintWriter pWriter){
+		 pWriter.print("equalblockcheck"+"\n");
 		 boolean check=true;
 		 int[] canonical= A[index];
 		 int[] original= A[index];
-		 original=actArray(A[cycleM.get(index)],perm);
+		 pWriter.print(cycleM.toCycleString()+" "+perm.toCycleString()+"\n");
+		 Permutation mult=cycleM.multiply(perm);
+		 original=actArray(A[mult.get(index)],mult);
+		 pWriter.print("equalBlockCheck"+" "+Arrays.toString(canonical)+"\n");
+		 pWriter.print("equalBlockCheck"+" "+Arrays.toString(original)+"\n");
 		 //System.out.println("equal check"+" "+Arrays.toString(canonical)+" "+Arrays.toString(original));
 		 if(!Arrays.equals(canonical,original)) {
 			 check=false;
 		 }
 		 return check;
 	 }
+	 
 	 
 	 public static boolean equalDesOrderCheck(Permutation cycleM,ArrayList<Integer> partition, int index, int y, int[][] A, Permutation perm, int order) {
 		 boolean check=true;
@@ -5910,19 +6052,33 @@ public class PermutationGroupFunctions {
 		 }
 		 return check;
 	 }
+	 
 	 public static boolean descBlockCheck2(Permutation cycleM,ArrayList<Integer> partition, int index, int y, int[][] A, Permutation perm,int order,PrintWriter pWriter){
 		 boolean check=true;
-		 pWriter.print("desblock2 cycle perm index partition"+" "+cycleM.toCycleString()+" "+perm.toCycleString()+" "+index+" "+partition+"\n");
+		 System.out.println("desblock2 cycle perm index partition"+" "+cycleM.toCycleString()+" "+perm.toCycleString()+" "+index+" "+partition+"\n");
 		 int[] canonical= A[index];
 		 int[] original= A[index];
+		 System.out.println("cycleM"+" "+cycleM.toCycleString()+"\n");
+		 System.out.println("index"+" "+cycleM.get(index)+"\n");
 		 if(order==1) {
-			 original=actArray(A[cycleM.get(index)],perm);
+			 //original=actArray(A[cycleM.get(index)],perm);
+			 original=actArray(A[cycleM.get(index)],cycleM);
 		 }else if(order==2) {
-			 original=actArray(A[cycleM.get(index)],cycleM.multiply(perm));
+			 //original=actArray(A[cycleM.get(index)],cycleM.multiply(perm));
+			 original=actArray(A[cycleM.get(index)],cycleM);
 		 }
-		 pWriter.print("cycle perm and mult of these two"+" "+cycleM.toCycleString()+" "+perm.toCycleString()+" "+cycleM.multiply(perm).toCycleString()+"\n");
-		 pWriter.print("canonical"+" "+Arrays.toString(canonical)+"\n");
-		 pWriter.print("original"+" "+Arrays.toString(original)+"\n");
+		 
+		 int[] temp= new int[sum(partition)];
+		 if(cycleM.get(index)<index) {
+			 temp=canonical;
+			 canonical=original;
+			 original=temp;
+		 }
+	
+		 System.out.println(Arrays.toString(canonical)+" "+Arrays.toString(original)+"\n");
+		 System.out.println("cycle perm and mult of these two"+" "+cycleM.toCycleString()+" "+perm.toCycleString()+" "+cycleM.multiply(perm).toCycleString()+"\n");
+		 System.out.println("canonical"+" "+Arrays.toString(canonical)+"\n");
+		 System.out.println("original"+" "+Arrays.toString(original)+"\n");
 		 //System.out.println("desBlockCheck2");
 		 //System.out.println(index+" "+perm.toCycleString()+" "+cycleM.toCycleString());
 		 //System.out.println("array to compare first"+" "+Arrays.toString(canonical));
@@ -5932,8 +6088,9 @@ public class PermutationGroupFunctions {
 		 for(Integer p:partition) {
 			 Integer[] can= getBlocks(canonical,i,p+i);
 			 Integer[] org= getBlocks(original,i,p+i);
-			 if(desOrderCheck(can) && desOrderCheck(org)) {
-				 if(!Arrays.equals(can,org)) {
+			 //if(desOrderCheck(can) && desOrderCheck(org)) { not both the first should be desc
+			 if(desOrderCheck(can)) {	 
+			 	if(!Arrays.equals(can,org)) {
 					 if(toInt(can)==toInt(org)) {
 						 continue;
 					 }else if(toInt(can)>toInt(org)) {
@@ -5958,6 +6115,28 @@ public class PermutationGroupFunctions {
 		 }
 		 return check;
 	 }
+	 
+	 public static boolean descBlockwiseCheck2(int index, int y, int[][] A, ArrayList<Integer> partition){
+		 int[] array= A[index];
+		 System.out.println(Arrays.toString(array));
+		 System.out.println(partition);
+		 boolean check=true;
+		 int i=0;
+		 for(Integer p:partition) {
+			 System.out.println(p);
+			 Integer[] can= getBlocks(array,i,p+i);
+			 System.out.println(Arrays.toString(can));
+			 if(desOrderCheck(can)) {
+				 i=i+p;
+				 continue;
+			 }else {
+				 check=false;
+				 break;
+			 }
+		 }
+		 return check;
+	 }
+	 
 	 
 	 /**
 	  * int array to int representation. This is needed for blockwise descending order check. 
@@ -6963,7 +7142,8 @@ public class PermutationGroupFunctions {
 	  * @return
 	  */
 	 
-	 public static ArrayList<Permutation> formerPermutationsInBlock(int index, int y, int total) {
+	 public static ArrayList<Permutation> formerPermutationsInBlock(int index, int y, int total, PrintWriter pWriter) {
+		 pWriter.print("index y total"+" "+index+" "+y+" "+total+"\n");
 		 if(index==y) {
 			 ArrayList<Permutation> form= new ArrayList<Permutation>();
 			 form.add(idPermutation(total));
@@ -6972,7 +7152,7 @@ public class PermutationGroupFunctions {
 			 ArrayList<Permutation> list= representatives.get(y);
 			 ArrayList<Permutation> nList= new ArrayList<Permutation>();
 			 //System.out.println("former perms"+" "+index);
-			 for(int i=y;i<index;i++) {
+			 for(int i=(y+1);i<index;i++) {
 				 for(int l=0;l<list.size();l++) {
 					 for(Permutation perm: representatives.get(i)) {
 						 Permutation mult= list.get(l).multiply(perm);
@@ -6992,11 +7172,11 @@ public class PermutationGroupFunctions {
 	 }
 	 
 	
-	 public static ArrayList<Permutation> formerPermutations(boolean formerBlocks,int index, int y, int total){
+	 public static ArrayList<Permutation> formerPermutations(boolean formerBlocks,int index, int y, int total, PrintWriter pWriter){
 		 if(formerBlocks) {
 			 return formerPermutationsFromFormerBlocks(y);
 		 }else {
-			 return formerPermutationsInBlock(index,y,total);
+			 return formerPermutationsInBlock(index,y,total, pWriter);
 		 }
 	 }
 	 
@@ -7056,28 +7236,57 @@ public class PermutationGroupFunctions {
 		  * If we break within  the nested loop, need to put a label to 
 		  * the outer loop also to break.
 		  */
-		 
-		 outer: for(int i=(y-1);i>=0;i--) {			 
+		 pWriter.print("y"+" "+y);
+		 outer: for(int i=(y-1);i>=0;i--) {	
+			 pWriter.print("former representations line i"+" "+i+"\n");
+			 pWriter.print("former representations: "+"\n");
+			 for(Permutation p: representatives.get(i)) {
+				 pWriter.print(p.toCycleString()+"\n");
+			 }
+			 
 			 /**
 			  * No need to multiply them all since we test line by line
 			  * in the list of representatives.
 			  */
 			 
-			 for(Permutation rep: representatives.get(i)) { 
+			 for(Permutation rep: representatives.get(i)) {
+				 pWriter.print("former in "+" "+i+" "+rep.toCycleString()+"\n");
+				 pWriter.print("perm"+" "+perm.toCycleString()+"\n");
 				 Permutation test= rep.multiply(perm);
 				 if(!descBlockCheck2(test,newPartition,index,y,A,test,2,pWriter)) {
 					 check=false;
 					 break outer;
 				 }else {
-					 if(!equalBlockCheck(test,newPartition,index,y,A,test)) {
-						 removeList.get(i).add(rep);
+					 if(!equalBlockCheck(test,newPartition,index,y,A,test,pWriter)) {
+						 if(!rep.isIdentity()) {
+							 removeList.get(i).add(rep); 
+						 }
 					 }
 				 }
 			 }
 		 }
+		 pWriter.print("silmeden once");
+		 for(int i=0;i<y;i++) {
+			 pWriter.print(representatives.get(i)+"\n");
+		 }
+		 for(int i=0;i<removeList.size();i++) {
+			 pWriter.print(removeList.get(i)+"\n");
+		 }
+		 if(check) {
+			 removeFormerPermutations(y,removeList);
+		 }
 		 return check; 
 	 }
 	 
+	 public static void removeFormerPermutations(int y,ArrayList<ArrayList<Permutation>> removeList) {
+		 ArrayList<Permutation> check= new ArrayList<Permutation>();
+		 for(int i=(y-1);i>=0;i--) {
+			 check=removeList.get(i);
+			 if(check.size()!=0) {
+				 representatives.get(i).removeAll(check);
+			 }
+		 }
+	 }
 	 /**
 	  * Describing ArrayList<ArrayList<Permutation>>
 	  * for formerBlocksRepresentatives function.
@@ -7853,86 +8062,66 @@ public class PermutationGroupFunctions {
 	public static void main(String[] args) throws CloneNotSupportedException, CDKException, IOException {   
 		ArrayList<Integer> degrees= new ArrayList<Integer>();
 		 
-		 degrees.add(4);
-		 degrees.add(4);
-		 degrees.add(2);
-		 degrees.add(1);
-		 degrees.add(1);
-		 degrees.add(1);
-		 degrees.add(1);
-		 
-		 ArrayList<Integer> partition= new ArrayList<Integer>();
-		 partition.add(2);
-		 partition.add(1);
-		 partition.add(4);
-		 
-		 //matrixGenerator(degrees);
-		 //canonicalBlockbasedGenerator(degrees,partition);
-		 Integer[] ord= new Integer[2];
-		 ord[0]=1;
-		 ord[1]=0;
-		 //System.out.println(desOrderCheck(ord));
-		 System.out.println(hoppa);
-		 int[][] mat = new int[10][10];
-		 /**mat[0][2]=1;
-		 mat[0][3]=1;
-		 mat[0][4]=1;
-		 mat[1][2]=1;
-		 mat[1][3]=1;
-		 mat[1][5]=1;**/
-		 mat[2][0]=1;
-		 mat[2][1]=1;
-		 mat[2][4]=2;
-		 mat[3][0]=1;
-		 mat[3][1]=1;
-		 mat[3][5]=1;
-		 mat[3][6]=1;
-		 mat[4][0]=1;
-		 mat[4][1]=0;
-		 mat[4][2]=2;
-		 mat[4][7]=1;
-		 mat[5][1]=1;
-		 mat[5][3]=1;
-		 mat[5][8]=1;
-		 mat[5][9]=1;
-		 
-		 Permutation id= new Permutation(0,1,2,3,4,5,6,7,8,9);
-		 Permutation ikinci= new Permutation(1,0,2,3,5,4,6,7,8,9);
-		 Permutation ucP= new Permutation(0,1,3,2,4,5,6,7,8,9);
-		 ArrayList<Permutation> ilk= new ArrayList<Permutation>();
-		 ilk.add(id);
-		 ilk.add(ikinci);
-		 ArrayList<Permutation> uc= new ArrayList<Permutation>();
-		 uc.add(id);
-		 uc.add(ucP);
-		 ArrayList<Permutation> idL= new ArrayList<Permutation>();
-		 idL.add(id);
-		 //representatives.add(0,ilk);
-		 //representatives.add(1,idL);
-		 //representatives.add(2,uc);
-		 //representatives.add(3,idL);
-		 //representatives.add(4,idL);
-		 //representatives.add(5,idL);
-		 
-		 ArrayList<Integer> ilkA= new ArrayList<Integer>();
-		 ilkA.add(2);
-		 ilkA.add(4);
-		 ilkA.add(4);
-		 
-		 ArrayList<Integer> ikiA= new ArrayList<Integer>();
-		 ikiA.add(1);
-		 ikiA.add(1);
-		 ikiA.add(3);
-		 ikiA.add(1);
-		 ikiA.add(4);
-		 
-		 //inputPartition.add(2);
-		 //inputPartition.add(4);
-		 //inputPartition.add(4);
-		 
-		 //reps.add(0,ilkA);
-		 //reps.add(1,ikiA);
-		 //reps.add(2,partition);
+		degrees.add(4);
+		degrees.add(4);
+		degrees.add(4);
+		degrees.add(1);
+		degrees.add(1);
+		degrees.add(1);
+		degrees.add(1);
 		
-	 }
+		ArrayList<Integer> partition= new ArrayList<Integer>();
+		partition.add(2);
+		partition.add(1);
+		partition.add(4);
+				
+		ArrayList<Permutation> list0= new ArrayList<Permutation>();
+		list0.add(idPermutation(4));
+		list0.add(idPermutation(4));
+		ArrayList<Permutation> list1= new ArrayList<Permutation>();
+		list1.add(idPermutation(4));
+		ArrayList<Permutation> list2= new ArrayList<Permutation>();
+		list2.add(idPermutation(4));
+		list2.add(idPermutation(4));
+	
+		 
+		int[][] mat = new int[8][8];
+		mat[0][1]=2;
+		mat[0][2]=1;
+		mat[0][3]=1;
+		mat[1][0]=2;
+		mat[1][3]=1;
+		mat[1][5]=1;
+		mat[2][0]=1;
+		mat[2][4]=1;
+		mat[2][6]=1;
+		mat[2][7]=1;
+		mat[3][0]=1;
+		mat[3][1]=1;
+		mat[4][2]=1;
+		mat[5][1]=1;
+		mat[6][2]=1;
+		mat[7][2]=1;
+		
+		
+		canonicalBlockbasedGenerator(degrees,partition);
+		System.out.println("hop"+" "+hoppa);
+		/**FileWriter fWriter = new FileWriter("C:\\Users\\mehme\\Desktop\\output.txt");
+		PrintWriter pWriter = new PrintWriter(fWriter);
+		inputPartition=partition;
+		partitionList.add(partition);
+		blockTest(0, 0, mat,pWriter);
+		for(int i=0;i<representatives.size();i++) {
+			System.out.println("index"+" "+i);
+			for(Permutation perm: representatives.get(i)) {
+				System.out.println(perm.toCycleString());
+			}
+		}
+		
+		for(int j=0;j<partitionList.size();j++) {
+			System.out.println(partitionList.get(j));
+		}
+		canonicalBlockbasedGenerator(degrees,partition);
+		System.out.println(hoppa+" "+"hop");**/		 
+	}
 }
