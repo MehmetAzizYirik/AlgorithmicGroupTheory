@@ -7389,6 +7389,7 @@ public class PermutationGroupFunctions {
 		forwardCanonicalBlock(degrees,partition,A,max,L,C,indices,r); //It was originally without partition entry.**/
 	}
 	
+	
 	public static void canonicalBlockbasedGenerator(ArrayList<Integer> degrees, ArrayList<Integer> partition) throws IOException{
 		size = degrees.size();
 		partitionSize=partition.size();
@@ -8002,6 +8003,88 @@ public class PermutationGroupFunctions {
 			 check=true;
 		 }
 		 return check;
+	 }
+	 
+	 
+	 /**
+	  * Connectivity -  Grund Chapter 3.6
+	  */
+	 
+	 /**
+	  * 3.6.2. Connectivity Test
+	  */
+	
+	 /**
+	  * Finding the N values as explained in 3.6.2.
+	  * @param index int row index
+	  * @param p int the index where the atoms with degree 1 starts.
+	  * @param total int number of atoms.
+	  * @param mat int[][] adjacency matrix
+	  * @return ArrayList<Integer>
+	  */
+	 
+	 public static ArrayList<Integer> nValues(int index, int p, int total, int[][] mat) {
+		 ArrayList<Integer> nValues= new ArrayList<Integer>();
+		 nValues.add(index);
+		 int[] theRow = mat[index]; 
+		 for(int i=(index+1);i<=p;i++) {
+			 if(theRow[i]>0) {
+				 nValues.add(i);
+			 }
+		 }
+		 return nValues;
+	 }
+	 
+	 /**
+	  * Finding the W values as explained in 3.6.2.
+	  * @param nValues ArrayList<Integer> N values 
+	  * @param Kformer ArrayList<Integer> the K values of the former step
+	  * @return ArrayList<Integer>
+	  */
+	 
+	 public static ArrayList<Integer> wValues(ArrayList<Integer> nValues, ArrayList<Integer> Kformer){
+		 ArrayList<Integer> wValues= new ArrayList<Integer>();
+		 for(Integer i:nValues) {
+			 wValues.add(Kformer.get(i));
+		 }
+		 return wValues;
+	 }
+	 
+	 /**
+	  * Finding the K values as explained in 3.6.2.
+	  * @param p int the index where the atoms with degree 1 starts.
+	  * @param wValues ArrayList<Integer> wValues  
+	  * @param kFormer ArrayList<Integer> the K values of the former step
+	  * @return ArrayList<Integer>
+	  */
+	 
+	 public static ArrayList<Integer> kValues(int p, ArrayList<Integer> wValues, ArrayList<Integer> kFormer){
+		 ArrayList<Integer> kValues= new ArrayList<Integer>();
+		 int min= findMin(wValues);
+		 for(int i=0;i<=p;i++) {
+			 if(wValues.contains(kFormer.get(i))) {
+				 kValues.add(i,min);
+			 }else {
+				 kValues.add(i,kFormer.get(i));
+			 }
+		 }
+		 return kValues;
+	 }
+	 
+	 /**
+	  * Find the minimum value in a list
+	  * @param list ArrayList<Integer>
+	  * @return int
+	  */
+	 
+	 public static int findMin(ArrayList<Integer> list) {
+		 int min=list.get(0);
+		 for(int i=1;i<list.size();i++) {
+			 if(list.get(i)<min) {
+				 min=list.get(i);
+			 }
+		 }
+		 return min;
 	 }
 	 
 	 private void parseArgs(String[] args) throws ParseException, IOException{
