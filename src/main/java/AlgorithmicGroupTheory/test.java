@@ -1,20 +1,23 @@
 package AlgorithmicGroupTheory;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Set;
-
 import org.junit.Assert;
 import org.junit.Test;
-import org.openscience.cdk.exception.CDKException;
-
-import AlgorithmicGroupTheory.PermutationGroupFunctions;
 
 public class test extends PermutationGroupFunctions {
+	
 	/**
-	 * Grund Thesis, example 3.6.4.
+	 * Connectivity Test
+	 * 
+	 * Testing the functions from Grund's Thesis - 3.6.2
 	 */
+	
+	/**
+	 * The matrix is from example 3.6.4., Grund.
+	 */
+	
 	public static int[][] mat= new int[10][10];
 	public static void initialMat() {
 		mat[0][2]=1;
@@ -42,12 +45,6 @@ public class test extends PermutationGroupFunctions {
 		mat[8][5]=1;
 		mat[9][5]=1;
 	}
-	
-	/**
-	 * Connectivity Test
-	 * 
-	 * Testing the functions from Grund's Thesis - 3.6.2
-	 */
 	
 	@Test
 	public void testnValues() {
@@ -125,33 +122,34 @@ public class test extends PermutationGroupFunctions {
 		
 		Assert.assertEquals(kValues(10, wSet,kFormer), output);
 	}
-	
-	@Test
-	public void testconnectivityTest() {
-		initialMat();
-		Assert.assertEquals(connectivityTest(6, mat),true);
-	}
-	
-	public static void main(String[] args) throws CloneNotSupportedException, CDKException, IOException { 
 		
-		mat[0][1]=1;
-		mat[0][2]=2;
-		mat[1][0]=1;
-		mat[1][2]=2;
-		mat[2][0]=2;
-		mat[2][1]=2;
-		mat[3][4]=3;
-		mat[3][5]=1;
-		mat[4][3]=3;
-		mat[4][6]=1;
-		mat[5][3]=1;
-		mat[5][7]=1;
-		mat[5][8]=1;
-		mat[5][9]=1;
-		mat[6][4]=1;
-		mat[7][5]=1;
-		mat[8][5]=1;
-		mat[9][5]=1;
-		System.out.println(connectivityTest(6, mat));
+	@Test
+	public void testConnectivityTest() {
+		int[][] matrix = new int[10][10];
+		matrix[0][1]=1;
+		matrix[0][2]=2;
+		matrix[1][0]=1;
+		matrix[1][2]=2;
+		matrix[2][0]=2;
+		matrix[2][1]=2;
+		matrix[3][4]=3;
+		matrix[3][5]=1;
+		matrix[4][3]=3;
+		matrix[4][6]=1;
+		matrix[5][3]=1;
+		matrix[5][7]=1;
+		matrix[5][8]=1;
+		matrix[5][9]=1;
+		matrix[6][4]=1;
+		matrix[7][5]=1;
+		matrix[8][5]=1;
+		matrix[9][5]=1;
+		
+		/**
+		 * The adjacency matrix represents a molecules with 2 
+		 * saturated sub components. 
+		 */
+		
+		Assert.assertEquals(connectivityTest(6, matrix),false);
 	}
 }

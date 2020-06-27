@@ -8058,7 +8058,7 @@ public class PermutationGroupFunctions {
 	 
 	 public static ArrayList<Integer> kValues(int total, Set<Integer> wValues, ArrayList<Integer> kFormer){
 		 ArrayList<Integer> kValues= new ArrayList<Integer>();
-		 int min= findMin(wValues);
+		 int min= Collections.min(wValues);
 		 for(int i=0;i<total;i++) {
 			 if(wValues.contains(kFormer.get(i))) {
 				 kValues.add(i,min);
@@ -8067,22 +8067,6 @@ public class PermutationGroupFunctions {
 			 }
 		 }
 		 return kValues;
-	 }
-	 
-	 /**
-	  * Find the minimum value in a set
-	  * @param list Set<Integer>
-	  * @return int
-	  */
-	 
-	 public static int findMin(Set<Integer> list) {
-		 int min=0;
-		 for(Integer i:list) {
-			 if(i<min) {
-				 min=i;
-			 }
-		 }
-		 return min;
 	 }
 	 
 	 /**
@@ -8099,18 +8083,10 @@ public class PermutationGroupFunctions {
 		 Set<Integer> nValues= new HashSet<Integer>();
 		 int zValue= 0;
 		 for(int i=0;i<p;i++) {
-			 System.out.println("ilk k"+" "+kValues);
 			 nValues= nValues(i, total, mat);
-			 System.out.println("n values"+" "+nValues);
-			 System.out.println("w values"+" "+wValues(nValues,kValues));
-			 zValue = findMin(wValues(nValues,kValues));
-			 System.out.println("z"+" "+zValue);
+			 zValue = Collections.min(wValues(nValues,kValues));
 			 kValues= kValues(total, nValues(i, total, mat), kValues);
-			 System.out.println("k new"+" "+kValues);
 		 }
-		 System.out.println("final");
-		 System.out.println(zValue);
-		 System.out.println(kValues+" "+allIs0(kValues));
 		 if(zValue==0 && allIs0(kValues)) {
 			 check=true;
 		 }
@@ -8247,27 +8223,27 @@ public class PermutationGroupFunctions {
 		mat[6][2]=1;
 		mat[7][2]=1;**/
 		
-		int[][] mat = new int[10][10];
-		mat[0][1]=1;
-		mat[0][2]=2;
-		mat[1][0]=1;
-		mat[1][2]=2;
-		mat[2][0]=2;
-		mat[2][1]=2;
-		mat[3][4]=3;
-		mat[3][5]=1;
-		mat[4][3]=3;
-		mat[4][6]=1;
-		mat[5][3]=1;
-		mat[5][7]=1;
-		mat[5][8]=1;
-		mat[5][9]=1;
-		mat[6][4]=1;
-		mat[7][5]=1;
-		mat[8][5]=1;
-		mat[9][5]=1;
+		int[][] matrix = new int[10][10];
+		matrix[0][1]=1;
+		matrix[0][2]=2;
+		matrix[1][0]=1;
+		matrix[1][2]=2;
+		matrix[2][0]=2;
+		matrix[2][1]=2;
+		matrix[3][4]=3;
+		matrix[3][5]=1;
+		matrix[4][3]=3;
+		matrix[4][6]=1;
+		matrix[5][3]=1;
+		matrix[5][7]=1;
+		matrix[5][8]=1;
+		matrix[5][9]=1;
+		matrix[6][4]=1;
+		matrix[7][5]=1;
+		matrix[8][5]=1;
+		matrix[9][5]=1;
 		
-		System.out.println(connectivityTest(6, mat));
+		System.out.println(connectivityTest(6, matrix));
 		
 		//canonicalBlockbasedGenerator(degrees,partition);
 		//System.out.println("hop"+" "+hoppa);
