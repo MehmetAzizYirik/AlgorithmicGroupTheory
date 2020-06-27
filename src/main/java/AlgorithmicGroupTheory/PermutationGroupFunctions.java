@@ -8017,17 +8017,16 @@ public class PermutationGroupFunctions {
 	 /**
 	  * Finding the N values as explained in 3.6.2.
 	  * @param index int row index
-	  * @param p int the index where the atoms with degree 1 starts.
 	  * @param total int number of atoms.
 	  * @param mat int[][] adjacency matrix
-	  * @return ArrayList<Integer>
+	  * @return Set<Integer>
 	  */
 	 
-	 public static ArrayList<Integer> nValues(int index, int p, int total, int[][] mat) {
-		 ArrayList<Integer> nValues= new ArrayList<Integer>();
+	 public static Set<Integer> nValues(int index, int total, int[][] mat) {
+		 Set<Integer> nValues= new HashSet<Integer>();
 		 nValues.add(index);
 		 int[] theRow = mat[index]; 
-		 for(int i=(index+1);i<=p;i++) {
+		 for(int i=(index+1);i<total;i++) {
 			 if(theRow[i]>0) {
 				 nValues.add(i);
 			 }
@@ -8039,11 +8038,11 @@ public class PermutationGroupFunctions {
 	  * Finding the W values as explained in 3.6.2.
 	  * @param nValues ArrayList<Integer> N values 
 	  * @param Kformer ArrayList<Integer> the K values of the former step
-	  * @return ArrayList<Integer>
+	  * @return Set<Integer>
 	  */
 	 
-	 public static ArrayList<Integer> wValues(ArrayList<Integer> nValues, ArrayList<Integer> Kformer){
-		 ArrayList<Integer> wValues= new ArrayList<Integer>();
+	 public static Set<Integer> wValues(Set<Integer> nValues, ArrayList<Integer> Kformer){
+		 Set<Integer> wValues= new HashSet<Integer>();
 		 for(Integer i:nValues) {
 			 wValues.add(Kformer.get(i));
 		 }
@@ -8052,16 +8051,15 @@ public class PermutationGroupFunctions {
 	 
 	 /**
 	  * Finding the K values as explained in 3.6.2.
-	  * @param p int the index where the atoms with degree 1 starts.
-	  * @param wValues ArrayList<Integer> wValues  
+	  * @param wValues Set<Integer> wValues  
 	  * @param kFormer ArrayList<Integer> the K values of the former step
 	  * @return ArrayList<Integer>
 	  */
 	 
-	 public static ArrayList<Integer> kValues(int p, ArrayList<Integer> wValues, ArrayList<Integer> kFormer){
+	 public static ArrayList<Integer> kValues(int total, Set<Integer> wValues, ArrayList<Integer> kFormer){
 		 ArrayList<Integer> kValues= new ArrayList<Integer>();
 		 int min= findMin(wValues);
-		 for(int i=0;i<=p;i++) {
+		 for(int i=0;i<total;i++) {
 			 if(wValues.contains(kFormer.get(i))) {
 				 kValues.add(i,min);
 			 }else {
@@ -8072,19 +8070,82 @@ public class PermutationGroupFunctions {
 	 }
 	 
 	 /**
-	  * Find the minimum value in a list
-	  * @param list ArrayList<Integer>
+	  * Find the minimum value in a set
+	  * @param list Set<Integer>
 	  * @return int
 	  */
 	 
-	 public static int findMin(ArrayList<Integer> list) {
-		 int min=list.get(0);
-		 for(int i=1;i<list.size();i++) {
-			 if(list.get(i)<min) {
-				 min=list.get(i);
+	 public static int findMin(Set<Integer> list) {
+		 int min=0;
+		 for(Integer i:list) {
+			 if(i<min) {
+				 min=i;
 			 }
 		 }
 		 return min;
+	 }
+	 
+	 /**
+	  * Test whether an adjacency matrix is connected or disconnected.
+	  * @param p int the index where the atoms with degree 1 starts.
+	  * @param mat int[][] adjacency matrix
+	  * @return boolean
+	  */
+	 
+	 public static boolean connectivityTest(int p, int[][] mat) {
+		 boolean check=false;
+		 int total= mat.length;
+		 ArrayList<Integer> kValues=initialKList(total);
+		 Set<Integer> nValues= new HashSet<Integer>();
+		 int zValue= 0;
+		 for(int i=0;i<p;i++) {
+			 System.out.println("ilk k"+" "+kValues);
+			 nValues= nValues(i, total, mat);
+			 System.out.println("n values"+" "+nValues);
+			 System.out.println("w values"+" "+wValues(nValues,kValues));
+			 zValue = findMin(wValues(nValues,kValues));
+			 System.out.println("z"+" "+zValue);
+			 kValues= kValues(total, nValues(i, total, mat), kValues);
+			 System.out.println("k new"+" "+kValues);
+		 }
+		 System.out.println("final");
+		 System.out.println(zValue);
+		 System.out.println(kValues+" "+allIs0(kValues));
+		 if(zValue==0 && allIs0(kValues)) {
+			 check=true;
+		 }
+		 return check;
+	 }
+	 
+	 /**
+	  * Checks whether all the entries are equal to 0 or not. (Grund 3.6.2)
+	  * @param list ArrayList<Integer>
+	  * @return boolean
+	  */
+	 
+	 public static boolean allIs0(ArrayList<Integer> list) {
+		 boolean check=true;
+		 for(int i=0;i<list.size();i++) {
+			 if(list.get(i)!=0) {
+				 check=false;
+				 break;
+			 }
+		 }
+		 return check;
+	 }
+	 
+	 /**
+	  * Initializing the first K values list.
+	  * @param total int number of atoms.
+	  * @return ArrayList<Integer>
+	  */
+	 
+	 public static ArrayList<Integer> initialKList(int total){
+		 ArrayList<Integer> k= new ArrayList<Integer>();
+		 for(int i=0;i<10;i++) {
+			 k.add(i);
+		 }
+		 return k;
 	 }
 	 
 	 private void parseArgs(String[] args) throws ParseException, IOException{
@@ -8168,7 +8229,7 @@ public class PermutationGroupFunctions {
 		list2.add(idPermutation(4));
 	
 		 
-		int[][] mat = new int[8][8];
+		/**int[][] mat = new int[8][8];
 		mat[0][1]=2;
 		mat[0][2]=1;
 		mat[0][3]=1;
@@ -8184,11 +8245,32 @@ public class PermutationGroupFunctions {
 		mat[4][2]=1;
 		mat[5][1]=1;
 		mat[6][2]=1;
-		mat[7][2]=1;
+		mat[7][2]=1;**/
 		
+		int[][] mat = new int[10][10];
+		mat[0][1]=1;
+		mat[0][2]=2;
+		mat[1][0]=1;
+		mat[1][2]=2;
+		mat[2][0]=2;
+		mat[2][1]=2;
+		mat[3][4]=3;
+		mat[3][5]=1;
+		mat[4][3]=3;
+		mat[4][6]=1;
+		mat[5][3]=1;
+		mat[5][7]=1;
+		mat[5][8]=1;
+		mat[5][9]=1;
+		mat[6][4]=1;
+		mat[7][5]=1;
+		mat[8][5]=1;
+		mat[9][5]=1;
 		
-		canonicalBlockbasedGenerator(degrees,partition);
-		System.out.println("hop"+" "+hoppa);
+		System.out.println(connectivityTest(6, mat));
+		
+		//canonicalBlockbasedGenerator(degrees,partition);
+		//System.out.println("hop"+" "+hoppa);
 		/**FileWriter fWriter = new FileWriter("C:\\Users\\mehme\\Desktop\\output.txt");
 		PrintWriter pWriter = new PrintWriter(fWriter);
 		inputPartition=partition;
