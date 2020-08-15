@@ -12,7 +12,7 @@ This is an ongoing project for molecular structure generation. Already developed
 
 ## Download jar File
 
-The main class of the current jar file is canonicalBlockwiseTest class. The file can be downloaded from [here](https://github.com/MehmetAzizYirik/AlgorithmicGroupTheory/blob/master/cangen.jar)
+The main class of the current jar file is canonicalBlockwiseTest class. The file can be downloaded from [here](https://github.com/MehmetAzizYirik/AlgorithmicGroupTheory/blob/master/canonicalBlockwiseTest.jar)
 
 ## Download Source Code
 
