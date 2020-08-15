@@ -4,15 +4,15 @@ Copyright 2019 Mehmet Aziz Yirik
 
 ## Introduction
 
-Algorithmic group theory functions shared in this repository are especially developed for the implementations in mathematical chemistry. However, the functions can be used also in different fields of applied group theory. The current algorithms are for the molecular structure generation problem.
+Algorithmic group theory functions shared in this repository, are especially developed for the implementations in mathematical chemistry.The current algorithms are for the molecular structure generation problem.
 
 ## Method
 
-This is an ongoing project for molecular structure generation. Already developed functions are regularly shared on this repository. The prototype algorithm is the demo function of the jar file. The theoretical basis of the algorithm can be found in [1]. The outlines of the functions can be found also in [1,2].
+This is an ongoing project for molecular structure generation. Already developed functions are regularly shared on this repository. The prototype algorithm is the demo function of the jar file. The theoretical basis and the outlines of the functions can be found in [1,2]. The current version still misses some structures and this is the ongoing work in the project. 
 
 ## Download jar File
 
-The current jar file  provides only the connectivity matrix generator. The file can be downloaded from [here](https://github.com/MehmetAzizYirik/AlgorithmicGroupTheory/blob/master/cangen.jar)
+The main class of the current jar file is canonicalBlockwiseTest class. The file can be downloaded from [here](https://github.com/MehmetAzizYirik/AlgorithmicGroupTheory/blob/master/cangen.jar)
 
 ## Download Source Code
 
@@ -40,8 +40,9 @@ The definitions of the arguments are given below:
 ```
 usage: java -jar AlgorithmicGroupTheory.jar -f <arg> [-v] -d <arg>
 
-Generates adjacency matrices for a given molecular formula. The input is 
-a molecular formula string. For example 'C2H2O'. Besides this formula, the
+Generates molecular structures for a given molecular formula. The input is 
+a molecular formula string. For example 'C2OH4'. For this version, the hydrogens should be
+kept at the end of the string. Besides this formula, the
 directory is needed to be specified for the output file.
 
  -f,--molecularFormula <arg>   Molecular formula as a string (required)
@@ -55,12 +56,8 @@ Please report issues at https://github.com/MehmetAzizYirik/AlgorithmicGroupTheor
 ```
 
 ```
-java -jar AlgorithmicGroupTheory.jar -f C2H2O -v -d C:\Users\UserName\Desktop\AlgorithmicGroupTheory/output.txt
+java -jar AlgorithmicGroupTheory.jar -f C2OH4 -v -d C:\Users\UserName\Desktop\AlgorithmicGroupTheory/output.txt
 ```
-
-## Running the Tests
-
-For the Generator class, a test class called Test-Generator is built. This test class includes the tests of the main functions. The outputs of the the functions are tested based on the size ( or the length) of the expected output files. 
 
 ## License
 This project is licensed under the MIT License - see the [LICENSE.md](https://github.com/MehmetAzizYirik/AlgorithmicGroupTheory/blob/master/LICENSE) file for details
