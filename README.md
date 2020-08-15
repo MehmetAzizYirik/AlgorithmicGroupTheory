@@ -56,7 +56,7 @@ Please report issues at https://github.com/MehmetAzizYirik/AlgorithmicGroupTheor
 ```
 
 ```
-java -jar AlgorithmicGroupTheory.jar -f C2OH4 -v -d C:\Users\UserName\Desktop\AlgorithmicGroupTheory/output.txt
+java -jar AlgorithmicGroupTheory.jar -f C2OH4 -v -d C:\Users\UserName\Desktop\
 ```
 
 ## License
