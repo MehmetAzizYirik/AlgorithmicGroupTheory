@@ -35,6 +35,7 @@
 package AlgorithmicGroupTheory;
 
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
@@ -273,6 +274,7 @@ public class HydrogenDistributor {
 			if(arr.length!=numAtom) {
 				arr=addZeros(arr,(numAtom-arr.length));
 			}
+			Arrays.sort(arr);
 			arrays.add(arr);
 		}else if((numAtom-arr.length)==1) {
 			int add=Math.min(hydrogen,valence);

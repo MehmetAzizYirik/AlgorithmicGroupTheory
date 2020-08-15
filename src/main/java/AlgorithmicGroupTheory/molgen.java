@@ -58,7 +58,9 @@ import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
-import org.openscience.cdk.AtomContainer;
+import org.openscience.cdk.interfaces.IAtomContainer;
+import org.openscience.cdk.interfaces.IChemObjectBuilder;
+import org.openscience.cdk.DefaultChemObjectBuilder;
 import org.openscience.cdk.depict.DepictionGenerator;
 import org.openscience.cdk.exception.CDKException;
 import org.openscience.cdk.group.Permutation;
@@ -92,8 +94,9 @@ public class molgen {
 		valences.put("H", 1);
 	}
 	
+	public static IChemObjectBuilder builder=DefaultChemObjectBuilder.getInstance();
 	public static IAtomContainer build(String mol) throws IOException, CloneNotSupportedException, CDKException {
-		IAtomContainer atomcontainer = new AtomContainer();
+		IAtomContainer ac= builder.newInstance(IAtomContainer.class);
 		List<String> symbols = new ArrayList<String>();
 	    List<Integer> occur = new ArrayList<Integer>();
 	    String[] atoms = mol.split("(?=[A-Z])");
@@ -104,10 +107,10 @@ public class molgen {
 	    }
 	    for(int i=0;i<symbols.size();i++) {
 	    	for(int j=0;j<occur.get(i);j++) {
-	    		atomcontainer.addAtom(new Atom(symbols.get(i)));
+	    		ac.addAtom(new Atom(symbols.get(i)));
 	        }
 	    }
-	    return atomcontainer;
+	    return ac;
 	}
 	
 	public static ArrayList<Integer> degreeSeq(String formula){
@@ -941,7 +944,7 @@ public class molgen {
 		 canonicalMatrixGenerator(simple,simp2);**/
 		
 		molgen gen = null;
-		String[] args1= {"-f","C2H6","-v","-d","C:\\Users\\mehme\\Desktop\\"};
+		String[] args1= {"-f","C3OH6","-v","-d","C:\\Users\\mehme\\Desktop\\"};
 		try {
 			gen = new molgen();
 			gen.parseArgs(args1);

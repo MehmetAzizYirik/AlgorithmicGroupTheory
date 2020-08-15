@@ -59,7 +59,7 @@ import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
-import org.openscience.cdk.AtomContainer;
+import org.openscience.cdk.interfaces.IAtomContainer;
 import org.openscience.cdk.depict.DepictionGenerator;
 import org.openscience.cdk.exception.CDKException;
 import org.openscience.cdk.group.AtomContainerDiscretePartitionRefiner;
@@ -3514,7 +3514,7 @@ public class PermutationGroupFunctions {
 		int i=indices.get(0);
 		int j=indices.get(1);
 		if(i==max.length-2 && j==max.length-1) {
-			count++;
+			//count++;
 			writeMatrix(A);
 		}else{
 			ArrayList<Integer> modified=predecessor(indices, max.length);
@@ -3556,7 +3556,7 @@ public class PermutationGroupFunctions {
 	 
 	 
 	 public static void writeMatrix(int[][] mat) throws IOException {
-		 fileWriter.write(String.format("Adjacency matrix - %d", count));
+		 //fileWriter.write(String.format("Adjacency matrix - %d", count));
 		 fileWriter.newLine();
 		 for (int i = 0; i < mat.length; i++) {
 			 for (int j = 0; j < mat[i].length; j++) {
@@ -3594,8 +3594,8 @@ public class PermutationGroupFunctions {
 	 public static void generate (String molecularFormula, String filedir) throws IOException {
 		 ArrayList<Integer> degrees= degrees(atomList(PermutationGroupFunctions.molecularFormula));
 		 if(verbose) System.out.println("Generating adjacency matrices for"+" "+PermutationGroupFunctions.molecularFormula+" "+"...");
-		 canonicalMatrix(degrees);
-		 if(verbose) System.out.println(count+" "+"adjacency matrices were generated and written to the given file.");
+		 //canonicalMatrix(degrees);
+		 //if(verbose) System.out.println(count+" "+"adjacency matrices were generated and written to the given file.");
 	 }
 	 
 	 
@@ -4417,7 +4417,7 @@ public class PermutationGroupFunctions {
 	 }
 	 
 	 
-	 public static boolean automorphismPermutationCheck(Permutation perm, ArrayList<Integer> part) {
+	 /**public static boolean automorphismPermutationCheck(Permutation perm, ArrayList<Integer> part) {
 		 boolean check=true;
 		 for(int[] list: subPartitions(part)) {
 			 list=decreaseOne(list);
@@ -4427,7 +4427,7 @@ public class PermutationGroupFunctions {
 			 }
 		 }
 		 return check;
-	 }
+	 }**/
 	 
 	 /**
 	  * 3.3.7 Left Coset indices J(i) for vij values. 
@@ -4540,9 +4540,9 @@ public class PermutationGroupFunctions {
 		 ArrayList<Permutation> perms= new ArrayList<Permutation>();
 		 PermutationGroup group= PermutationGroup.makeSymN(sum(part));
 		 for(Permutation perm: group.all()) {
-			 if(automorphismPermutationCheck(perm,part)) {
+			 //if(automorphismPermutationCheck(perm,part)) {
 				 perms.add(perm);
-			 }
+			 //}
 		 }
 		 return perms;
 	 }
