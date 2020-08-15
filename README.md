@@ -8,11 +8,11 @@ Algorithmic group theory functions shared in this repository, are especially dev
 
 ## Method
 
-This is an ongoing project for molecular structure generation. Already developed functions are regularly shared on this repository. The prototype algorithm is the demo function of the jar file. The theoretical basis and the outlines of the functions can be found in [1,2].
+This is an ongoing project for molecular structure generation. Already developed functions are regularly shared on this repository. The prototype algorithm is the demo function of the jar file. The theoretical basis and the outlines of the functions can be found in [1,2]. The current version still misses some structures and this is the ongoing work in the project. 
 
 ## Download jar File
 
-The current jar file  provides only the connectivity matrix generator. The file can be downloaded from [here](https://github.com/MehmetAzizYirik/AlgorithmicGroupTheory/blob/master/cangen.jar)
+The main class of the current jar file is canonicalBlockwiseTest class. The file can be downloaded from [here](https://github.com/MehmetAzizYirik/AlgorithmicGroupTheory/blob/master/cangen.jar)
 
 ## Download Source Code
 
