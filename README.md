@@ -8,7 +8,7 @@ Algorithmic group theory functions shared in this repository, are especially dev
 
 ## Method
 
-This is an ongoing project for molecular structure generation. Already developed functions are regularly shared on this repository. The prototype algorithm is the demo function of the jar file. The theoretical basis and the outlines of the functions can be found in [1,2]. The current version still misses some structures and this is the ongoing work in the project. 
+This is an ongoing project for molecular structure generation. Already developed functions are regularly shared on this repository. The prototype algorithm, the canonicalBlockwiseTest class, is the demo function of the jar file. The theoretical basis and the outlines of the functions can be found in [1,2]. The current version still misses some structures and this is the ongoing work in the project. 
 
 ## Download jar File
 
@@ -42,12 +42,12 @@ usage: java -jar AlgorithmicGroupTheory.jar -f <arg> [-v] -d <arg>
 
 Generates molecular structures for a given molecular formula. The input is 
 a molecular formula string. For example 'C2OH4'. For this version, the hydrogens should be
-kept at the end of the string. Besides this formula, the
+kept at the end of the string. Besides molecular formula, the
 directory is needed to be specified for the output file.
 
  -f,--molecularFormula <arg>   Molecular formula as a string (required)
  
- -v,--verbose                  Print messages about matrix generation
+ -v,--verbose                  Print messages about structure generation
  
  -d,--filedir <arg>            Creates and store the output txt file 
                                in the directory (required)
