@@ -3,16 +3,22 @@ package AlgorithmicGroupTheory;
 import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import org.apache.commons.cli.CommandLine;
@@ -26,6 +32,12 @@ import org.openscience.cdk.Atom;
 import org.openscience.cdk.DefaultChemObjectBuilder;
 import org.openscience.cdk.depict.DepictionGenerator;
 import org.openscience.cdk.exception.CDKException;
+import org.openscience.cdk.fragment.MurckoFragmenter;
+import org.openscience.cdk.graph.GraphUtil;
+import org.openscience.cdk.graph.invariant.Canon;
+import org.openscience.cdk.group.AtomContainerDiscretePartitionRefiner;
+import org.openscience.cdk.group.Partition;
+import org.openscience.cdk.group.PartitionRefinement;
 import org.openscience.cdk.group.Permutation;
 import org.openscience.cdk.group.PermutationGroup;
 import org.openscience.cdk.inchi.InChIGeneratorFactory;
@@ -34,7 +46,14 @@ import org.openscience.cdk.interfaces.IAtomContainer;
 import org.openscience.cdk.interfaces.IBond;
 import org.openscience.cdk.interfaces.IChemObjectBuilder;
 import org.openscience.cdk.io.SDFWriter;
+import org.openscience.cdk.silent.SilentChemObjectBuilder;
+import org.openscience.cdk.smiles.SmilesParser;
 import org.openscience.cdk.tools.manipulator.AtomContainerManipulator;
+
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.LinkedListMultimap;
+import com.google.common.collect.Multimap;
+
 import org.openscience.cdk.interfaces.IBond.Order;
 
 import AlgorithmicGroupTheory.HydrogenDistributor;
@@ -56,6 +75,10 @@ public class canonicalBlockwiseTest extends groupFunctions {
 	public static ArrayList<ArrayList<Integer>> partitionList= new ArrayList<ArrayList<Integer>>();
 	public static ArrayList<ArrayList<Permutation>> representatives = new ArrayList<ArrayList<Permutation>>();
 	public static Map<String, Integer> valences; 
+	public static int[][] max= new int[6][6];
+	public static int[][] L= new int[6][6];
+	public static int[][] C= new int[6][6];
+	public static ArrayList<Integer> degrees= new ArrayList<Integer>();
 	static {
 		//The atom valences from CDK.
 		valences = new HashMap<String, Integer>();
@@ -103,6 +126,7 @@ public class canonicalBlockwiseTest extends groupFunctions {
 		for(ArrayList<Integer> degree: newDegrees) {
 			gen(degree);
 		}
+
 		long endTime = System.nanoTime()- startTime;
         double seconds = (double) endTime / 1000000000.0;
 		DecimalFormat d = new DecimalFormat(".###");
@@ -153,19 +177,22 @@ public class canonicalBlockwiseTest extends groupFunctions {
 	 * Theorem 3.2.1
 	 * @param degrees degree sequence
 	 */
+	
 	public static int[][] maximalMatrix(ArrayList<Integer> degrees) {
 		int[][] maxMatrix= new int[degrees.size()][degrees.size()];
 		for(int i=0;i<degrees.size();i++) {
 			for(int j=0; j<degrees.size();j++) {
 				int di= degrees.get(i);
 				int dj= degrees.get(j);
+				
 				if(i==j) {
 					maxMatrix[i][j]=0;
 				}else {
 					if(di!=dj) {
 						maxMatrix[i][j]=Math.min(di, dj);
-					}else {
-						maxMatrix[i][j]=di-1;
+					}else if (di==dj && i!=j) {
+					//}else {
+						maxMatrix[i][j]=(di-1);
 					}
 				}
 			}
@@ -175,13 +202,14 @@ public class canonicalBlockwiseTest extends groupFunctions {
 	 
 	/**
 	 * L; upper triangular matrix like given in 3.2.1.
+	 *  For (i,j), after the index, giving the maximum line capacity.
 	 * @param degrees
 	 * @return upper triangular matrix
 	 */
 	
 	public static int[][] upperTriangularL(ArrayList<Integer> degrees){
 		int size= degrees.size();
-		int[][] L= new int[size][size]; //TODO: Maybe zeros matrix ?	
+		int[][] L= new int[size][size]; 
 		int[][] max= maximalMatrix(degrees);
 		for(int i=0;i<size;i++) {
 			for(int j=i+1;j<size;j++) {
@@ -210,6 +238,7 @@ public class canonicalBlockwiseTest extends groupFunctions {
 	 
 	/**
 	 * C; upper triangular matrix like given in 3.2.1.
+	 * For (i,j), after the index, giving the maximum column capacity.
 	 * @param degrees
 	 * @return upper triangular matrix
 	 */
@@ -220,12 +249,13 @@ public class canonicalBlockwiseTest extends groupFunctions {
 		int[][] max= maximalMatrix(degrees);
 		for(int i=0;i<size;i++) {
 			for(int j=i+1;j<size;j++) {
-				C[i][j]= Math.min(degrees.get(j-1), Csum(max,i+1,j,size)); //TODO: WHY -1 I dont know.
+				C[i][j]= Math.min(degrees.get(j), Csum(max,i+1,j,size));
 			}
 		}
 		return C;
 	}
 	 
+	
 	/**
 	 * Make diagonal entries zeros
 	 * @param mat int[][]
@@ -240,6 +270,7 @@ public class canonicalBlockwiseTest extends groupFunctions {
 			}
 		}
 	}
+	
 	/**
 	 * Generates structures for the degrees, set after hydrogen distribution.
 	 * @param degrees ArrayList<Integer> degree
@@ -251,9 +282,10 @@ public class canonicalBlockwiseTest extends groupFunctions {
 	public static void gen(ArrayList<Integer> degrees) throws IOException, CloneNotSupportedException, CDKException {
 		int r=0;
 		int[][] A   = new int[size][size];
-		int[][] max = maximalMatrix(degrees);
-		int[][] L   = upperTriangularL(degrees);
-		int[][] C   = upperTriangularC(degrees);
+		max = maximalMatrix(degrees);
+		L   = upperTriangularL(degrees);
+		C   = upperTriangularC(degrees);
+		
 		ArrayList<Integer> indices= new ArrayList<Integer>();
 		indices.add(0);
 		indices.add(1);
@@ -267,7 +299,11 @@ public class canonicalBlockwiseTest extends groupFunctions {
 	 */
 	
 	public static int findX(int r) {
-		return (sum(inputPartition,(r-1))-1);
+		if(r==0) {
+			return 0;
+		}else {
+			return (sum(inputPartition,(r-1))-1);
+		}
 	}
 	
 	public static int findY(int r) {
@@ -367,6 +403,7 @@ public class canonicalBlockwiseTest extends groupFunctions {
 		 for(int h=minimal;h>=0;h--) {
 			 if((l2-h<=L[i][j]) && (c2-h<=C[i][j])) {
 				 A[i][j]=A[j][i]=h;	
+
 				 if(i==(max.length-2) && j==(max.length-1)) {
 					 if(blockTest(i, r, A)) {
 						 backwardBuild(r, degrees,partitionList.get(y),A, max, L, C, indices);
@@ -382,16 +419,17 @@ public class canonicalBlockwiseTest extends groupFunctions {
 			 			 forwardBuild(r, degrees, partitionList.get(y), A, max, L, C, modified);
 			 		 }
 			 	 }
-			 	 }else {
-			 		 if(i==max.length-2 && j==max.length-1) {
-			 			 ArrayList<Integer> modified=predecessor(indices, max.length);
-			 			 indices=modified;
-			 		 }
-			 		 backwardBuild(r, degrees, partitionList.get(y),A, max, L, C, indices);
+			 }else {
+			 	 if(i==max.length-2 && j==max.length-1) {
+			 		ArrayList<Integer> modified=predecessor(indices, max.length);
+			 		indices=modified;
 			 	 }
+			 	 backwardBuild(r, degrees, partitionList.get(y),A, max, L, C, indices);
+			 }
 		}	 
 	}
-	 
+	
+	
 	/**public static void forwardBuild(int r, ArrayList<Integer> degrees, ArrayList<Integer> partition,int[][] A, int[][]max, int[][]L, int[][]C, ArrayList<Integer> indices, PrintWriter pWriter) throws IOException, CloneNotSupportedException, CDKException {
 		int y=findY(r);
 		int z=findZ(r);
@@ -636,6 +674,7 @@ public class canonicalBlockwiseTest extends groupFunctions {
 			}
 		}
 	}
+	
 	
 	/**
 	 * Testing every row in the block with the canonical test. 
@@ -984,7 +1023,7 @@ public class canonicalBlockwiseTest extends groupFunctions {
 					 break;
 				 }
 			 }else {
-				 if(test.equals(former.multiply(canonical))) {
+				 if(test.equals(former.multiply(canonical))) { // In case if we have 
 					 addRepresentatives(index, idPermutation(total)); 
 					 /**boolean formerTest = formerBlocksRepresentatives(index,y, A, newPartition, canonical, pWriter);
 					 if(!formerTest) {
@@ -1086,8 +1125,8 @@ public class canonicalBlockwiseTest extends groupFunctions {
 		 boolean check=true;
 		 int[] canonical= A[index];
 		 int[] original= A[index];
-		 Permutation mult=cycleM.multiply(perm);
-		 original=actArray(A[mult.get(index)],mult);
+		 //Permutation mult=cycleM.multiply(perm); Why do you need to change it to another row ? You need to just look at its action on the row.
+		 original=actArray(A[cycleM.get(index)],perm);
 		 if(!Arrays.equals(canonical,original)) {
 			 check=false;
 		 }
@@ -1102,6 +1141,8 @@ public class canonicalBlockwiseTest extends groupFunctions {
 	  * @return ArrayList<ArrayList<Permutation>> permutations to remove.
 	  */
 	 
+	 //TODO: Not complete !!!
+	 
 	 public static ArrayList<ArrayList<Permutation>> describeRemovalList(int y){
 		 ArrayList<ArrayList<Permutation>> removeList = new ArrayList<ArrayList<Permutation>>();
 		 for(int i=0;i<y;i++) {
@@ -1112,12 +1153,7 @@ public class canonicalBlockwiseTest extends groupFunctions {
 	 }	
 		
 	 public static Integer [] getBlocks(int[] row, int begin, int end) {
-		 Integer[] sub=subArray(row,begin,end);
-		 return sub;
-	 }
-		
-	 public static Integer[] subArray(int[] array, int begin,int end) {
-		 return IntStream.range(begin, end).mapToObj(i->array[i]).toArray(Integer[]::new);
+		 return IntStream.range(begin, end).mapToObj(i->row[i]).toArray(Integer[]::new);
 	 }
 		
 	 /**
@@ -1530,7 +1566,257 @@ public class canonicalBlockwiseTest extends groupFunctions {
 		 }
 		 return occur;
 	 } 
+
+	 
+	 public static ArrayList<String> getSymbolList(String formula) {
+		 ArrayList<String> symbolsList = new ArrayList<String>();
+ 		 String[] atoms = formula.split("(?=[A-Z])");
+		 Integer occur;
+		 for (String atom : atoms) {
+			 String[] info = atom.split("(?=[0-9])", 2); 
+			 occur= (info.length > 1 ? Integer.parseInt(info[1]):1);
+			 for(int i=0;i<occur;i++) {
+				 symbolsList.add(info[0]);
+			 }
+		 }	
+		 return symbolsList;
+	 }
+	 
+	 public static ArrayList<Integer> getValenceList(String formula) {
+		 ArrayList<Integer> valenceList = new ArrayList<Integer>();
+ 		 String[] atoms = formula.split("(?=[A-Z])");
+		 Integer occur;
+		 for (String atom : atoms) {
+			 String[] info = atom.split("(?=[0-9])", 2); 
+			 occur= (info.length > 1 ? Integer.parseInt(info[1]):1);
+			 for(int i=0;i<occur;i++) {
+				 valenceList.add(valences.get(info[0]));
+			 }
+		 }	
+		 return valenceList;
+	 }
+	 
+	 public static ArrayList<Integer> firstValences;
+	 public static ArrayList<String> firstSymbols;
+	 public static ArrayList<Integer> firstPartition;
+	 
+	 public static int hydrogenIndex;
+	 public static ArrayList<ArrayList<String>> inputSymbolsList = new ArrayList<ArrayList<String>>();
+	 public static ArrayList<ArrayList<Integer>> inputPartitionsList = new ArrayList<ArrayList<Integer>>();
+	 public static ArrayList<ArrayList<Integer>> inputValencesList = new ArrayList<ArrayList<Integer>>();
+	 public static ArrayList<String> newSymbols;
+	 
+	 public static void getOrderedSymbolsValences(String formula) throws FileNotFoundException, UnsupportedEncodingException, CloneNotSupportedException, CDKException {
+		 ArrayList<Integer> valences= getValenceList(formula);
+		 ArrayList<String> symbols = getSymbolList(formula);
+		 sortSymbolsValences(valences, symbols);
+		 firstValences=valences;
+		 firstSymbols=symbols;
+		 firstPartition= getPartition(valences);
+		 inputLists(firstValences, firstPartition);
+	 }
+	 
+	 public static ArrayList<Integer> getPartition(ArrayList<Integer> valences) {
+		 ArrayList<Integer> partition= new ArrayList<Integer>();
+		 int count=1;
+		 int size= valences.size();
+		 for(int k=0;k< size-1;k++){
+			 if(valences.get(k)!=valences.get(k+1)) {
+				 partition.add(count);
+				 count=1;
+				 if(k==size-2) {
+					 partition.add(count);
+				 }
+			 }else {
+				 count++;
+				 if(k==size-2) {
+					 partition.add(count);
+				 }
+			 }
+		 }
+		 return partition;
+	 }
+	 
+	 public static ArrayList<Integer> getPartitionSymbols(ArrayList<String> symbols) {
+		 ArrayList<Integer> partition= new ArrayList<Integer>();
+		 int count=1;
+		 int size= symbols.size();
+		 for(int k=0;k< size-1;k++){
+			 if(!symbols.get(k).equals(symbols.get(k+1))) {
+				 partition.add(count);
+				 count=1;
+				 if(k==size-2) {
+					 partition.add(count);
+				 }
+			 }else {
+				 count++;
+				 if(k==size-2) {
+					 partition.add(count);
+				 }
+			 }
+		 }
+		 return partition;
+	 }
+	 
+	 public static ArrayList<Integer> refinePartition(ArrayList<Integer> partition, ArrayList<String> symbols){
+		 ArrayList<Integer> refined= new ArrayList<Integer>();
+		 int index=0;
+		 int count=1;
+		 for(Integer p:partition) {
+			 if(p!=1) {
+				 for(int i=index;i<p+index-1;i++) {
+					 if(i+1<p+index-1) { 
+						 if(symbols.get(i).equals(symbols.get(i+1))) {
+							 count++;
+						 }else{
+							 refined.add(count);
+							 count=1;
+						 } 
+					 }else {
+						 if(symbols.get(i).equals(symbols.get(i+1))) {
+							 count++;
+							 refined.add(count);
+							 count=1;
+						 }else{
+							 refined.add(count);
+							 refined.add(1);
+							 count=1;
+						 }
+					 }
+				 }
+				 index=index+p;
+			 }else {
+				 index++;
+				 refined.add(1);
+				 count=1;
+			 }
+		 }
+		 return refined;
+	 }
+	 
+	 public static List<int[]> getHydrogenDistribution(ArrayList<Integer> valences, ArrayList<Integer> partition) throws FileNotFoundException, UnsupportedEncodingException, CloneNotSupportedException, CDKException {
+		 List<int[]> list= HydrogenDistributor.run(partition,valences);
+		 hydrogenIndex=list.get(0).length;
+		 return list;
+	 }
+	 
+	 public static void inputLists(ArrayList<Integer> valences, ArrayList<Integer> partition) throws FileNotFoundException, UnsupportedEncodingException, CloneNotSupportedException, CDKException {
+		 List<int[]> distributions= getHydrogenDistribution(valences, partition);
+		 newSymbols= getNewSymbols(firstSymbols,hydrogenIndex);
+		 for(int[] dist: distributions) {
+			 ArrayList<String> symbols= new ArrayList<String>(newSymbols);
+			 ArrayList<Integer> newValences= new ArrayList<Integer>();
+			 for(int i=0;i<dist.length;i++) {
+				 newValences.add(i,(valences.get(i)-dist[i]));
+			 }
+			 sortSymbolsValences(newValences, symbols);
+			 begins.clear();
+			 ends.clear();
+			 findRepetetiveSubArrays(newValences);
+			 inputValencesList.add(newValences);
+			 inputSymbolsList.add(sortSymbols(symbols));
+			 inputPartitionsList.add(refinePartition(getPartition(newValences),sortSymbols(symbols)));
+		 }
+	 }
+	 
 	
+	 public static ArrayList<String> getNewSymbols(ArrayList<String> list, int size){
+		 ArrayList<String> newSymbols = new ArrayList<String>();
+		 for(int i=0;i<size;i++) {
+			 newSymbols.add(list.get(i));
+		 }
+		 return newSymbols;
+	 }
+	 
+	  
+	 public static List<Integer> begins = new ArrayList<Integer>();
+	 public static List<Integer> ends = new ArrayList<Integer>();
+	 public static void findRepetetiveSubArrays(ArrayList<Integer> list) {
+		 int begin=0;
+		 
+		 for(int i=0;i<list.size()-1;i++) {
+			 if(list.get(i)==list.get(i+1)) {
+				 if(begin==0) {
+					 begins.add(i);
+					 begin++;
+				 }
+				 if((i+1)==(list.size()-1)) {
+					 ends.add(i+1);
+				 }
+			 }else {
+				 if(begins.size()-1==ends.size()) {
+					 begin=0; 
+					 ends.add(i);
+				 }
+			 }
+		 } 
+	 }
+	 
+	 public static final Comparator<Entry<String, Integer>> map_ORDER= new Comparator<Entry<String, Integer>>(){
+		 public int compare(Entry<String, Integer> e1, Entry<String, Integer> e2) {
+			 return -e2.getValue().compareTo(e1.getValue());
+		 }
+     };
+     
+     public static Map<String, Integer> countSymbols(ArrayList<String> list, int begin, int end){
+		 Map<String, Integer> count = new LinkedHashMap<>();
+	     String sym;
+	     
+	     for (int i = begin; i <=end; i++){
+	    	 sym=list.get(i);
+	    	 if (count.containsKey(sym)){
+	    		 count.put(sym, count.get(sym)+1);
+	         }else{
+	        	 count.put(sym, 1);
+	         }
+	     }
+	     return count;
+	 }
+	 
+	 public static ArrayList<String> sortString(ArrayList<String> list, int begin, int end){
+		 ArrayList<String> output = new ArrayList<String>(list);
+		 Map<String, Integer> count = countSymbols(output, begin, end);
+	     ArrayList<Entry<String, Integer>> entryList = new ArrayList<>(count.entrySet());
+	     Collections.sort(entryList,map_ORDER);
+	     while(begin<=end) {
+	    	 for (Entry<String, Integer> entry : entryList) {
+		    	 int frequency = entry.getValue();
+		         while (frequency >= 1){
+		        	 output.set(begin,entry.getKey());
+		        	 begin++;
+		        	 frequency--;
+		         }
+		     } 
+	     }
+	     return output;
+	 }
+	 
+	 public static ArrayList<String> sortSymbols(ArrayList<String> symbols){
+		 ArrayList<String> newList= new ArrayList<String>(symbols);
+		 for(int i=0;i<begins.size();i++) {
+			 newList=sortString(newList,begins.get(i),ends.get(i));
+		 }
+		 return newList;
+	 }
+	 
+	 public static void sortSymbolsValences(ArrayList<Integer> valences, ArrayList<String> symbols) {
+		 int size=valences.size();
+		 int temp;
+		 String temp2;
+		 for(int i = 0; i <size; i++) {
+			 for(int j = i + 1; j < size; j++){
+				 if (valences.get(i)< valences.get(j)){
+					 temp2=symbols.get(i);
+	                 temp = valences.get(i);
+	                 valences.set(i, valences.get(j));
+	                 symbols.set(i, symbols.get(j));
+	                 valences.set(j, temp);
+	                 symbols.set(j, temp2);
+	             }
+			 }
+		 }
+	 }
+	 
 	 private void parseArgs(String[] args) throws ParseException, IOException{
 		 Options options = setupOptions(args);	
 		 CommandLineParser parser = new DefaultParser();
@@ -1581,9 +1867,248 @@ public class canonicalBlockwiseTest extends groupFunctions {
 		 return options;
 	 }
 	 
+	 /**
+	  ***************************************************************************
+	  **These are the demo functions for the candidate matrix generation step.***       
+	  ***************************************************************************
+	  */
+	 
+	 /**
+	  * The main function for the block based canonical matrix generation.
+	  * 
+	  * @param molecularFormula String molecular formula
+	  * @param degrees			ArrayList<Integer> initial degree set. 
+	  * @param newDegrees		ArrayList<Integer> new degree set after hydrogen partition.
+	  * @param numberOfAtoms	int total number of atoms.
+	  	@param hydrogenIndex	int the beginning index of hydrogen atoms in A.
+	  * @param filePath 	    String path to store the output files.
+	  * @throws IOException
+	  * @throws CloneNotSupportedException
+	  * @throws CDKException
+	  */
+		
+	 
+	 public static void canonicalBlockbasedGeneratorDemo(String molecularFormula, ArrayList<Integer> degrees, ArrayList<Integer> newDegrees, int numberOfAtoms, int hydrogenIndex, String filePath) throws IOException, CloneNotSupportedException, CDKException{
+	    outFile = new SDFWriter(new FileWriter(filedir+"output.sdf"));
+		long startTime = System.nanoTime(); 
+		initialDegrees=degrees;
+		size=degrees.size();
+		hIndex=hydrogenIndex;
+		formula= molecularFormula;
+		filedir= filePath;
+		System.out.println("For the formula, "+formula+",start generating all possible connectivity matrices...");
+		build(formula);
+		genDemo(newDegrees);
+		System.out.println("The number of structures is: "+count);	
+		long endTime = System.nanoTime()- startTime;
+	    double seconds = (double) endTime / 1000000000.0;
+		DecimalFormat d = new DecimalFormat(".###");
+		System.out.println("time"+" "+d.format(seconds));
+	 }
+		
+	 /**
+	  * The first step in Grund 3.2.3.
+	  * 
+	  * Initialization of the input variables for the generator.
+	  * 
+	  * @param degreeList
+	  * @throws IOException
+	  * @throws CloneNotSupportedException
+	  * @throws CDKException
+	  */
+	 
+	 public static void genDemo(ArrayList<Integer> degreeList) throws IOException, CloneNotSupportedException, CDKException {
+		 int[][] A   = new int[size][size];
+		 degrees=degreeList;
+		 max = maximalMatrix(degrees);
+		 L   = upperTriangularL(degrees);
+		 C   = upperTriangularC(degrees);
+		 ArrayList<Integer> indices= new ArrayList<Integer>();
+		 indices.add(0);
+		 indices.add(1);
+		 forwardDemo(A,indices);
+	 }
+	 
+	 /**
+	  * The second step in Grund 3.2.3.
+	  * 
+	  * Forward step in filling matrix entry {i,j} in a maximal way.
+	  * 
+	  * @param A int[][] adjacency matrix
+	  * @param indices ArrayList<Integer> indices
+	  * @throws IOException 
+	  * @throws CloneNotSupportedException
+	  * @throws CDKException
+	  */
+	 
+	 public static void forwardDemo(int[][] A, ArrayList<Integer> indices) throws IOException, CloneNotSupportedException, CDKException {
+		 int i=indices.get(0);
+		 int j=indices.get(1);
+		 int lInverse= LInverse(degrees,i,j,A);
+		 int cInverse= CInverse(degrees,i,j,A);
+		 int minimal = Math.min(max[i][j],Math.min(lInverse,cInverse));
+		 /**
+		  * First step in the forward method.
+		  */
+		 int maximumValue = forwardMaximal(minimal, lInverse, L[i][j], cInverse, C[i][j]); 
+		 forwardSub(lInverse, cInverse, maximumValue, i, j,A,indices);  
+	 } 
+	 
+	 /**
+	  * First step in the forward method.
+	  * @param min minimum of L, C amd maximal matrices for {i,j} indices.
+	  * @param lInverse Linverse value of {i,j}
+	  * @param l        L value of {i,j}
+	  * @param cInverse Cinverse value of {i,j}
+	  * @param c		C value of {i,j}
+	  * @return int max
+	  */
+	 
+	 public static int forwardMaximal(int min, int lInverse, int l, int cInverse, int c) {
+		 int max=0;
+		 for(int v=min;v>=0;v--) {
+			 if(((lInverse-v)<=l) && ((cInverse-v)<=c)) {
+				 max=max+v;
+				 break;
+			 }
+		 }
+		 return max;
+	 }
+	 
+	 /**
+	  * Sub function of forward method. As described in Grund's thesis, the list
+	  * of if-else conditions of the recursive method.
+	  * 
+	  * @param lInverse lInverse value of indices {i,j}
+	  * @param cInverse cInverse value of indices {i,j}
+	  * @param maximalX It is the maximal value, can be signed to indices {i,j}
+	  * @param i 		First Index
+	  * @param j		Second Index
+	  * @param A  		int[][] adjancency matrix
+	  * @param indices  ArrayList<Integer>
+	  * @throws CloneNotSupportedException
+	  * @throws CDKException
+	  * @throws IOException
+	  */
+	 
+	 public static void forwardSub(int lInverse, int cInverse, int maximalX,int i, int j, int[][] A, ArrayList<Integer> indices) throws CloneNotSupportedException, CDKException, IOException {
+		 if(((lInverse-maximalX)<=L[i][j]) && ((cInverse-maximalX)<=C[i][j])) {
+			 A[i][j]=maximalX;
+			 A[j][i]=maximalX;
+			 if(i==(max.length-2) && j==(max.length-1)) {
+				 output.add(A);
+				 int[][] mat2= new int[A.length][A.length]; 
+				 for(int k=0;k<A.length;k++) {
+					 for(int l=0;l<A.length;l++) {
+						 mat2[k][l]=A[k][l];
+					 }
+				 }
+				
+				 //A=addHydrogens(A,hIndex);
+				 if(connectivityTest(hIndex,addHydrogens(mat2,hIndex))){					 
+					 /**
+					  * Just to avoid the duplicates for now, I use
+					  * InChIs
+					  */
+					 
+					 IAtomContainer mol= buildC(addHydrogens(mat2,hIndex));
+					 String inchi= inchiGeneration(mol);
+					 if(!inchis.contains(inchi)) {
+						 outFile.write(mol);
+						 depict(mol,filedir+count+".png");
+						 count++;
+						 inchis.add(inchi);
+					 }
+		    	 }
+
+				 backwardDemo(A, indices);
+			 }else {
+				 indices=successor(indices,max.length);
+				 forwardDemo(A,indices);
+			 }
+		 }else {
+			 	backwardDemo(A,indices);
+		 }
+	 }
+	 
+	 /**
+	  * The third step in Grund 3.2.3.
+	  * 
+	  * Backward step in the algorithm.
+	  * 
+	  * @param A 			int[][] adjacency matrix
+	  * @param indices 		ArrayList<Integer> indices
+	  * @throws IOException 
+	  * @throws CloneNotSupportedException
+	  * @throws CDKException
+	  */
+	 
+	 public static void backwardDemo(int[][] A, ArrayList<Integer> indices) throws IOException, CloneNotSupportedException, CDKException {
+		int i=indices.get(0);
+		int j=indices.get(1);
+			
+		if(i==0 && j==1) {
+			System.out.println("Algorithm is terminated");
+		}else {
+			indices=predecessor(indices, max.length);
+			i= indices.get(0);
+			j= indices.get(1);
+			int x= A[i][j];
+			int l2= LInverse(degrees,i,j,A);
+			int c2= CInverse(degrees,i,j,A);
+			if(x>0 && (backwardCriteria(x,l2,L[i][j]) && backwardCriteria(x,c2,C[i][j]))){
+				//if(x>0 && (((l2-(x-1))<=L[i][j]) && ((c2-(x-1))<=C[i][j]))) {
+				A[i][j]=(x-1);
+				A[j][i]=(x-1);
+				indices=successor(indices,max.length);
+				forwardDemo(A, indices);
+			}else {
+				backwardDemo(A,indices);
+			}
+		}
+	 }
+		
+	 /**
+	  * The third line of the backward method in Grund 3.2.3. The criteria 
+	  * to decide which function is needed: forward or backward.
+	  * 
+	  * @param x 	the value in the adjacency matrix A[i][j]
+	  * @param lInverse   lInverse value of indices {i,j}
+	  * @param l
+	  * @return
+	  */
+	 
+	 public static boolean backwardCriteria(int x, int lInverse, int l) {
+		boolean check=false;
+		int newX= (x-1);
+		if((lInverse-newX)<=l) {
+			check=true;
+		}
+		return check;
+	 }
 	 
 	 public static void main(String[] args) throws CloneNotSupportedException, CDKException, IOException {	
-		 canonicalBlockwiseTest gen = null;
+		 ArrayList<Integer> degrees = new ArrayList<Integer>();
+		 degrees.add(4);
+		 degrees.add(4);
+		 degrees.add(4);
+		 degrees.add(2);
+		 degrees.add(1);
+		 degrees.add(1);
+		 degrees.add(1);
+		 degrees.add(1);
+		 degrees.add(1);
+		 degrees.add(1);
+		 
+		 ArrayList<Integer> newDegrees = new ArrayList<Integer>();
+		 newDegrees.add(2);
+		 newDegrees.add(2);
+		 newDegrees.add(2);
+		 newDegrees.add(2);
+		 
+		 canonicalBlockbasedGeneratorDemo("C3OH6", degrees, newDegrees, 10, 4,"C:\\Users\\mehme\\Desktop\\");
+		 
+		 /**canonicalBlockwiseTest gen = null;
 		 //String[] args1= {"-f","C4OH10","-v","-d","C:\\Users\\mehme\\Desktop\\"};
 		 try {
 			 gen = new canonicalBlockwiseTest();
@@ -1591,7 +2116,6 @@ public class canonicalBlockwiseTest extends groupFunctions {
 			 canonicalBlockwiseTest.run(canonicalBlockwiseTest.formula,canonicalBlockwiseTest.filedir);
 		 } catch (Exception e) {
 			 if (canonicalBlockwiseTest.verbose) e.getCause(); 
-		 }
+		 }**/
 	 }
-
 }
