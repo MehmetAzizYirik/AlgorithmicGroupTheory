@@ -20,6 +20,7 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -68,17 +69,22 @@ public class canonicalBlockwiseTest extends groupFunctions {
 	public static String filedir;
 	public static ArrayList<int[][]> output= new ArrayList<int[][]>();
 	public static ArrayList<String> inchis= new ArrayList<String>();
-	public static ArrayList<Integer> initialDegrees= new ArrayList<Integer>();
-	public static ArrayList<Integer> inputPartition= new ArrayList<Integer>();	
+	public static int[] degrees;
+	public static int[] initialDegrees;
+	public static int[] partition;
+	public static ArrayList<Integer> initialPartition;
+	public static ArrayList<Integer> inputPartition;
 	public static IChemObjectBuilder builder=DefaultChemObjectBuilder.getInstance();
 	public static IAtomContainer atomContainer= builder.newInstance(IAtomContainer.class);
-	public static ArrayList<ArrayList<Integer>> partitionList= new ArrayList<ArrayList<Integer>>();
+	public static List<ArrayList<Integer>> partitionList= new ArrayList<ArrayList<Integer>>();
 	public static ArrayList<ArrayList<Permutation>> representatives = new ArrayList<ArrayList<Permutation>>();
+	public static List<String> symbols = new ArrayList<String>();
+	public static ArrayList<Integer> occurrences  = new ArrayList<Integer>();
 	public static Map<String, Integer> valences; 
-	public static int[][] max= new int[6][6];
-	public static int[][] L= new int[6][6];
-	public static int[][] C= new int[6][6];
-	public static ArrayList<Integer> degrees= new ArrayList<Integer>();
+	public static PrintWriter pWriter;
+	public static int[][] max;
+	public static int[][] L;
+	public static int[][] C;
 	static {
 		//The atom valences from CDK.
 		valences = new HashMap<String, Integer>();
@@ -159,6 +165,20 @@ public class canonicalBlockwiseTest extends groupFunctions {
 		return degreeList;
 	}
 	
+	public static List<int[]> distributeHydrogens(int[] partition, int[] degrees) throws FileNotFoundException, UnsupportedEncodingException, CloneNotSupportedException, CDKException{
+		List<int[]> degreeList= new ArrayList<int[]>();
+		List<int[]> distributions= HydrogenDistributor.run(partition,degrees);
+		hIndex= distributions.get(0).length;
+		initialPartition=partition;
+		for(int[] dist: distributions) {
+			int[] newDegree= new int[hIndex];
+			for(int i=0;i<dist.length;i++) {
+				newDegree[i]=(degrees[i]-dist[i]);
+			}
+			degreeList.add(newDegree);
+		}
+		return degreeList;
+	}
 	/**
 	 * Once the hydrogens are distributed, we need to redefine the input partition.
 	 * @param partition ArrayList<Integer> atom partitioning
@@ -178,26 +198,25 @@ public class canonicalBlockwiseTest extends groupFunctions {
 	 * @param degrees degree sequence
 	 */
 	
-	public static int[][] maximalMatrix(ArrayList<Integer> degrees) {
-		int[][] maxMatrix= new int[degrees.size()][degrees.size()];
-		for(int i=0;i<degrees.size();i++) {
-			for(int j=0; j<degrees.size();j++) {
-				int di= degrees.get(i);
-				int dj= degrees.get(j);
+	public static void maximalMatrix() {
+		max= new int[hIndex][hIndex];
+		for(int i=0;i<hIndex;i++) {
+			for(int j=0; j<hIndex;j++) {
+				int di= degrees[i];
+				int dj= degrees[j];
 				
 				if(i==j) {
-					maxMatrix[i][j]=0;
+					max[i][j]=0;
 				}else {
 					if(di!=dj) {
-						maxMatrix[i][j]=Math.min(di, dj);
+						max[i][j]=Math.min(di, dj);
 					}else if (di==dj && i!=j) {
 					//}else {
-						maxMatrix[i][j]=(di-1);
+						max[i][j]=(di-1);
 					}
 				}
 			}
 		}
-		return maxMatrix;
 	}
 	 
 	/**
@@ -207,30 +226,27 @@ public class canonicalBlockwiseTest extends groupFunctions {
 	 * @return upper triangular matrix
 	 */
 	
-	public static int[][] upperTriangularL(ArrayList<Integer> degrees){
-		int size= degrees.size();
-		int[][] L= new int[size][size]; 
-		int[][] max= maximalMatrix(degrees);
-		for(int i=0;i<size;i++) {
-			for(int j=i+1;j<size;j++) {
-				L[i][j]= Math.min(degrees.get(i), Lsum(max,i,j+1,size));
+	public static void upperTriangularL(){
+		L= new int[hIndex][hIndex]; 
+		for(int i=0;i<hIndex;i++) {
+			for(int j=i+1;j<hIndex;j++) {
+				L[i][j]= Math.min(degrees[i], Lsum(i,j+1));
 			}
 		}
-		return L;
 	}
 	
 	
-	public static int Lsum(int[][] max, int i, int j, int size) {
+	public static int Lsum(int i, int j) {
 		int sum=0;
-		for(int k=j;k<size;k++) {
+		for(int k=j;k<hIndex;k++) {
 			sum=sum+max[i][k];
 		}
 		return sum;
 	}
 	
-	public static int Csum(int[][] max, int i, int j, int size) {
+	public static int Csum(int i, int j) {
 		int sum=0;
-		for(int k=i;k<size;k++) {
+		for(int k=i;k<hIndex;k++) {
 			sum=sum+max[k][j];
 		}
 		return sum;
@@ -243,13 +259,11 @@ public class canonicalBlockwiseTest extends groupFunctions {
 	 * @return upper triangular matrix
 	 */
 	
-	public static int[][] upperTriangularC(ArrayList<Integer> degrees){
-		int size= degrees.size();
-		int[][] C= new int[size][size]; 	
-		int[][] max= maximalMatrix(degrees);
-		for(int i=0;i<size;i++) {
-			for(int j=i+1;j<size;j++) {
-				C[i][j]= Math.min(degrees.get(j), Csum(max,i+1,j,size));
+	public static int[][] upperTriangularC(){
+		C= new int[hIndex][hIndex]; 	
+		for(int i=0;i<hIndex;i++) {
+			for(int j=i+1;j<hIndex;j++) {
+				C[i][j]= Math.min(degrees[j], Csum(i+1,j));
 			}
 		}
 		return C;
@@ -307,11 +321,11 @@ public class canonicalBlockwiseTest extends groupFunctions {
 	}
 	
 	public static int findY(int r) {
-		return (sum(inputPartition,(r-1)));
+		return (sum(initialPartition,(r-1)));
 	}
 	
 	public static int findZ(int r) {
-		return (sum(inputPartition,r)-1);
+		return (sum(initialPartition,r)-1);
 	}
 	
 	/**
@@ -324,20 +338,20 @@ public class canonicalBlockwiseTest extends groupFunctions {
 	 * @return
 	 */
 	
-	public static int LInverse(ArrayList<Integer> degrees, int i, int j, int[][]A) {
+	public static int LInverse(int[] degrees, int i, int j, int[][]A) {
 		int sum=0;
 		for(int s=0;s<j;s++) {
 			sum=sum+A[i][s];
 		}
-		return degrees.get(i)-sum;
+		return degrees[i]-sum;
 	}
 		 
-	public static int CInverse(ArrayList<Integer> degrees, int i, int j, int[][]A) {
+	public static int CInverse(int[] degrees, int i, int j, int[][]A) {
 		int sum=0;
 		for(int s=0;s<i;s++) {
 			sum=sum+A[s][j];
 		}
-		return degrees.get(j)-sum;
+		return degrees[j]-sum;
 	}
 	
 	/**
@@ -377,6 +391,7 @@ public class canonicalBlockwiseTest extends groupFunctions {
 		 return modified;
 	 }
 	 
+	 
 	 /**
 	  * Forward function of the matrix generator.
 	  * @param r int block index
@@ -405,13 +420,13 @@ public class canonicalBlockwiseTest extends groupFunctions {
 				 A[i][j]=A[j][i]=h;	
 
 				 if(i==(max.length-2) && j==(max.length-1)) {
-					 if(blockTest(i, r, A)) {
+					 if(blockTest(r, A)) {
 						 backwardBuild(r, degrees,partitionList.get(y),A, max, L, C, indices);
 			 		 }
 			     }else {
 			    	 ArrayList<Integer> modified=successor(indices,max.length);
 			 		 if(modified.get(0)>z) { // If its higher than z value. 
-			 			 if(blockTest(i, r, A)) {
+			 			 if(blockTest(r, A)) {
 			 				 r++; //z+1
 			 				 forwardBuild(r, degrees, partitionList.get(z+1), A, max, L, C, modified);
 			 			 }
@@ -497,7 +512,7 @@ public class canonicalBlockwiseTest extends groupFunctions {
 		int hIndex=index;
 		int hydrogen=0;
 		for(int i=0;i<index;i++) {
-			hydrogen=initialDegrees.get(i)-sum(A[i]);
+			hydrogen=initialDegrees[i]-sum(A[i]);
 			for(int j=hIndex;j<(hIndex+hydrogen);j++) {
 				A[i][j]=1;
 				A[j][i]=1;
@@ -526,6 +541,20 @@ public class canonicalBlockwiseTest extends groupFunctions {
 	}
 	
 	/**
+	 * Summing entries of a list.
+	 * @param list List<Integer>
+	 * @return int sum
+	 */
+	
+	public static int sum(List<Integer> list) {
+		int sum=0;
+		for(int i=0;i<list.size();i++) {
+			sum=sum+list.get(i);
+		}
+		return sum;
+	}
+	
+	/**
 	 * Building an atom container for an adjacency matrix
 	 * @param mat int[][] adjacency matrix
 	 * @return
@@ -546,7 +575,7 @@ public class canonicalBlockwiseTest extends groupFunctions {
 			}
 		}
 		
-		ac2=AtomContainerManipulator.removeHydrogens(ac2);
+		//ac2=AtomContainerManipulator.removeHydrogens(ac2);
 		return ac2;
 	}
 	 
@@ -561,17 +590,8 @@ public class canonicalBlockwiseTest extends groupFunctions {
 	 */
 	
 	public static void build(String mol) throws IOException, CloneNotSupportedException, CDKException {
-		List<String> symbols = new ArrayList<String>();
-	    List<Integer> number = new ArrayList<Integer>();
-	    String[] atoms = mol.split("(?=[A-Z])");
-	    for (String atom : atoms) {
-	    	String[] info = atom.split("(?=[0-9])", 2);   
-	        symbols.add(info[0]);
-	        number.add(info.length > 1 ? Integer.parseInt(info[1]):1);
-	    }
-	    
 	    for(int i=0;i<symbols.size();i++) {
-	    	for(int j=0;j<number.get(i);j++) {
+	    	for(int j=0;j<occurrences.get(i);j++) {
 	    		atomContainer.addAtom(new Atom(symbols.get(i)));
 	    	}
 	    }
@@ -686,18 +706,24 @@ public class canonicalBlockwiseTest extends groupFunctions {
 	 * @return boolean 
 	 */
 	 
-	public static boolean blockTest(int index, int r, int[][] A) {
+	public static boolean blockTest(int r, int[][] A) {
+		clear(false,y);
 		boolean check=true;
 		int y=findY(r);
 		int z=findZ(r);
-		 
-		for(int i=y;i<=z;i++) {
-			if(!block(i,r, A, partitionList.get(i),canonicalPartition(i,partitionList.get(i)))){
-				check=false;
+		for(int i=0;i<=5;i++) {
+			ArrayList<Integer> partition=canonicalPartition(i,partitionList.get(i));
+			//if(!allis1(partition)) {
+				//if(!block(i, A)){
+				if(!block(i,r, A, partitionList.get(i),canonicalPartition(i,partitionList.get(i)))){
+					check=false;
+					break;
+				}
+			/**}else {
 				break;
-			}
+			}**/
 		}
-		clear(check, y);
+		//clear(check, y);
 		return check;
 	}
 	 
@@ -765,13 +791,29 @@ public class canonicalBlockwiseTest extends groupFunctions {
 	  * @param newPartition ArrayList<Integer> new atom partition after canonical repartitioning
 	  * @return
 	  */
-	 public static boolean block(int index, int r, int[][] A, ArrayList<Integer> partition, ArrayList<Integer> newPartition) {
+	 public static boolean block(int index, int r,int[][] A, ArrayList<Integer> partition, ArrayList<Integer> newPartition) {
+		 /**boolean check=true;
+		 ArrayList<Integer> partition= canonicalPartition(index,partitionList.get(index));
+		 if(!allis1(partition)) {
+			 if(!descendingOrderCheck(index,A[index], partition)){
+				 check=false;
+			 }else {
+				 if(!compareWithFormers(0, index, A, partition)) {
+					 check=false;
+				 }else {
+					 addPartition(index, partition, A);
+				 }
+			 }
+		 } 
+		 return check;**/
+		 addRepresentatives(index,idPermutation(6));
 		 int y = findY(r);
 		 boolean check= true;
 		 int total = sum(partition);
-		 ArrayList<Permutation> cycleTrans= cycleTranspositions(index,partition);
+		 ArrayList<Permutation> cycleTrans = cycleTranspositions(index,partition);
+		 ArrayList<Permutation> formerPermutations= formerPermutations( false,index, y, total);		 		 
 		 for(Permutation cycle: cycleTrans) {
-			 boolean formerCheck = formerPermutationsCheck(index,y, total, A, partition, newPartition, cycle,false);
+			 boolean formerCheck = formerPermutationsCheck(index,y, total, A, partition, newPartition,formerPermutations, cycle,false);
 			 if(!formerCheck) {
 				 check=false;
 				 break;
@@ -779,6 +821,27 @@ public class canonicalBlockwiseTest extends groupFunctions {
 				 addPartition(index, newPartition, A);
 			 }
 		 } 
+		 return check;
+	 }
+	 
+	 public static boolean compareWithFormers(int y, int index, int[][] A, ArrayList<Integer> partition) {
+		 boolean check=true;
+		 int[] currentRow= A[index]; 
+		 for(int i=y; i<index;i++) {
+			 if(!descBlockLineCheck(index, A[i], currentRow, partition)) {
+				 check=false;
+			 }
+		 }
+		 return check;
+	 }
+	 public static boolean allis1(ArrayList<Integer> partition) {
+		 boolean check=true;
+		 for(int i=0;i<partition.size();i++) {
+			 if(partition.get(i)!=1) {
+				 check=false;
+				 break;
+			 }
+		 }
 		 return check;
 	 }
 	 
@@ -790,7 +853,17 @@ public class canonicalBlockwiseTest extends groupFunctions {
 	  */
 	 
 	 public static void addPartition(int index, ArrayList<Integer> newPartition, int[][] A) {
-		 ArrayList<Integer> refinedPartition= refinedPartitioning(newPartition,A[index]);
+		 ArrayList<Integer> refinedPartition= new ArrayList<Integer>();
+		 if(allis1(newPartition)) {
+			 refinedPartition.add(1);
+			 refinedPartition.add(1);
+			 refinedPartition.add(1);
+			 refinedPartition.add(1);
+			 refinedPartition.add(1);
+			 refinedPartition.add(1);
+		 }else {
+			 refinedPartition= refinedPartitioning(newPartition,A[index]);
+		 }
 		 if(partitionList.size()==(index+1)) {
 			 partitionList.add(refinedPartition);
 		 }else {
@@ -903,13 +976,16 @@ public class canonicalBlockwiseTest extends groupFunctions {
 			 ArrayList<Permutation> form= new ArrayList<Permutation>();
 			 form.add(idPermutation(total));
 			 return form;
+		 }else if(index==(y+1)){
+			 return representatives.get(y);
 		 }else {
 			 ArrayList<Permutation> list= representatives.get(y);
 			 ArrayList<Permutation> nList= new ArrayList<Permutation>();
-			 for(int i=(y+1);i<index;i++) {
-				 for(int l=0;l<list.size();l++) {
+			 for(int l=0;l<list.size();l++) {
+				 Permutation yDen= list.get(l);
+				 for(int i=(y+1);i<index;i++) {
 					 for(Permutation perm: representatives.get(i)) {
-						 Permutation mult= list.get(l).multiply(perm);
+						 Permutation mult= yDen.multiply(perm);
 						 //if(!mult.isIdentity()) {
 						 if(!nList.contains(mult)) {
 							 nList.add(mult); 
@@ -917,11 +993,12 @@ public class canonicalBlockwiseTest extends groupFunctions {
 						 //}
 					 }
 				 }
-				 list.clear();
+				 /**list.clear();
 				 list.addAll(nList); // list=nList does not work.
-				 nList.clear();
+				 nList.clear();**/
 			 }
-			 return list; 
+			 return nList; 
+			 
 		 }
 	 }
 	 
@@ -957,28 +1034,54 @@ public class canonicalBlockwiseTest extends groupFunctions {
 	  * @return
 	  */
 	 
-	 public static Permutation getCanonicalPermutatiom(int index, int y, int total, int[][] A, ArrayList<Integer> partition, ArrayList<Integer> newPartition, Permutation former, Permutation cycle) {
-		 Permutation cycleM= former.multiply(cycle);
-		 Permutation canonical = idPermutation(total);
+	 public static boolean equalAuto=true;
+	 public static Permutation getCanonicalPermutatiom(int index, int y, int total, int[][] A, ArrayList<Integer> partition, ArrayList<Integer> newPartition,Permutation cycleTransposition) {
+		 equalAuto=true;
+		 biggest=true;
+		 //Permutation testPermutation= formerPermutation.multiply(cycleTransposition);
+		 Permutation canonicalPermutation = idPermutation(total);
 		 //if(descBlockwiseCheck2(index,y,A,newPartition)) {
-		 if(descBlockwiseCheck2(index,y,A,newPartition)) {
-			 if(!equalBlockCheck(cycleM,newPartition,index,y,A,idPermutation(total))) {
-				 canonical=getEqualPermutation(cycleM, index, y, total,A, partition, newPartition);
-				 canonical=cycle.multiply(canonical);
-				 /**if(canonical.isIdentity()) {
-					 if(!descBlockCheck(cycleM,newPartition,index,y,A,idPermutation(total),2,pWriter)) {
-						 canonical = idPermutation(total);
-					 }else {
-						 canonical = cycle.multiply(canonical);
-					 }
-				 }else {
-					 canonical=cycle.multiply(canonical);
-				 }**/
-			 }else {
-				 canonical=cycle.multiply(canonical);
+		 if(!equalBlockCheck(newPartition,index,y,A,cycleTransposition,idPermutation(6))) {
+			 canonicalPermutation=getEqualPermutation(cycleTransposition, index, y, total,A, partition, newPartition);
+			 //original=actArray(actArray(actArray(A[cycleTransposition.get(index)],cycleTransposition),formerPermutation),perm);
+			 int[] check = actArray(actArray(A[cycleTransposition.get(index)],cycleTransposition),canonicalPermutation);
+			 if(canonicalPermutation.isIdentity()) {
+				 if(!descendingOrdercomparison(newPartition,A[index],check)) {
+					 equalAuto=false; 
+				 }
 			 }
+			 
+		 }			 
+		 //}
+		 return canonicalPermutation;
+	 }
+	 
+	 public static boolean biggerCheck(int[] original, int[] permuted, ArrayList<Integer> partition) {
+		 permuted=descendingSortWithPartition(permuted, partition);
+		 return descendingOrdercomparison(partition, original, permuted);
+	 }
+	 
+	 public static int[] descendingSortWithPartition(int[] array, ArrayList<Integer> partition) {
+		 int i=0;
+		 for(Integer p:partition) {
+			 array=descendingSort(array,i,i+p);
+			 i=i+p;
 		 }
-		 return canonical;
+		 return array;
+	 }
+	 
+	 public static int[] descendingSort(int[] array, int index0, int index1) {
+		 int temp=0;
+		 for (int i = index0; i < index1; i++) {     
+			 for (int j = i+1; j < index1; j++) {     
+				 if(array[i] < array[j]) {    
+					 temp = array[i];    
+	                 array[i] = array[j];    
+	                 array[j] = temp;    
+	             }     
+	         }     
+		 }
+		 return array;
 	 }
 	 
 	 /**
@@ -999,51 +1102,41 @@ public class canonicalBlockwiseTest extends groupFunctions {
 	  * @return Permutation
 	  */
 	 
-	 public static boolean formerPermutationsCheck(int index, int y, int total, int[][] A, ArrayList<Integer> partition, ArrayList<Integer> newPartition, Permutation perm, boolean formerBlocks) {
+	 public static boolean formerPermutationsCheck(int index, int y, int total, int[][] A, ArrayList<Integer> partition, ArrayList<Integer> newPartition, ArrayList<Permutation> formerPermutations, Permutation cycleTransposition, boolean formerBlocks) {
 		 boolean check=true;
-		 ArrayList<Permutation> formerPerms= formerPermutations( formerBlocks,index, y, total);
-		 Permutation canonical = idPermutation(total);
-		 for(Permutation former: formerPerms) {
-			 Permutation test=former.multiply(perm);
-			 //if(getCanonicalTest(index, y, total, A, partition, newPartition, test, pWriter)) {
-			 canonical=getCanonicalPermutatiom(index, y, total, A, partition, newPartition, former,perm);
-			 if(canonical.isIdentity()) {
-				 //if(descBlockwiseCheck2(index,y,A,newPartition) && descBlockCheck(test,newPartition,index,y,A,idPermutation(total))) { //TODO: Not enought for the example. Not des but id so if the array is desc but the comparison is not. Then we cant say continue.
-				 if(descBlockwiseCheck2(index,y,A,newPartition)) {	 
-					 addRepresentatives(index,idPermutation(total));
-					 /**boolean formerTest = formerBlocksRepresentatives(index,y, A, newPartition, canonical, pWriter);
-					 if(!formerTest) {
-						check=false;
-						break;
+		 Permutation canonicalPermutation = idPermutation(total);
+		 canonicalPermutation=getCanonicalPermutatiom(index, y, total, A, partition, newPartition, cycleTransposition);
+		 if(biggest) {
+			 for(Permutation formerPermutation: formerPermutations) {
+				 Permutation testPermutation= formerPermutation.multiply(cycleTransposition.multiply(canonicalPermutation));
+				 int[] array= actArray(actArray(actArray(A[cycleTransposition.get(index)],cycleTransposition),canonicalPermutation),formerPermutation);
+				 if(descendingOrdercomparison(newPartition,A[index], array)) {
+					 if(canonicalPermutation.isIdentity()) {
+						 if(descBlockwiseCheck2(index,y,A,newPartition)) {	 
+							 addRepresentatives(index,idPermutation(6));
+						 }else {
+							 check=false;
+							 break;
+						 }
 					 }else {
-						addRepresentatives(index,idPermutation(total), pWriter); 
-					 }**/
+						 if(testPermutation.equals(formerPermutation.multiply(cycleTransposition.multiply(canonicalPermutation)))) { 
+							 if(equalAuto) {
+								 addRepresentatives(index, idPermutation(6));	
+							 }else {
+								 check=false;
+								 break;
+							 }
+						 }else {
+							 addRepresentatives(index, cycleTransposition.multiply(canonicalPermutation));
+						 }
+					 }
 				 }else {
 					 check=false;
 					 break;
-				 }
-			 }else {
-				 if(test.equals(former.multiply(canonical))) { // In case if we have 
-					 addRepresentatives(index, idPermutation(total)); 
-					 /**boolean formerTest = formerBlocksRepresentatives(index,y, A, newPartition, canonical, pWriter);
-					 if(!formerTest) {
-					 	check=false;
-						break;
-				 	 }else {
-						addRepresentatives(index, idPermutation(total), pWriter); 
-				  	 }**/
-				 }else {
-					 addRepresentatives(index, canonical);
-					 /**boolean formerTest = formerBlocksRepresentatives(index,y, A, newPartition, canonical, pWriter);
-					 if(!formerTest) {
-						check=false;
-						break;
-					 }else {
-						pWriter.print("add rep"+" "+index+" "+representatives.size()+" "+canonical.toCycleString()+" "+"\n");
-						addRepresentatives(index, canonical,pWriter);
-					 }**/
-				 }
-			 }
+				 }	 
+			 } 
+		 }else {
+			 check=false;
 		 }
 		 return check;
 	 }
@@ -1110,29 +1203,96 @@ public class canonicalBlockwiseTest extends groupFunctions {
 			 }
 		 }
 	 }
-	 
+	
 	 /**
-	  * Check whether the modified and original rows are equal or not.
+	  * Checking whether the modified and original rows are equal or not.
+	  * @param cycleTransposition Permutation - cycle transposition
 	  * @param partition atom partition
 	  * @param index row index
 	  * @param y beginning index of a block
 	  * @param A adjacency matrix
-	  * @param perm permutation
+	  * @param testPermutation Permutation
 	  * @return
 	  */
 	 
-	 public static boolean equalBlockCheck(Permutation cycleM,ArrayList<Integer> partition, int index, int y, int[][] A, Permutation perm){
+	 public static int[] actArray(int[] strip, Permutation p) {
+		 int permLength= p.size();
+		 int arrayLenght=strip.length;
+		 int[] modified = new int[arrayLenght];
+		 for(int i=0; i<permLength;i++) {
+			 modified[p.get(i)]=strip[i]; 
+		 }
+		 return modified;
+	 }
+	 
+	 public static boolean equalBlockCheck(ArrayList<Integer> partition, int index, int y, int[][] A, Permutation cycleTransposition,Permutation perm){
 		 boolean check=true;
 		 int[] canonical= A[index];
 		 int[] original= A[index];
-		 //Permutation mult=cycleM.multiply(perm); Why do you need to change it to another row ? You need to just look at its action on the row.
-		 original=actArray(A[cycleM.get(index)],perm);
+		 //original=actArray(A[cycleTransposition.get(index)],formerPermutation);
+		 //original=actArray(actArray(A[cycleTransposition.get(index)],cycleTransposition),formerPermutation);
+		 //original=actArray(actArray(actArray(A[cycleTransposition.get(index)],cycleTransposition),formerPermutation),perm);
+		 original=actArray(actArray(A[cycleTransposition.get(index)],cycleTransposition),perm);
 		 if(!Arrays.equals(canonical,original)) {
 			 check=false;
 		 }
 		 return check;
 	 }
 	 
+	 public static boolean formerIsBigger(int[][] A, int index, Permutation formerPermutation, Permutation cycleTransposition, Permutation canonicalPermutation, ArrayList<Integer> newPartition) {
+		 boolean check=true;
+		 int[] original= A[index];
+		 int[] permuted= A[index];
+		 //permuted=actArray(actArray(actArray(A[cycleTransposition.get(index)],cycleTransposition),canonicalPermutation),formerPermutation);
+		 Permutation bu= formerPermutation.multiply(cycleTransposition);
+		 //permuted=actArray(actArray(actArray(A[cycleTransposition.get(index)],cycleTransposition),formerPermutation),canonicalPermutation);
+		 permuted=actArray(actArray(A[bu.get(index)],bu),canonicalPermutation);
+		 check=descendingOrdercomparison(newPartition, original, permuted);
+		 return check;
+	 }
+	 
+	 public static boolean descendingOrdercomparison(ArrayList<Integer> partition, int[] original, int[] permuted){
+		 boolean check=true;		 
+		 int i=0;
+		 for(Integer p:partition) {
+			 Integer[] org= getBlocks(original,i,p+i);
+			 Integer[] perm= getBlocks(permuted,i,p+i);
+			 if(desOrderCheck(org)) {	 
+			 	if(!Arrays.equals(org,perm)) {
+					 if(toInt(org)==toInt(perm)) {
+						 continue;
+					 }else if(toInt(org)>toInt(perm)) {
+						 check=true;
+						 break; //If bigger than already in lexico order.
+					 }else if(toInt(org)<toInt(perm)) {
+						 check=false;
+						 break;
+					 }
+				 }
+				 i=i+p;
+			 }else {
+				 check=false;
+				 break;
+			 }
+		 }
+		 return check;
+	 }
+	 
+	 public static boolean descendingOrderCheck(Integer[] original, Integer[] permuted){
+		 boolean check=true;		 
+		 if(desOrderCheck(original)) {	 
+			 if(!Arrays.equals(original,permuted)) {
+				 if(toInt(original)>toInt(permuted)) {
+					 check=true;
+				 }else if(toInt(original)<toInt(permuted)) {
+					 check=false;
+				 }
+			 }
+		 }else {
+			 check=false;
+		 }
+		 return check;
+	 }
 	 /**
 	  * Describing ArrayList<ArrayList<Permutation>>
 	  * for formerBlocksRepresentatives function.
@@ -1271,6 +1431,149 @@ public class canonicalBlockwiseTest extends groupFunctions {
 		 return check;
 	 }
 	 
+	 public static boolean descendingOrderCheck(int index,int[] array, ArrayList<Integer> partition) {
+		 boolean check=true;
+		 int i=index+1;
+		 for(int k=index+1;k<partition.size();k++) {
+			 Integer[] can= getBlocks(array,i,partition.get(k)+i);
+			 if(desOrderCheck(can)) {
+				 i=i+partition.get(k);
+				 continue;
+			 }else {
+				 check=false;
+				 break;
+			 }
+		 }
+		 return check;
+	 }
+	 
+	 public static ArrayList<Integer[]> getBlocks(int index, int[] array, ArrayList<Integer> partition) {
+		 //System.out.println("array"+" "+Arrays.toString(array));
+		 int i = index;
+		 ArrayList<Integer[]> list= new ArrayList<Integer[]>();
+		 for(int r=index+1; r<partition.size();r++) {
+			 //System.out.println("partition"+" "+partition.get(r));
+			 Integer[] can= getBlocks(array,i,partition.get(r)+i);
+			 list.add(can);
+			 i=i+partition.get(r);
+		 }
+		 return list;
+	 }
+	 
+	 public static int find1sEnd(ArrayList<Integer> partition) {
+		 int i=0;
+		 for(int k=0;k<partition.size();k++) {
+			 if(partition.get(k)!=1) {
+				 i=i+k;
+				 break;
+			 }
+		 }
+		 return i;
+	 }
+	 public static boolean descBlockComp(int index, int[] array, ArrayList<Integer> partition) {
+		 //System.out.println("array"+" "+Arrays.toString(array));
+		 boolean check=true;
+		 ArrayList<Integer[]> blocks= getBlocks(index, array, partition);	 
+		 Integer[] max = blocks.get(0); 
+		 for(int s=0;s<blocks.size();s++) {
+			 //System.out.println("block"+" "+s+" "+Arrays.toString(blocks.get(s)));
+		 }
+		 
+		 for(int i=1; i<blocks.size(); i++) {
+			 if(!bigger(max, blocks.get(i))) {
+				 check=false;
+				 break;
+			 }
+		 }
+		 //System.out.println("des check"+" "+check);
+		 return check;
+	 }
+	 
+	 public static boolean allIs0(Integer[] array) {
+		 boolean check=true;
+		 for(int i=0;i<array.length;i++) {
+			 if(array[i]!=0) {
+				 check=false;
+				 break;
+			 }
+		 }
+		 return check;
+	 }
+	 public static boolean zeros=false;
+	 public static boolean descBlockLineCheck(int index,int[] former, int[] current, ArrayList<Integer> partition) {
+		 boolean check=true;
+		 int i=index+1;
+		 for(int k=index+1;k<partition.size()-1;k++) {
+			 Integer[] can= getBlocks(former,i,partition.get(k)+i);
+			 Integer[] org= getBlocks(current,i,partition.get(k)+i); 
+			 if(!Arrays.equals(can,org)) {
+				 if(toInt(can)==toInt(org)) {
+					 continue;
+				 }else if(toInt(can)>toInt(org)) {
+					 check=true;
+					 break; //If bigger than already in lexico order.
+				 }else if(toInt(can)<toInt(org)) {
+					 check=false;
+					 break;
+				 }
+			 }
+			 /**if(k==partition.size()-1) {
+				 if(allIs0(can)) {	
+					 zeros=true;
+					 continue;
+			 	 }else {
+			 		if(!Arrays.equals(can,org)) {
+						 if(toInt(can)==toInt(org)) {
+							 continue;
+						 }else if(toInt(can)>toInt(org)) {
+							 check=true;
+							 break; //If bigger than already in lexico order.
+						 }else if(toInt(can)<toInt(org)) {
+							 check=false;
+							 break;
+						 }
+					 }
+			 	 }
+			 }else {
+				 if(!Arrays.equals(can,org)) {
+					 if(toInt(can)==toInt(org)) {
+						 continue;
+					 }else if(toInt(can)>toInt(org)) {
+						 check=true;
+						 break; //If bigger than already in lexico order.
+					 }else if(toInt(can)<toInt(org)) {
+						 check=false;
+						 break;
+					 }
+				 }
+			 }**/
+			 //}
+			 i=i+partition.get(k);
+		 }
+		 return check;
+	 }
+	 
+	 public static boolean bigger(Integer[] arr, Integer[] arr2) {
+		 boolean check=true;
+		 int size=getSmaller(arr, arr2);
+		 for(int i=0;i<size;i++) {
+			 if(arr[i]<arr2[i]) {
+				 check=false;
+				 break;
+			 }
+		 }
+		 return check;
+	 }
+	 
+	 public static int getSmaller(Integer[] arr, Integer[] arr2) {
+		 int size=0;
+		 size=arr.length;
+		 if(arr2.length<size) {
+			 size=arr2.length;
+		 }
+		 return size;
+	 }
+	 
 	 /**public static Permutation getCanonicalPermutation(int index, int y, int total, int[][] A, ArrayList<Integer> partition, ArrayList<Integer> newPartition, Permutation cycleM, PrintWriter pWriter) {
 		 pWriter.print("getCanonicalPermutation"+"\n");
 		 pWriter.print("permutation"+" "+cycleM+"\n");
@@ -1317,21 +1620,56 @@ public class canonicalBlockwiseTest extends groupFunctions {
 	  * @param newPartition ArrayList<Integer> new partition after canonical re-partitioning
 	  * @return
 	  */
+	
 	 
-	 public static Permutation getEqualPermutation(Permutation cycle, int index, int y, int total, int[][] A, ArrayList<Integer> partition, ArrayList<Integer> newPartition) {
-		 PermutationGroup group= getYoungGroup(newPartition,total);
-		 Permutation canonical = idPermutation(total);
-		 for(Permutation perm : group.all()) {
-			 if(!perm.isIdentity()) {
-				 if(equalBlockCheck(cycle,newPartition,index,y,A,perm)){
-					 canonical = perm;
+	 public static boolean formerPermutationsCheck=true;
+	 public static Permutation getEqualPermutation(Permutation cycleTransposition, int index, int y, int total, int[][] A, ArrayList<Integer> partition, ArrayList<Integer> newPartition) {
+		 int size=sum(newPartition);
+		 //PermutationGroup group= getYoungGroup(newPartition,total);
+		 //original=actArray(actArray(actArray(A[cycleTransposition.get(index)],cycleTransposition),formerPermutation),perm);
+		 int[] check=actArray(A[cycleTransposition.get(index)],cycleTransposition);
+		 Permutation canonicalPermutation= new Permutation(size);
+		 canonicalPermutation= getCyclePermutation(A[index],check,newPartition);
+		 if(!biggerCheck(A[index],check,newPartition)) {
+			 biggest=false;
+		 }
+		 /**for(Permutation permutation : group.all()) {
+			 if(!permutation.isIdentity()) {
+				 if(equalBlockCheck(newPartition,index,y,A,formerPermutation, cycleTransposition, permutation)){
+					 canonicalPermutation = permutation;
+					 if(!formerIsBigger(A, index, formerPermutation, cycleTransposition, canonicalPermutation, newPartition)) {
+						 formerPermutationsCheck=false;
+					 }
 					 break;
+				 }else {
+					 if(!formerIsBigger(A, index, formerPermutation, cycleTransposition, idPermutation(6), newPartition)) {
+						 formerPermutationsCheck=false;
+					 }
 				 }
+				 
+				 /**if(equalBlockCheck(cycleTransposition,newPartition,index,y,A,formerPermutation.multiply(permutation))){
+					 canonicalPermutation = permutation;
+					 break;
+				 }**/
+			 //}
+		 //}
+		 return canonicalPermutation;
+	 }
+	
+	 public static boolean testBig(Permutation cycleTransposition, Permutation testPermutation, int index, int total, int[][] A, ArrayList<Integer> newPartition) {
+		 boolean check=true;
+		 PermutationGroup group= getYoungGroup(newPartition,total);
+		 for(Permutation permutation : group.all()) {
+			 int[] array= actArray(A[cycleTransposition.get(index)],cycleTransposition);
+			 //if(!descendingOrdercomparison(newPartition, A[index], actArray(A[cycleTransposition.get(index)],testPermutation.multiply(permutation)))) {
+			 if(!descendingOrdercomparison(newPartition, A[index], actArray(array,testPermutation.multiply(permutation)))) {
+			 	 check=false;
+				 break;
 			 }
 		 }
-		 return canonical;
+		 return check;
 	 }
-		
+	 
 	 public static ArrayList<ArrayList<Integer>> subPartitionsList(ArrayList<Integer> partition){
 		 ArrayList<ArrayList<Integer>> parts = new ArrayList<ArrayList<Integer>>();
 		 for(int i=0;i<partition.size();i++) {
@@ -1348,11 +1686,12 @@ public class canonicalBlockwiseTest extends groupFunctions {
 	  */
 	 
 	 public static ArrayList<Integer> canonicalPartition(int i, ArrayList<Integer> partition){
-		 if(i==0) {
+		 return partitionCriteria(partition,i+1);
+		 /**if(i==0) {
 			 return partitionCriteria(partition,1);
 		 }else {
 			 return partitionCriteria(partition,i+1);
-		 }
+		 }**/
 	 }
 	 
 	 /**
@@ -1420,10 +1759,10 @@ public class canonicalBlockwiseTest extends groupFunctions {
 	  * @return Set<Integer>
 	  */
 		 
-	 public static Set<Integer> wValues(Set<Integer> nValues, ArrayList<Integer> Kformer){
+	 public static Set<Integer> wValues(Set<Integer> nValues, int[] Kformer){
 		 Set<Integer> wValues= new HashSet<Integer>();
 		 for(Integer i:nValues) {
-			 wValues.add(Kformer.get(i));
+			 wValues.add(Kformer[i]);
 		 }
 		 return wValues;
 	 }
@@ -1435,14 +1774,14 @@ public class canonicalBlockwiseTest extends groupFunctions {
 	  * @return ArrayList<Integer>
 	  */
 		 
-	 public static ArrayList<Integer> kValues(int total, Set<Integer> wValues, ArrayList<Integer> kFormer){
-		 ArrayList<Integer> kValues= new ArrayList<Integer>();
+	 public static int[] kValues(int total, Set<Integer> wValues, int[] kFormer){
+		 int[] kValues= new int[total];
 		 int min= Collections.min(wValues);
 		 for(int i=0;i<total;i++) {
-			 if(wValues.contains(kFormer.get(i))) {
-				 kValues.add(i,min);
+			 if(wValues.contains(kFormer[i])) {
+				 kValues[i]=min;
 			 }else {
-				 kValues.add(i,kFormer.get(i));
+				 kValues[i]=kFormer[i];
 			 }
 		 }
 		 return kValues;
@@ -1458,7 +1797,7 @@ public class canonicalBlockwiseTest extends groupFunctions {
 	 public static boolean connectivityTest(int p, int[][] mat) {
 		 boolean check=false;
 		 int total= mat.length;
-		 ArrayList<Integer> kValues=initialKList(total);
+		 int[] kValues=initialKList(total);
 		 Set<Integer> nValues= new HashSet<Integer>();
 		 Set<Integer> wValues= new HashSet<Integer>();
 		 int zValue= 0;
@@ -1481,10 +1820,10 @@ public class canonicalBlockwiseTest extends groupFunctions {
 	  * @return boolean
 	  */
 		 
-	 public static boolean allIs0(ArrayList<Integer> list) {
+	 public static boolean allIs0(int[] list) {
 		 boolean check=true;
-		 for(int i=0;i<list.size();i++) {
-			 if(list.get(i)!=0) {
+		 for(int i=0;i<list.length;i++) {
+			 if(list[i]!=0) {
 				 check=false;
 				 break;
 			 }
@@ -1498,10 +1837,10 @@ public class canonicalBlockwiseTest extends groupFunctions {
 	  * @return ArrayList<Integer>
 	  */
 		 
-	 public static ArrayList<Integer> initialKList(int total){
-		 ArrayList<Integer> k= new ArrayList<Integer>();
+	 public static int[] initialKList(int total){
+		 int[] k= new int[total];
 		 for(int i=0;i<total;i++) {
-			 k.add(i);
+			 k[i]=i;
 		 }
 		 return k;
 	 }
@@ -1516,39 +1855,56 @@ public class canonicalBlockwiseTest extends groupFunctions {
 	  * @throws CloneNotSupportedException
 	  */
 	 
-	 public static void run(String formula, String filedir) throws IOException, CDKException, CloneNotSupportedException {
-		 if(verbose) System.out.println("For the formula, "+formula+",start generating all possible connectivity matrices...");
-		 build(formula);
-		 outFile = new SDFWriter(new FileWriter(filedir+"output.sdf"));
-		 canonicalBlockbasedGenerator(degreeSeq(formula),distribution(formula),filedir);
-		 if(verbose) System.out.println("The number of structures is: "+count);	
-		 outFile.close();
-	 }
-		
 	 /**
-	  * Degree sequence is set from formula
-	  * @param formula String
-	  * @return
+	  * Setting the symbols and occurrences global variables.
+	  * @param formula  String molecular formula
 	  */
-	 public static ArrayList<Integer> degreeSeq(String formula){
-		 ArrayList<Integer> seq= new ArrayList<Integer>();
-		 List<String> symbols = new ArrayList<String>();
-		 List<Integer> occur  = new ArrayList<Integer>();
+	 
+	 public static void getSymbolsOccurrences(String formula) {
 		 String[] atoms = formula.split("(?=[A-Z])");
 		 for (String atom : atoms) {
 			 String[] info = atom.split("(?=[0-9])", 2);   
 		     symbols.add(info[0]);
-		     occur.add(info.length > 1 ? Integer.parseInt(info[1]):1);
+		     occurrences.add(atomOccurrunce(info));
 		 }
+	 }
+	 
+	 /**
+	  * Degree sequence is set from formula
+	  * @param formula String molecular formula
+	  * @return int[] valences 
+	  */
+	 
+	 public static void initialDegrees(){
+		 int size= sum(occurrences);
+		 initialDegrees= new int[size];
+		 int index=0;
 		 for(int i=0;i<symbols.size();i++) {
 			 String symbol= symbols.get(i);
-		     for(int j=0;j<occur.get(i);j++) {
-		    	 seq.add(valences.get(symbol));
+		     for(int j=0;j<occurrences.get(i);j++) {
+		    	 initialDegrees[index]=valences.get(symbol);
+		    	 index++;
 		     }
 		 }
-		 return seq;
 	 }
-		
+	 
+	 public static void initialPartition() {
+		 int size=occurrences.size();
+		 initialPartition= new int[size];
+		 for(int i=0;i<size;i++) {
+			 initialPartition[i]=occurrences.get(i);
+		 }
+		 System.out.println("initial partition"+" "+Arrays.toString(initialPartition));
+	 }
+	 
+	 public static int atomOccurrunce(String[] info) {
+		 int number=1;
+		 if(info.length >1) {
+			 number=Integer.parseInt(info[1]);
+		 }
+		 return number;
+	 }
+	 
 	 /**
 	  * Degree sequence is set from formula
 	  * @param formula String
@@ -1873,6 +2229,28 @@ public class canonicalBlockwiseTest extends groupFunctions {
 	  ***************************************************************************
 	  */
 	 
+	 
+	 public static void run(String molecularFormula, String filePath) throws IOException, CDKException, CloneNotSupportedException {
+		 long startTime = System.nanoTime(); 
+		 formula=molecularFormula;
+		 filedir=filePath;
+		 getSymbolsOccurrences(formula);
+		 initialDegrees();
+		 ArrayList<Integer> part= new ArrayList<Integer>();
+		 part.add(6);
+		 initialPartition=part;
+		 build(formula);
+		 outFile = new SDFWriter(new FileWriter(filedir+"output.sdf"));
+		 canonicalBlockbasedGeneratorDemo();
+		 //if(verbose) System.out.println("The number of structures is: "+count);
+		 System.out.println("The number of structures is: "+count);
+		 outFile.close();
+		 long endTime = System.nanoTime()- startTime;
+		 double seconds = (double) endTime / 1000000000.0;
+	     DecimalFormat d = new DecimalFormat(".###");
+	     System.out.println("time"+" "+d.format(seconds));
+	 }
+	 
 	 /**
 	  * The main function for the block based canonical matrix generation.
 	  * 
@@ -1888,22 +2266,22 @@ public class canonicalBlockwiseTest extends groupFunctions {
 	  */
 		
 	 
-	 public static void canonicalBlockbasedGeneratorDemo(String molecularFormula, ArrayList<Integer> degrees, ArrayList<Integer> newDegrees, int numberOfAtoms, int hydrogenIndex, String filePath) throws IOException, CloneNotSupportedException, CDKException{
-	    outFile = new SDFWriter(new FileWriter(filedir+"output.sdf"));
-		long startTime = System.nanoTime(); 
-		initialDegrees=degrees;
-		size=degrees.size();
-		hIndex=hydrogenIndex;
-		formula= molecularFormula;
-		filedir= filePath;
-		System.out.println("For the formula, "+formula+",start generating all possible connectivity matrices...");
-		build(formula);
-		genDemo(newDegrees);
-		System.out.println("The number of structures is: "+count);	
-		long endTime = System.nanoTime()- startTime;
-	    double seconds = (double) endTime / 1000000000.0;
-		DecimalFormat d = new DecimalFormat(".###");
-		System.out.println("time"+" "+d.format(seconds));
+	 public static void canonicalBlockbasedGeneratorDemo() throws IOException, CloneNotSupportedException, CDKException{
+		size=initialDegrees.length;
+		//List<int[]> newDegrees= distributeHydrogens(initialPartition, initialDegrees);
+		hIndex= 6;
+		partitionList.add(0,initialPartition);		
+		int[] newDegrees = new int[6];
+		newDegrees[0]=3;
+		newDegrees[1]=3;
+		newDegrees[2]=3;
+		newDegrees[3]=3;
+		newDegrees[4]=3;
+		newDegrees[5]=3;
+		genStrip(newDegrees);
+		/**for(int[] degree: newDegrees) {
+			genDemo(degree);
+		}**/
 	 }
 		
 	 /**
@@ -1917,16 +2295,85 @@ public class canonicalBlockwiseTest extends groupFunctions {
 	  * @throws CDKException
 	  */
 	 
-	 public static void genDemo(ArrayList<Integer> degreeList) throws IOException, CloneNotSupportedException, CDKException {
+	 public static void genDemo(int[] degreeList) throws IOException, CloneNotSupportedException, CDKException {
 		 int[][] A   = new int[size][size];
 		 degrees=degreeList;
-		 max = maximalMatrix(degrees);
-		 L   = upperTriangularL(degrees);
-		 C   = upperTriangularC(degrees);
-		 ArrayList<Integer> indices= new ArrayList<Integer>();
-		 indices.add(0);
-		 indices.add(1);
-		 forwardDemo(A,indices);
+		 flag=true;
+		 maximalMatrix();
+		 upperTriangularL();
+		 upperTriangularC();
+		 int[] indices= new int[2];
+		 indices[0]=0;
+		 indices[1]=1;
+		 boolean callForward=true;
+	
+		 while(flag) {
+	 		 int[][] mat=nextStep(A,indices,callForward);
+			 indices=successor(indices,max.length);
+			 callForward=true;
+			 nextStep(mat,indices,callForward); 
+		 }
+		 //forwardDemo(A,indices,callForward);
+	 }
+	 
+	 public static int r=0; 
+	 public static int y=0;
+	 public static int z=0;
+	 
+	 public static void genStrip(int[] degreeList) throws IOException, CloneNotSupportedException, CDKException {
+		 int[][] A   = new int[size][size];
+		 degrees=degreeList;
+		 flag=true;
+		 maximalMatrix();
+		 upperTriangularL();
+		 upperTriangularC();
+		 int[] indices= new int[2];
+		 indices[0]=0;
+		 indices[1]=1;
+		 boolean callForward=true;
+		 r=0;
+		 y=findY(r);
+		 z=findZ(r);
+		 while(flag) {
+	 		 int[][] mat=nextStep(A,indices,callForward);
+			 indices=successor(indices,max.length);
+			 callForward=true;
+			 nextStep(mat,indices,callForward); 
+		 }
+		 //forwardDemo(A,indices,callForward);
+	 }
+
+	 public static boolean stripIterate=true;
+	 public static boolean entryChanges=false;
+	 
+	 public static boolean canonicalTest(int[][] matrix) throws IOException, CloneNotSupportedException, CDKException {
+		 formerPermutationsCheck=true;
+		 clear(false,0);
+		 if(blockTest(r,matrix)) {
+			 //r++;
+			 return true;
+			 /**if(r==(initialPartition.size()-1)) {
+				 return false;
+			 }else {
+				 r++;
+				 return true;
+			 }**/
+		 }else {
+			 return false;
+		 }
+	 }
+	 
+	 public static boolean runStripGenerator=true;
+	 public static void noMoreFilling(int[][] matrix, boolean callForward) throws IOException, CloneNotSupportedException, CDKException {
+		 r--;
+		 if(r==(-1)) {
+			 runStripGenerator=false;
+			 //return matrix;
+		 }
+		 /**else {
+			 callForward=false;
+			 return stripGenerator(matrix,callForward); 
+		 }**/
 	 }
 	 
 	 /**
@@ -1941,9 +2388,9 @@ public class canonicalBlockwiseTest extends groupFunctions {
 	  * @throws CDKException
 	  */
 	 
-	 public static void forwardDemo(int[][] A, ArrayList<Integer> indices) throws IOException, CloneNotSupportedException, CDKException {
-		 int i=indices.get(0);
-		 int j=indices.get(1);
+	 public static int[][] forwardDemo(int[][] A, int[] indices, boolean callForward) throws IOException, CloneNotSupportedException, CDKException {
+		 int i=indices[0];
+		 int j=indices[1];
 		 int lInverse= LInverse(degrees,i,j,A);
 		 int cInverse= CInverse(degrees,i,j,A);
 		 int minimal = Math.min(max[i][j],Math.min(lInverse,cInverse));
@@ -1951,8 +2398,31 @@ public class canonicalBlockwiseTest extends groupFunctions {
 		  * First step in the forward method.
 		  */
 		 int maximumValue = forwardMaximal(minimal, lInverse, L[i][j], cInverse, C[i][j]); 
-		 forwardSub(lInverse, cInverse, maximumValue, i, j,A,indices);  
+		 callForward=true;
+		 return forwardSub(lInverse, cInverse, maximumValue, i, j,A,indices,callForward);  
 	 } 
+	 
+	 public static int[][] forwardRow(int[][] A, int[] indices, boolean callForward) throws IOException, CloneNotSupportedException, CDKException {
+		 int i=indices[0];
+		 int j=indices[1];
+		 int lInverse= LInverse(degrees,i,j,A);
+		 int cInverse= CInverse(degrees,i,j,A);
+		 int minimal = Math.min(max[i][j],Math.min(lInverse,cInverse));
+		 
+		 /**
+		  * First step in the forward method.
+		  */
+		 
+		 int maximumValue = forwardMaximal(minimal, lInverse, L[i][j], cInverse, C[i][j]); 
+		 callForward=true;
+		 if(j==(max.length-1)) {
+			 int[][] newMat= forwardSubRow(lInverse, cInverse, maximumValue, i, j,A,indices,callForward);
+			 return newMat;
+		 }else {
+			 return forwardSubRow(lInverse, cInverse, maximumValue, i, j,A,indices,callForward); 
+		 }  
+	 } 
+	 
 	 
 	 /**
 	  * First step in the forward method.
@@ -1991,7 +2461,7 @@ public class canonicalBlockwiseTest extends groupFunctions {
 	  * @throws IOException
 	  */
 	 
-	 public static void forwardSub(int lInverse, int cInverse, int maximalX,int i, int j, int[][] A, ArrayList<Integer> indices) throws CloneNotSupportedException, CDKException, IOException {
+	 public static int[][] forwardSub(int lInverse, int cInverse, int maximalX,int i, int j, int[][] A, int[] indices, boolean callForward) throws CloneNotSupportedException, CDKException, IOException {
 		 if(((lInverse-maximalX)<=L[i][j]) && ((cInverse-maximalX)<=C[i][j])) {
 			 A[i][j]=maximalX;
 			 A[j][i]=maximalX;
@@ -2010,26 +2480,83 @@ public class canonicalBlockwiseTest extends groupFunctions {
 					  * Just to avoid the duplicates for now, I use
 					  * InChIs
 					  */
-					 
-					 IAtomContainer mol= buildC(addHydrogens(mat2,hIndex));
+					 count++;
+					 /**IAtomContainer mol= buildC(addHydrogens(mat2,hIndex));
 					 String inchi= inchiGeneration(mol);
 					 if(!inchis.contains(inchi)) {
 						 outFile.write(mol);
 						 depict(mol,filedir+count+".png");
 						 count++;
 						 inchis.add(inchi);
-					 }
+					 }**/
 		    	 }
-
-				 backwardDemo(A, indices);
+				 callForward=false;
+				 return nextStep(A, indices, callForward);
+				 //backwardDemo(A, indices);
 			 }else {
+				 callForward=true;
 				 indices=successor(indices,max.length);
-				 forwardDemo(A,indices);
+				 return nextStep(A, indices, callForward);
+				 //forwardDemo(A,indices);
 			 }
 		 }else {
-			 	backwardDemo(A,indices);
+			 callForward=false;
+			 return nextStep(A, indices,callForward);
+			 //backwardDemo(A,indices);
 		 }
 	 }
+	 public static int gen=0;
+	 public static int[][] forwardSubRow(int lInverse, int cInverse, int maximalX,int i, int j, int[][] A, int[] indices, boolean callForward) throws CloneNotSupportedException, CDKException, IOException {
+		 if(((lInverse-maximalX)<=L[i][j]) && ((cInverse-maximalX)<=C[i][j])) {
+			 A[i][j]=maximalX;
+			 A[j][i]=maximalX;
+			 /**if(indices[0]==findZ(r)-1 && indices[1]==(max.length-1)) {
+				 callForward=canonicalTest(A);
+				 System.out.println("canonical Test"+" "+callForward);
+				 return nextStep(A, indices, callForward);
+		     }else {**/
+		    	 if(i!=(max.length-2) && j==(max.length-1)) {
+					 return A;
+				 }else {
+					 if(i==(max.length-2) && j==(max.length-1)) {
+					   if(canonicalTest(A)) {
+						 output.add(A);
+						 //A=addHydrogens(A,hIndex);
+						 int[][] mat2= new int[A.length][A.length]; 
+						 for(int k=0;k<A.length;k++) {
+							 for(int l=0;l<A.length;l++) {
+								 mat2[k][l]=A[k][l];
+							 }
+						 }
+						 //IAtomContainer molden= buildC(addHydrogens(mat2,hIndex));
+						 if(connectivityTest(hIndex,addHydrogens(mat2,hIndex))){	
+							 /**
+							  * Just to avoid the duplicates for now, I use
+							  * InChIs
+							  */
+							 
+							 IAtomContainer mol= buildC(addHydrogens(mat2,hIndex));
+							 outFile.write(mol);
+							 //depict(mol,filedir+count+".png");
+							 count++;
+				    	 }
+					   }
+					   callForward=false;
+					   return nextStep(A, indices, callForward);
+					 }else {
+						 callForward=true;
+						 indices=successor(indices,max.length);
+						 updateR(indices);
+						 return nextStep(A, indices, callForward);
+					 } 
+				 } 
+		     //}
+		 }else {
+			 callForward=false;
+			 return nextStep(A, indices,callForward);
+		 }
+	 }
+	 
 	 
 	 /**
 	  * The third step in Grund 3.2.3.
@@ -2043,16 +2570,19 @@ public class canonicalBlockwiseTest extends groupFunctions {
 	  * @throws CDKException
 	  */
 	 
-	 public static void backwardDemo(int[][] A, ArrayList<Integer> indices) throws IOException, CloneNotSupportedException, CDKException {
-		int i=indices.get(0);
-		int j=indices.get(1);
+	 public static boolean flag=true;
+	 public static int[][] backwardDemo(int[][] A, int[] indices, boolean callForward) throws IOException, CloneNotSupportedException, CDKException {
+		int i=indices[0];
+		int j=indices[1];
 			
 		if(i==0 && j==1) {
-			System.out.println("Algorithm is terminated");
+			flag=false;
+			return A;
 		}else {
 			indices=predecessor(indices, max.length);
-			i= indices.get(0);
-			j= indices.get(1);
+			updateR(indices);
+			i= indices[0];
+			j= indices[1];
 			int x= A[i][j];
 			int l2= LInverse(degrees,i,j,A);
 			int c2= CInverse(degrees,i,j,A);
@@ -2060,14 +2590,47 @@ public class canonicalBlockwiseTest extends groupFunctions {
 				//if(x>0 && (((l2-(x-1))<=L[i][j]) && ((c2-(x-1))<=C[i][j]))) {
 				A[i][j]=(x-1);
 				A[j][i]=(x-1);
-				indices=successor(indices,max.length);
-				forwardDemo(A, indices);
+				indices = successor(indices,max.length);
+				updateR(indices);
+				callForward=true;
+				return nextStep(A,indices,callForward);
+				//return nextStepStrip(y,z,A,indices,callForward,entryChanges);
+				//forwardDemo(A, indices);
 			}else {
-				backwardDemo(A,indices);
+				callForward=false;
+				return nextStep(A,indices,callForward);
+				//return nextStepStrip(y,z,A,indices,callForward,entryChanges);
+				//backwardDemo(A,indices);
 			}
 		}
 	 }
 		
+	 public static void updateR(int[] indices) {
+		 int y=findY(r);
+		 int z=findZ(r);
+		 if(indices[0]<y) {
+			 r--;
+		 }else if(indices[0]>z) {
+			 r++;
+		 }
+	 }
+	 
+	 public static int[][] nextStep(int[][] A, int[] indices,boolean callForward) throws IOException, CloneNotSupportedException, CDKException{
+		 if(callForward) {
+			 return forwardRow(A, indices,callForward);
+		 }else {
+			 return backwardDemo(A,indices,callForward);
+		 } 
+	 }
+	 
+	 public static int[][] nextStepStrip(int[][] A, int[] indices,boolean callForward) throws IOException, CloneNotSupportedException, CDKException{
+		 if(callForward) {
+			 return forwardRow(A, indices,callForward);
+		 }else {
+			 return backwardDemo(A,indices,callForward);
+		 } 
+	 }
+	 
 	 /**
 	  * The third line of the backward method in Grund 3.2.3. The criteria 
 	  * to decide which function is needed: forward or backward.
@@ -2087,35 +2650,108 @@ public class canonicalBlockwiseTest extends groupFunctions {
 		return check;
 	 }
 	 
+     public static int[] successor(int[] indices, int size) {
+    	 int i0= indices[0];
+    	 int i1= indices[1];
+    	 if(i1<(size-1)) {
+    		 indices[0]=i0;
+    		 indices[1]=(i1+1);
+    	 }else if(i0<(size-2) && i1==(size-1)) {
+    		 indices[0]=(i0+1);
+    		 indices[1]=(i0+2);
+    	 }
+    	 return indices;
+     }
+		 
+		 
+     public static int[] predecessor(int[] indices, int size) {
+    	 int i0= indices[0];
+    	 int i1= indices[1];
+    	 if(i0==i1-1) {
+    		 indices[0]=(i0-1);
+    		 indices[1]=(size-1);
+    	 }else {
+    		 indices[0]=i0;
+    		 indices[1]=(i1-1);
+    	 }
+    	 return indices;
+     }
+	 
+     public static ArrayList<ArrayList<Integer>> partlar= new ArrayList<ArrayList<Integer>>(); 
+     public static void partlar(ArrayList<Integer> partition, int total){
+    	 for(int i=0;i<(total-1);i++) {
+			 partition=canonicalPartition(i,partition);
+			 partlar.add(partition);
+		 }
+     }
+     
+     public static boolean biggest=true;
+     public static Permutation getCyclePermutation(int[] max, int[] check,ArrayList<Integer> partition) {
+    	 int i=0;
+    	 int size= sum(partition);
+    	 Permutation perm= new Permutation(size);
+    	 for(Integer p:partition) {
+			 Integer[] can= getBlocks(max,i,p+i);
+			 Integer[] non= getBlocks(check,i,p+i);
+			 perm = getPermutation(can, non, i, perm);
+			 i=i+p; 
+		 }
+    	 return perm;
+     }
+     
+     public static Permutation getPermutation(Integer[] max, Integer[] non, int index, Permutation permutation) {
+    	 int i=0;
+    	 int permutationIndex=0;
+    	 List<Integer> indices= new ArrayList<Integer>();
+    	 while(i<max.length && max[i]!=0) {
+    		 permutationIndex = findMatch(non, max[i],i);
+    		 if(i!=permutationIndex) {
+    			 non=permuteArray(non, i, permutationIndex);
+    		 }
+        	 indices.add(permutationIndex);
+        	 //perm=buildCycle((i+index),(permutationIndex+index),perm); 
+    		 i++;
+    	 }
+    	 return getCyclePermutation(indices,index, permutation);
+     }
+     
+     public static Permutation getCyclePermutation(List<Integer> list, int index, Permutation permutation) {
+    	 if(list.size()!=0) {
+    		 for(int i=list.size()-1;i>=0;i--) {
+        		 permutation =buildCycle(i+index,list.get(i)+index, permutation);
+        	 }
+    	 }
+    	 return permutation;
+     }
+     
+     public static Permutation buildCycle(int i, int j, Permutation perm) {
+         int[] values= perm.getValues();
+         int temp=i;
+         values[i]=values[j];
+         values[j]=temp;
+    	 return new Permutation(values);
+     }
+     
+     public static int findMatch(Integer[] array, int value, int start) {
+    	 int size=array.length;
+    	 int index=start;
+    	 for(int i=start;i<size;i++) {
+    		 if(array[i]==value) {
+    			 index=i;
+    			 break;
+    		 }
+    	 }
+    	 return index;
+     }
+     
+     public static Integer[] permuteArray(Integer[] array, int i, int j) {
+    	 int temp=0;
+    	 temp= array[i];
+    	 array[i]=array[j];
+    	 array[j]=temp;
+    	 return array; 
+     }
 	 public static void main(String[] args) throws CloneNotSupportedException, CDKException, IOException {	
-		 ArrayList<Integer> degrees = new ArrayList<Integer>();
-		 degrees.add(4);
-		 degrees.add(4);
-		 degrees.add(4);
-		 degrees.add(2);
-		 degrees.add(1);
-		 degrees.add(1);
-		 degrees.add(1);
-		 degrees.add(1);
-		 degrees.add(1);
-		 degrees.add(1);
-		 
-		 ArrayList<Integer> newDegrees = new ArrayList<Integer>();
-		 newDegrees.add(2);
-		 newDegrees.add(2);
-		 newDegrees.add(2);
-		 newDegrees.add(2);
-		 
-		 canonicalBlockbasedGeneratorDemo("C3OH6", degrees, newDegrees, 10, 4,"C:\\Users\\mehme\\Desktop\\");
-		 
-		 /**canonicalBlockwiseTest gen = null;
-		 //String[] args1= {"-f","C4OH10","-v","-d","C:\\Users\\mehme\\Desktop\\"};
-		 try {
-			 gen = new canonicalBlockwiseTest();
-			 gen.parseArgs(args);
-			 canonicalBlockwiseTest.run(canonicalBlockwiseTest.formula,canonicalBlockwiseTest.filedir);
-		 } catch (Exception e) {
-			 if (canonicalBlockwiseTest.verbose) e.getCause(); 
-		 }**/
+		 run("C6H6","C:\\Users\\mehme\\Desktop\\No-Backup Zone\\outputs\\");
 	 }
 }
