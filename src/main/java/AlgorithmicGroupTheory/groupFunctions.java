@@ -15,10 +15,13 @@ public class groupFunctions {
 	 */
 		
 	public static int sum(ArrayList<Integer> list, int index) {
+		System.out.println("part"+" "+list);
 		int sum=0;
 		for(int i=0;i<=index;i++) {
+			System.out.println("i"+" "+i+" "+list.get(i));
 			sum=sum+list.get(i);
 		}
+		System.out.println("sum"+" "+sum);
 		return sum;
 	}
 	
@@ -85,9 +88,10 @@ public class groupFunctions {
 	  */
 	
 	 public static int[] actArray(int[] strip, Permutation p) {
-		 int length= p.size();
-		 int[] modified = new int[length];
-		 for(int i=0; i<length;i++) {
+		 int permLength= p.size();
+		 int arrayLenght=strip.length;
+		 int[] modified = new int[arrayLenght];
+		 for(int i=0; i<permLength;i++) {
 			 modified[p.get(i)]=strip[i]; 
 		 }
 		 return modified;

@@ -89,8 +89,17 @@ public class testCanonicalBlockwiseTest extends canonicalBlockwiseTest{
 	public void testAddHydrogens() {
 		initializeMatrix();
 		initializehydrogenFreeMatrix();
-		addHydrogens(hydrogenFreeMatrix, 6);
-		Assert.assertArrayEquals(hydrogenFreeMatrix,mat);
+		
+		ArrayList<Integer> degree= new ArrayList<Integer>();
+		degree.add(3);
+		degree.add(3);
+		degree.add(4);
+		degree.add(4);
+		degree.add(4);
+		degree.add(4);
+		
+		initialDegrees=degree;
+		Assert.assertArrayEquals(addHydrogens(hydrogenFreeMatrix, 6),mat);
 	}
 	
 	@Test

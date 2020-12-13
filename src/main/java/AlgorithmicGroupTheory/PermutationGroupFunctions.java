@@ -4529,12 +4529,13 @@ public class PermutationGroupFunctions extends HydrogenDistributor {
 					mat2[k][l]=A[k][l];
 				}
 			}
-			if(connectivityTest(hIndex,A)){
+			System.out.println("h"+" "+hIndex);
+			if(connectivityTest(6,addHydrogens(A,6))){
 				pWriter.println("done bu");
 				System.out.println("done");
 				pWriter.print(hoppa+" "+Arrays.deepToString(A)+"\n");
-				System.out.println(Arrays.deepToString(addHydrogens(A,hIndex)));
-				depict(buildC(addHydrogens(A,hIndex)),"C:\\Users\\mehme\\Desktop\\outputs\\"+hoppa+".png");
+				System.out.println(Arrays.deepToString(addHydrogens(A,6)));
+				//depict(buildC(addHydrogens(A,hIndex)),"C:\\Users\\mehme\\Desktop\\outputs\\"+hoppa+".png");
 				hoppa++;
 			}
 			//System.out.println(Arrays.deepToString(addHydrogens(A,4)));
@@ -5249,12 +5250,8 @@ public class PermutationGroupFunctions extends HydrogenDistributor {
 			 pWriter.print("representatives"+" "+index+" "+representatives.get(i)+"\n");
 		 }
 		 
-		 System.out.println("p"+" "+partition+" "+newPartition);
 		 pWriter.print(Arrays.deepToString(A)+"\n");
 		 
-		 for(int p=0;p<representatives.size();p++) {
-			 System.out.println("rep bas"+" "+representatives.get(p)+" "+p);
-		 }
 		 
 		 System.out.println(Arrays.deepToString(A));
 		 int y = findY(r);
@@ -5264,7 +5261,6 @@ public class PermutationGroupFunctions extends HydrogenDistributor {
 		 int total = sum(partition);
 		 ArrayList<Permutation> cycleTrans= cycleTranspositions(index,partition);
 		 for(Permutation cycle: cycleTrans) {
-			 System.out.println("cycle"+" "+cycle.toCycleString());
 			 pWriter.print("cycle"+" "+cycle.toCycleString()+"\n");
 		 }
 		 for(Permutation cycle: cycleTrans) {
@@ -5338,9 +5334,9 @@ public class PermutationGroupFunctions extends HydrogenDistributor {
 						 break;
 					 }
 				 }else {
-					 //if(test.equals(former.multiply(canonical))) {
-					 addRepresentatives(index, perm.multiply(canonical), pWriter);
-						 //addRepresentatives(index, idPermutation(total), pWriter); 
+					 if(test.equals(former.multiply(canonical))) {
+					 //addRepresentatives(index, perm.multiply(canonical), pWriter);
+						 addRepresentatives(index, idPermutation(total), pWriter); 
 						 /**boolean formerTest = formerBlocksRepresentatives(index,y, A, newPartition, canonical, pWriter);
 						 if(!formerTest) {
 						 	check=false;
@@ -5348,8 +5344,8 @@ public class PermutationGroupFunctions extends HydrogenDistributor {
 					 	 }else {
 							addRepresentatives(index, idPermutation(total), pWriter); 
 					  	 }**/
-					 //}else {
-						 //addRepresentatives(index, canonical,pWriter);
+					 }else {
+						 addRepresentatives(index, canonical,pWriter);
 						 /**boolean formerTest = formerBlocksRepresentatives(index,y, A, newPartition, canonical, pWriter);
 						 if(!formerTest) {
 							check=false;
@@ -5358,7 +5354,7 @@ public class PermutationGroupFunctions extends HydrogenDistributor {
 							pWriter.print("add rep"+" "+index+" "+representatives.size()+" "+canonical.toCycleString()+" "+"\n");
 							addRepresentatives(index, canonical,pWriter);
 						 }**/
-					 //}
+					 }
 				 }
 			 //}
 			 
@@ -5448,7 +5444,7 @@ public class PermutationGroupFunctions extends HydrogenDistributor {
 			 if(!equalBlockCheck(cycleM,newPartition,index,y,A,idPermutation(total), pWriter)) {
 				 canonical=getEqualPermutation(cycleM, index, y, total,A, partition, newPartition, pWriter);
 				 pWriter.print("equal perm"+" "+canonical.toCycleString()+"\n");
-				 //canonical=cycle.multiply(canonical);
+				 canonical=cycle.multiply(canonical);
 				 /**if(canonical.isIdentity()) {
 					 if(!descBlockCheck2(cycleM,newPartition,index,y,A,idPermutation(total),2,pWriter)) {
 						 canonical = idPermutation(total);
@@ -5459,7 +5455,7 @@ public class PermutationGroupFunctions extends HydrogenDistributor {
 					 canonical=cycle.multiply(canonical);
 				 }**/
 			 }else {
-				 //canonical=cycle.multiply(canonical);
+				 canonical=cycle.multiply(canonical);
 			 }
 		 }
 		 pWriter.print("getCanonical permutation"+" "+canonical.toCycleString());
@@ -6173,7 +6169,9 @@ public class PermutationGroupFunctions extends HydrogenDistributor {
 		 int[] original= A[index];
 		 //System.out.println(cycleM.toCycleString()+" "+perm.toCycleString());
 		 pWriter.print(cycleM.toCycleString()+" "+perm.toCycleString()+"\n");
-		 original=actArray(actArray(A[cycleM.get(index)],cycleM),perm);
+		 Permutation mult=cycleM.multiply(perm);
+		 original=actArray(A[mult.get(index)],mult);
+		 //original=actArray(actArray(A[cycleM.get(index)],cycleM),perm);
 		 //System.out.println("equalBlockCheck"+" "+Arrays.toString(canonical));
 		 pWriter.print("equalBlockCheck"+" "+Arrays.toString(canonical)+"\n");
 		 //System.out.println("equalBlockCheck"+" "+Arrays.toString(original));
@@ -7636,7 +7634,7 @@ public class PermutationGroupFunctions extends HydrogenDistributor {
 		size = sum(partition);
 		initialDegrees=degrees;
 		inputPartition=partition;
-		List<ArrayList<Integer>> newDegrees= distributeHydrogens(partition, degrees);
+		//List<ArrayList<Integer>> newDegrees= distributeHydrogens(partition, degrees);
 		FileWriter fWriter = new FileWriter("C:\\Users\\mehme\\Desktop\\output.txt");
 		PrintWriter pWriter = new PrintWriter(fWriter);
 		pWriter.print("Result"+"\n");
@@ -7654,10 +7652,10 @@ public class PermutationGroupFunctions extends HydrogenDistributor {
 		partitionList.add(0,inputPartition);
 		forwardBuild(r,degrees,inputPartition,A,max,L,C,indices,pWriter); **/
 		partitionList.add(0,inputPartition);
-		
-		for(ArrayList<Integer> degree: newDegrees) {
+		gen(degrees, pWriter);
+		/**for(ArrayList<Integer> degree: newDegrees) {
 			gen(degree, pWriter);
-		}
+		}**/
 		fWriter.close();
 		pWriter.close();
 		long endTime = System.nanoTime()- startTime;
@@ -8496,21 +8494,14 @@ public class PermutationGroupFunctions extends HydrogenDistributor {
 		PrintWriter pWriter = new PrintWriter(fWriter);
 		
 		ArrayList<Integer> degrees= new ArrayList<Integer>();
-		degrees.add(4);
-		degrees.add(4);
-		degrees.add(4);
-		degrees.add(4);
-		degrees.add(4);
-		degrees.add(4);
-		degrees.add(1);
-		degrees.add(1);
-		degrees.add(1);
-		degrees.add(1);
-		degrees.add(1);
-		degrees.add(1);
+		degrees.add(3);
+		degrees.add(3);
+		degrees.add(3);
+		degrees.add(3);
+		degrees.add(3);
+		degrees.add(3);
 		
 		ArrayList<Integer> partition= new ArrayList<Integer>();
-		partition.add(6);
 		partition.add(6);
 		
 		ArrayList<Integer> newPartition= new ArrayList<Integer>();
@@ -8597,7 +8588,7 @@ public class PermutationGroupFunctions extends HydrogenDistributor {
 		    
 		canonicalBlockbasedGenerator(degrees,partition);
 		System.out.println(hoppa);
-		//fWriter.close();
-		//pWriter.close(); 
+		fWriter.close();
+		pWriter.close(); 
 	}
 }
