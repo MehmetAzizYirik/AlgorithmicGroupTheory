@@ -116,6 +116,14 @@ public class HydrogenDistributor {
 	    return sum;
 	}
 	
+	public static int sum(ArrayList<Integer> list, int index) {
+		int sum=0;
+		for(int i=0;i<=index;i++) {
+			sum=sum+list.get(i);
+		}
+		return sum;
+	}
+	
 	public static int[] setValues(int[] partition, int[] degrees) {
 		int partitionSize= partition.length;
 		int[] capacity = new int[partitionSize];
@@ -128,6 +136,27 @@ public class HydrogenDistributor {
 			sum=sum(partition,i);
 			valences[i]=degrees[sum-1]-1;
 			capacity[i]=(degrees[sum-1]-1)*partition[i];
+			i++;
+		}
+
+		HydrogenDistributor.capacity=capacity;
+		HydrogenDistributor.valences=valences;
+		HydrogenDistributor.totalAtom=totalAtom;
+		return capacity;
+	}
+	
+	public static int[] setValues(ArrayList<Integer> partition, int[] degrees) {
+		int partitionSize= partition.size();
+		int[] capacity = new int[partitionSize];
+		int[] valences = new int[partitionSize];
+		int[] totalAtom = new int[partitionSize];
+		int i=0;
+		int sum=0;
+		for(int j=0;j<partitionSize;j++) {
+			totalAtom[i]=partition.get(i);
+			sum=sum(partition,i);
+			valences[i]=degrees[sum-1]-1;
+			capacity[i]=(degrees[sum-1]-1)*partition.get(i);
 			i++;
 		}
 
@@ -198,9 +227,42 @@ public class HydrogenDistributor {
 	 * @throws CDKException 
 	 */
 	
-	public static List<int[]> run(int[] partition,int[] degrees) throws FileNotFoundException, UnsupportedEncodingException, CloneNotSupportedException, CDKException {
+	/**public static List<int[]> run(int[] partition,int[] degrees) throws FileNotFoundException, UnsupportedEncodingException, CloneNotSupportedException, CDKException {
 		int partitionSize= partition.length;
 		int hydrogen= partition[partitionSize-1];
+		HydrogenDistributor.isotopes=partitionSize-1;
+		HydrogenDistributor.size=partitionSize-1;
+		setValues(partition,degrees);
+		HydrogenDistributor.totalHydrogen=hydrogen;
+		List<int[]> result= new ArrayList<int[]>();
+		if(isotopes==1) {
+			List<int[]> iarrays= new ArrayList<int[]>();
+			int[] array = new int[0];
+			HydrogenDistributor.hydrogens2distribute=totalHydrogen;
+			distribute(iarrays,totalHydrogen,array,valences[0],totalAtom[0]);
+			result= iarrays;
+		}else {
+			List<int[]> distributions= new ArrayList<int[]>();
+			for(int[] dene:partition(totalHydrogen,isotopes,0)){
+				LinkedList<List<int[]>> lists = new LinkedList<List <int[]>>();
+				for(int i=0;i<dene.length;i++) {
+					HydrogenDistributor.hydrogens2distribute=dene[i];
+					List<int[]> iarrays= new ArrayList<int[]>();
+					int[] array = new int[0];
+					distribute(iarrays,dene[i],array,valences[i],totalAtom[i]);
+					lists.add(iarrays);
+				}	
+				List<int[]> combined=combineArrays(lists);
+				distributions.addAll(combined);
+			}
+			result=distributions;
+		}
+		return result;
+	}**/
+	
+	public static List<int[]> run(ArrayList<Integer> partition, int[] degrees) throws FileNotFoundException, UnsupportedEncodingException, CloneNotSupportedException, CDKException {
+		int partitionSize= partition.size();
+		int hydrogen= partition.get(partitionSize-1);
 		HydrogenDistributor.isotopes=partitionSize-1;
 		HydrogenDistributor.size=partitionSize-1;
 		setValues(partition,degrees);
