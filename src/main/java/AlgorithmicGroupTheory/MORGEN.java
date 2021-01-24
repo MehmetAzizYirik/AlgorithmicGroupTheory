@@ -70,10 +70,13 @@ public class MORGEN {
 		valences = new HashMap<String, Integer>();
 			
 		valences.put("C", 4);
-		valences.put("N", 5);
+		//valences.put("N", 5);
+		valences.put("N", 3);
 		valences.put("O", 2);
-		valences.put("S", 6);
-		valences.put("P", 5);
+		//valences.put("S", 6);
+		valences.put("S", 2);
+		//valences.put("P", 5);
+		valences.put("P", 3);
 		valences.put("F", 1);
 		valences.put("I", 1);
 		valences.put("Cl", 1);
@@ -270,6 +273,7 @@ public class MORGEN {
 		
 	 public static void build(String mol) throws IOException, CloneNotSupportedException, CDKException {
 		 for(int i=0;i<firstSymbols.size();i++) {
+			 System.out.println(firstSymbols.get(i)+" "+firstOccurrences.get(i));
 			 for(int j=0;j<firstOccurrences.get(i);j++) {
 				 atomContainer.addAtom(new Atom(firstSymbols.get(i)));
 			 }
@@ -548,6 +552,9 @@ public class MORGEN {
 		 z=findZ(r);
 		 while(flag) {
 	 		 int[][] mat=nextStep(A,indices,callForward);
+	 		 if(!flag) {
+	 			 break;
+	 		 }
 			 indices=successor(indices,max.length);
 			 callForward=true;
 			 nextStep(mat,indices,callForward); 
@@ -662,8 +669,7 @@ public class MORGEN {
 	 
 	 public static int[][] backwardDemo(int[][] A, int[] indices, boolean callForward) throws IOException, CloneNotSupportedException, CDKException {
 		int i=indices[0];
-		int j=indices[1];
-			
+		int j=indices[1];			
 		if(i==0 && j==1) {
 			flag=false;
 			return A;
@@ -675,7 +681,10 @@ public class MORGEN {
 			int x= A[i][j];
 			int l2= LInverse(degrees,i,j,A);
 			int c2= CInverse(degrees,i,j,A);
-			if(x>0 && (backwardCriteria(x,l2,L[i][j]) && backwardCriteria(x,c2,C[i][j]))){
+			/**
+			 * I changed in backcriteria from x to x-1 but then I had error c6h6 was 98 not 217
+			 */
+			if(x>0 && (backwardCriteria((x),l2,L[i][j]) && backwardCriteria((x),c2,C[i][j]))){
 				A[i][j]=(x-1);
 				A[j][i]=(x-1);
 				indices = successor(indices,max.length);
@@ -696,6 +705,7 @@ public class MORGEN {
 		int cInverse= CInverse(degrees,i,j,A);
 		int minimal = Math.min(max[i][j],Math.min(lInverse,cInverse));
 		 
+		
 		/**
 		 * First step in the forward method.
 		 */
@@ -726,13 +736,13 @@ public class MORGEN {
 						}
 					}
 					//IAtomContainer molden= buildC(addHydrogens(mat2,hIndex));
-					if(connectivityTest(hIndex,addHydrogens(mat2,hIndex))){	
-						//pWriter.println("canonical matrix"+" "+count);
-						/**for(int s=0;s<4;s++) {
+					if(connectivityTest(hIndex,addHydrogens(mat2,hIndex))){
+						/**pWriter.println("canonical matrix"+" "+count);
+						for(int s=0;s<6;s++) {
 							for(int k=0; k<s;k++) {
 								pWriter.print(" ");
 							}
-							for(int k=s+1; k<4;k++) {
+							for(int k=s+1; k<6;k++) {
 								pWriter.print(mat2[s][k]);
 							}
 							pWriter.println();
@@ -745,7 +755,7 @@ public class MORGEN {
 				}
 				callForward=false;
 				return nextStep(A, indices, callForward);
-			}else {				
+			}else {	
 				if(indices[0]==findZ(r) && indices[1]==(max.length-1)) {
 					callForward=canonicalTest(A);
 					if(callForward) {
@@ -762,7 +772,7 @@ public class MORGEN {
 			    		 return nextStep(A, indices, true);
 			    	 }
 			    }
-			} 
+			}
 		 }else {
 			 callForward=false;
 			 return nextStep(A, indices,callForward);
@@ -820,7 +830,19 @@ public class MORGEN {
 	  * Main functions
 	  */
 	 
-	 public static ArrayList<Integer> getPartition(int[] degrees){
+	 public static ArrayList<Integer> getPartition(int[] degrees, ArrayList<Integer> partition){
+    	 ArrayList<Integer> newPartition = new ArrayList<Integer>();
+		 int i=0;
+    	 for(Integer p:partition) {
+    		 Integer[] subArray= getBlocks(degrees,i,p+i);
+    		 newPartition.addAll(getSubPartition(subArray));
+    		 i=i+p; 
+    	 }
+    	 return newPartition;
+	 }
+	 
+	
+	 public static ArrayList<Integer> getSubPartition(Integer[] degrees){
 		 ArrayList<Integer> partition = new ArrayList<Integer>();
 		 int i=0;
 	     int size= degrees.length;
@@ -838,7 +860,7 @@ public class MORGEN {
 	     return partition;
 	 }
 	 
-	 public static int nextCount(int i, int size, int[] degrees, ArrayList<Integer> partition) {
+	 public static int nextCount(int i, int size, Integer[] degrees, ArrayList<Integer> partition) {
 		 int count=1;
 		 if(i==(size-1)) {
 			 partition.add(1);
@@ -865,7 +887,7 @@ public class MORGEN {
 		 getSymbolsOccurrences(formula);
 		 initialDegrees();
 		 //initialPartition=occurrences;
-		 //build(formula);
+		 build(formula);
 		 outFile = new SDFWriter(new FileWriter(filedir+"output.sdf"));
 		 canonicalBlockbasedGeneratorDemo();
 		 //if(verbose) System.out.println("The number of structures is: "+count);
@@ -920,8 +942,11 @@ public class MORGEN {
 			partitionList.clear();
 			formerPermutations.clear();
 			//genDemo(degree);
-			initialPartition=getPartition(degree);
+			initialPartition=getPartition(degree,occurrences);
+			System.out.println(Arrays.toString(degree)+" "+initialPartition);
+			System.out.println("count"+" "+count);
 			partitionList.add(0,initialPartition);
+			System.out.println("hIndex"+" "+hIndex);
 			genStrip(degree);
 		}
 	 } 
@@ -1485,7 +1510,7 @@ public class MORGEN {
 	public static void main(String[] args) throws IOException, CDKException, CloneNotSupportedException {
 		//FileWriter fWriter = new FileWriter("C:\\Users\\mehme\\Desktop\\No-Backup Zone\\outputs\\output.txt"); 
 		//pWriter = new PrintWriter(fWriter);
-		run("C4OH10","C:\\Users\\mehme\\Desktop\\No-Backup Zone\\outputs\\");
+		run("C3NO2SH7","C:\\Users\\mehme\\Desktop\\No-Backup Zone\\outputs\\");
 		//pWriter.close();
 	}
 }
