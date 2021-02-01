@@ -4,15 +4,15 @@ Copyright 2019 Mehmet Aziz Yirik
 
 ## Introduction
 
-Algorithmic group theory functions shared in this repository, are especially developed for the implementations in mathematical chemistry.The current algorithms are for the molecular structure generation problem.
+Algorithmic group theory functions shared in this repository, are especially developed for the implementations in mathematical chemistry.These algorithms are for the molecular structure generation problem.
 
 ## Method
 
-This is an ongoing project for molecular structure generation. Already developed functions are regularly shared on this repository. The prototype algorithm, the canonicalBlockwiseTest class, is the demo function of the jar file. The theoretical basis and the outlines of the functions can be found in [1,2]. The current version still misses some structures and this is the ongoing work in the project. 
+This is an ongoing project for molecular structure generation. Already tested functions are regularly shared on this repository. The prototype algorithm, the MORGEN class, is the main class of the jar file. The theoretical basis and the outlines of the functions can be found in [1,2]. The current version needs some optimization to overcome stackOverFlow issues and this is the ongoing work in this project. 
 
 ## Download jar File
 
-The main class of the current jar file is canonicalBlockwiseTest class. The file can be downloaded from [here](https://github.com/MehmetAzizYirik/AlgorithmicGroupTheory/blob/master/canonicalBlockwiseTest.jar)
+The main class of the current jar file is MORGEN class. The file can be downloaded from [here](https://github.com/MehmetAzizYirik/AlgorithmicGroupTheory/blob/master/MORGEN.jar)
 
 ## Download Source Code
 
@@ -29,16 +29,16 @@ To compile AlgorithmicGroupTheory, Apache Maven and Java 1.8 (or later) are requ
 ```
 AlgorithmicGroupTheory/$ mvn package
 ```
-This command will create jar file named specifically as "jar-with-dependencies" under target folder.
+This command will create jar file named as "MORGEN-jar-with-dependencies" under target folder.
 
 ## Usage
 
-AlgorithmicGroupTheory.jar can be run from command line with the specified arguments. An example command is given below.
+MORGEN.jar can be run from command line with the specified arguments. An example command is given below.
 
 The definitions of the arguments are given below:
 
 ```
-usage: java -jar AlgorithmicGroupTheory.jar -f <arg> [-v] -d <arg>
+usage: java -jar MORGEN.jar -f <arg> [-v] -d <arg>
 
 Generates molecular structures for a given molecular formula. The input is 
 a molecular formula string. For example 'C2OH4'. For this version, the hydrogens should be
@@ -56,7 +56,7 @@ Please report issues at https://github.com/MehmetAzizYirik/AlgorithmicGroupTheor
 ```
 
 ```
-java -jar AlgorithmicGroupTheory.jar -f C2OH4 -v -d C:\Users\UserName\Desktop\
+java -jar MORGEN.jar -f C2OH4 -v -d C:\Users\UserName\Desktop\
 ```
 
 ## License
