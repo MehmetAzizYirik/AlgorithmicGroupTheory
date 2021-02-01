@@ -3,14 +3,7 @@
   <groupId>AlgorithmicGroupTheory</groupId>
   <artifactId>AlgorithmicGroupTheory</artifactId>
   <version>1.0</version>
-  <name>AlgorithmicGroupTheory</name>
-  <description>This project is for Algorithmic group theory, especially for orbit calculations.</description>
-  <packaging>jar</packaging>
-  <properties>
-    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <maven.compiler.source>1.8</maven.compiler.source>
- 	<maven.compiler.target>1.8</maven.compiler.target>
-  </properties>
+  <description>This project is for Algorithmic group theory, especially for implementation in molecular structure generation.</description>
   <dependencies>  
 	<!-- https://mvnrepository.com/artifact/org.junit/junit -->
 	<dependency>
@@ -158,13 +151,13 @@
       			<archive>
         			<manifest>
          				<addClasspath>true</addClasspath>
-          				<mainClass>AlgorithmicGroupTheory/canonicalBlockwiseTest</mainClass>
+          				<mainClass>AlgorithmicGroupTheory/MORGEN</mainClass>
         			</manifest>
       			</archive>
-        		<finalName>AlgorithmicGroupTheory</finalName>   
+        		<finalName>MORGEN</finalName> 
         		<descriptorRefs>
         			<descriptorRef>jar-with-dependencies</descriptorRef>
-      			</descriptorRefs>               
+      			</descriptorRefs>                 
     		</configuration>
   		</plugin> 
 	</plugins>

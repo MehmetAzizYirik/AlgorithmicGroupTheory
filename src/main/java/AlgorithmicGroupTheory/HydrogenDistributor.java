@@ -35,13 +35,9 @@
 package AlgorithmicGroupTheory;
 
 import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -59,7 +55,6 @@ import org.openscience.cdk.exception.CDKException;
 import org.openscience.cdk.interfaces.IAtom;
 import org.openscience.cdk.interfaces.IAtomContainer;
 import org.openscience.cdk.interfaces.IChemObjectBuilder;
-import org.openscience.cdk.interfaces.IIsotope;
 import org.openscience.cdk.interfaces.IMolecularFormula;
 import org.openscience.cdk.silent.AtomContainer;
 import org.openscience.cdk.silent.SilentChemObjectBuilder;
@@ -138,7 +133,7 @@ public class HydrogenDistributor {
 			capacity[i]=(degrees[sum-1]-1)*partition[i];
 			i++;
 		}
-
+		
 		HydrogenDistributor.capacity=capacity;
 		HydrogenDistributor.valences=valences;
 		HydrogenDistributor.totalAtom=totalAtom;

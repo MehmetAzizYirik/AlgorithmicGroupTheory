@@ -7579,7 +7579,7 @@ public class PermutationGroupFunctions extends HydrogenDistributor {
 	
 	public static List<ArrayList<Integer>> distributeHydrogens(ArrayList<Integer> partition, ArrayList<Integer> degrees) throws FileNotFoundException, UnsupportedEncodingException, CloneNotSupportedException, CDKException{
 		List<ArrayList<Integer>> degreeList= new ArrayList<ArrayList<Integer>>();
-		List<int[]> distributions= run(partition,degrees);
+		/**List<int[]> distributions= run(partition,degrees);
 		inputPartition=redefineThePartition(partition);
 		hIndex= distributions.get(0).length;
 		for(int[] dist: distributions) {
@@ -7588,7 +7588,7 @@ public class PermutationGroupFunctions extends HydrogenDistributor {
 				newDegree.add(i,(degrees.get(i)-dist[i]));
 			}
 			degreeList.add(newDegree);
-		}
+		}**/
 		return degreeList;
 	}
 	

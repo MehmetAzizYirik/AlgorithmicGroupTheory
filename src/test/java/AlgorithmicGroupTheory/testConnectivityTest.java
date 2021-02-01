@@ -6,7 +6,7 @@ import java.util.Set;
 import org.junit.Assert;
 import org.junit.Test;
 
-public class test extends PermutationGroupFunctions {
+public class testConnectivityTest extends PermutationGroupFunctions {
 	
 	/**
 	 * Connectivity Test
@@ -153,3 +153,4 @@ public class test extends PermutationGroupFunctions {
 		Assert.assertEquals(connectivityTest(6, matrix),false);
 	}
 }
+

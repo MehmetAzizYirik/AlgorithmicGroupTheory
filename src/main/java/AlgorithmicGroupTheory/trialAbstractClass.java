@@ -1,4 +1,20 @@
 package AlgorithmicGroupTheory;
+
+import org.openscience.cdk.group.PartitionRefinement;
+//import org.openscience.cdk.group.*;
+import org.openscience.cdk.interfaces.IAtomContainer;
+import org.openscience.cdk.interfaces.IChemObjectBuilder;
+import org.openscience.cdk.interfaces.IBond.Order;
+import org.openscience.cdk.tools.manipulator.AtomContainerManipulator;
+
+/**import org.junit.Test;
+import org.openscience.cdk.graph.AtomContainerAtomPermutor;
+import org.openscience.cdk.interfaces.IAtomContainer;
+import org.openscience.cdk.interfaces.IChemObjectBuilder;
+import org.openscience.cdk.silent.SilentChemObjectBuilder;**/
+import org.openscience.cdk.Atom;
+import org.openscience.cdk.DefaultChemObjectBuilder;
+import org.openscience.cdk.group.AtomContainerDiscretePartitionRefiner;
 import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -13,29 +29,27 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.stream.IntStream;
 
-import org.apache.commons.cli.CommandLine;
-import org.apache.commons.cli.CommandLineParser;
-import org.apache.commons.cli.DefaultParser;
-import org.apache.commons.cli.HelpFormatter;
-import org.apache.commons.cli.Option;
-import org.apache.commons.cli.Options;
-import org.apache.commons.cli.ParseException;
-import org.openscience.cdk.Atom;
-import org.openscience.cdk.DefaultChemObjectBuilder;
+//import org.openscience.cdk.Atom;
+//import org.openscience.cdk.DefaultChemObjectBuilder;
 import org.openscience.cdk.depict.DepictionGenerator;
 import org.openscience.cdk.exception.CDKException;
+//import org.openscience.cdk.graph.AtomContainerAtomPermutor;
 import org.openscience.cdk.group.Permutation;
-import org.openscience.cdk.interfaces.IAtomContainer;
+//import org.openscience.cdk.interfaces.IAtomContainer;
 import org.openscience.cdk.interfaces.IAtom;
-import org.openscience.cdk.interfaces.IAtomContainer;
-import org.openscience.cdk.interfaces.IChemObjectBuilder;
-import org.openscience.cdk.interfaces.IBond.Order;
+//import org.openscience.cdk.interfaces.IAtomContainer;
+//import org.openscience.cdk.interfaces.IChemObjectBuilder;
+//import org.openscience.cdk.interfaces.IBond.Order;
 import org.openscience.cdk.io.SDFWriter;
-import org.openscience.cdk.tools.manipulator.AtomContainerManipulator;
+//import org.openscience.cdk.tools.manipulator.AtomContainerManipulator;
 
-public class MORGEN {
+import AlgorithmicGroupTheory.HydrogenDistributor;
+
+public class trialAbstractClass {
 	public static int size=0;
 	public static int hIndex=0;
 	public static int count=0;
@@ -72,6 +86,7 @@ public class MORGEN {
 	public static int r=0; 
 	public static int y=0;
 	public static int z=0;
+	public static AtomContainerDiscretePartitionRefiner refiner =PartitionRefinement.forAtoms().create();
 	static {
 		//The atom valences from CDK.
 		valences = new HashMap<String, Integer>();
@@ -733,6 +748,7 @@ public class MORGEN {
 			 A[j][i]=maximalX;
 			 if(i==(max.length-2) && j==(max.length-1)) {
 				if(canonicalTest(A)) {
+				 //if(isCanonical(A)) {
 					output.add(A);
 					//A=addHydrogens(A,hIndex);
 					int[][] mat2= new int[A.length][A.length]; 
@@ -743,18 +759,18 @@ public class MORGEN {
 					}
 					//IAtomContainer molden= buildC(addHydrogens(mat2,hIndex));
 					if(connectivityTest(hIndex,addHydrogens(mat2,hIndex))){
-						/**System.out.println("**************");
-						for(int s=0;s<10;s++) {
+						System.out.println("canonical matrix"+" "+count);
+						for(int s=0;s<6;s++) {
 							for(int k=0; k<s;k++) {
 								System.out.print(" ");
 							}
-							for(int k=s+1; k<10;k++) {
+							for(int k=s+1; k<6;k++) {
 								System.out.print(mat2[s][k]);
 							}
 							System.out.println();
 						}
-						System.out.println("**************");
-						pWriter.println("canonical matrix"+" "+count);
+						
+						/**pWriter.println("canonical matrix"+" "+count);
 						for(int s=0;s<6;s++) {
 							for(int k=0; k<s;k++) {
 								pWriter.print(" ");
@@ -764,8 +780,8 @@ public class MORGEN {
 							}
 							pWriter.println();
 						}**/
-						IAtomContainer mol= buildC(addHydrogens(mat2,hIndex));
-						outFile.write(mol);
+						//IAtomContainer mol= buildC(addHydrogens(mat2,hIndex));
+						//outFile.write(mol);
 						//depict(mol,filedir+count+".png");
 						count++;
 					}
@@ -775,6 +791,7 @@ public class MORGEN {
 			}else {	
 				if(indices[0]==findZ(r) && indices[1]==(max.length-1)) {
 					callForward=canonicalTest(A);
+					//callForward=isCanonical(A);
 					if(callForward) {
 						indices=successor(indices,max.length);
 						updateR(indices);
@@ -897,8 +914,10 @@ public class MORGEN {
 		 }
 		 return count;
 	 }
-	 public static void run() throws IOException, CDKException, CloneNotSupportedException {
+	 public static void run(String molecularFormula, String filePath) throws IOException, CDKException, CloneNotSupportedException {
 		 long startTime = System.nanoTime(); 
+		 formula=molecularFormula;
+		 filedir=filePath;
 		 getSymbolsOccurrences(formula);
 		 initialDegrees();
 		 //initialPartition=occurrences;
@@ -944,7 +963,18 @@ public class MORGEN {
 	 public static void canonicalBlockbasedGeneratorDemo() throws IOException, CloneNotSupportedException, CDKException{
 		size=initialDegrees.length;
 		List<int[]> newDegrees= distributeHydrogens(firstOccurrences, firstDegrees);
-		//System.out.println(initialPartition);
+		int threadSize= newDegrees.size();
+		ExecutorService executor = Executors.newFixedThreadPool(threadSize);
+ 
+		for (int i = 0; i < threadSize; i++) {
+ 
+			int[] degrees = newDegrees.get(i);
+			Runnable worker = new MyRunnable(degrees);
+			executor.execute(worker);
+		}
+		executor.shutdown();
+		
+		
 		//partitionList.add(0,initialPartition);		
 		/**int[] newDegrees = new int[6];
 		newDegrees[0]=3;
@@ -952,16 +982,16 @@ public class MORGEN {
 		newDegrees[2]=3;
 		newDegrees[3]=3;
 		newDegrees[4]=3;
-		newDegrees[5]=3;
-		genStrip(newDegrees);**/
-		for(int[] degree: newDegrees) {
+		newDegrees[5]=3;**/
+		//genStrip(newDegrees);
+		/**for(int[] degree: newDegrees) {
 			partitionList.clear();
 			formerPermutations.clear();
 			//genDemo(degree);
 			initialPartition=getPartition(degree,occurrences);
 			partitionList.add(0,initialPartition);
 			genStrip(degree);
-		}
+		}**/
 	 } 
 	 	 
 	 /**
@@ -1520,62 +1550,31 @@ public class MORGEN {
 		 return partNew;
 	 }
 	 
-	 private void parseArgs(String[] args) throws ParseException, IOException, org.apache.commons.cli.ParseException{
-		 Options options = setupOptions(args);	
-		 CommandLineParser parser = new DefaultParser();
-		 try {
-			 CommandLine cmd = parser.parse(options, args);
-			 MORGEN.formula = cmd.getOptionValue("formula");
-			 MORGEN.filedir = cmd.getOptionValue("filedir");				 
-			 if (cmd.hasOption("verbose")) MORGEN.verbose = true;		
-		 } catch (ParseException e) {
-			 HelpFormatter formatter = new HelpFormatter();
-			 formatter.setOptionComparator(null);
-			 String header = "\nGenerates 	molecular structures for a given molecular formula."
-						 + " The input is a molecular formula string."
-						 + "For example 'C2OH4'."
-						 +"For this version, the hydrogens should be kept at the end of the string."
-						 + "Besides this formula, the directory is needed to be specified for the output"
-						 + "file. \n\n";
-			 String footer = "\nPlease report issues at https://github.com/MehmetAzizYirik/AlgorithmicGroupTheory";
-			 formatter.printHelp( "java -jar AlgorithmicGroupTheory.jar", header, options, footer, true );
-			 throw new ParseException("Problem parsing command line");
-		 }
-	 }
-				
-	 private Options setupOptions(String[] args){
-		 Options options = new Options();
-		 Option formula = Option.builder("f")
-					 			.required(true)
-					 			.hasArg()
-					 			.longOpt("formula")
-					 			.desc("formula (required)")
-					 			.build();
-		 options.addOption(formula);
-		 Option verbose = Option.builder("v")
-								.required(false)
-								.longOpt("verbose")
-								.desc("print message")
-								.build();
-		 options.addOption(verbose);	
-		 Option filedir = Option.builder("d")
-					 			.required(true)
-					 			.hasArg()
-					 			.longOpt("filedir")
-					 			.desc("Creates and store the output txt file in the directory (required)")
-					 			.build();
-		 options.addOption(filedir);
-		 return options;
-	 }
-	 
-	public static void main(String[] arguments) throws IOException, CDKException, CloneNotSupportedException {
-		MORGEN gen= new MORGEN();
-		//String[] argument= {"-f","C4H8", "-d", "C:\\Users\\mehme\\Desktop\\", "-v"};
-		try {
-			gen.parseArgs(arguments);
-			MORGEN.run();
-		} catch (Exception e) {
-			if (MORGEN.verbose) e.getCause(); 
-		}
+	public static boolean isCanonical(int[][] mat) throws CloneNotSupportedException {
+		IAtomContainer ac= buildC(mat);
+		return refiner.isCanonical(ac);
+	}
+
+	public static void main(String[] args) throws IOException, CDKException, CloneNotSupportedException {
+		/**atomContainer.addAtom(new Atom("C"));
+		atomContainer.addAtom(new Atom("C"));
+		atomContainer.addAtom(new Atom("C"));
+		atomContainer.addAtom(new Atom("C"));
+		atomContainer.addAtom(new Atom("C"));
+		atomContainer.addAtom(new Atom("C"));
+		
+		int[][] mat= new int[6][6];
+		mat[0][1]=2;
+		mat[0][2]=1;
+		mat[1][2]=1;
+		mat[2][3]=1;
+		mat[3][4]=1;
+		mat[3][5]=1;
+		mat[4][5]=2;**/
+		//System.out.println(isCanonical(mat));
+		//FileWriter fWriter = new FileWriter("C:\\Users\\mehme\\Desktop\\No-Backup Zone\\outputs\\output.txt"); 
+		//pWriter = new PrintWriter(fWriter);
+		run("C6H6","C:\\Users\\mehme\\Desktop\\No-Backup Zone\\outputs\\");
+		//pWriter.close();
 	}
 }
