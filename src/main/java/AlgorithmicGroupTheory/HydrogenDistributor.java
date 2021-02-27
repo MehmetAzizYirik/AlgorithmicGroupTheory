@@ -201,9 +201,7 @@ public class HydrogenDistributor {
 	}
 	public static List<int[]> combineArrays(LinkedList<List <int[]>> lists) {
 		List<int[]> comb = new ArrayList<int[]>();
-	    for (int[] s: lists.removeFirst()) {
-	    	comb.add(s);
-	    }
+		comb.addAll(lists.removeFirst());
 	    while (!lists.isEmpty()) {
 	        List<int[]> list = lists.removeFirst();
 	        List<int[]> newComb =  new ArrayList<int[]>();

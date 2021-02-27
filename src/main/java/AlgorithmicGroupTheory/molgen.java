@@ -228,9 +228,7 @@ public class molgen {
 		if(i==max.length-2 && j==max.length-1) {
 			int[][] mat2= new int[A.length][A.length];
 			for(int k=0;k<A.length;k++) {
-				for(int l=0;l<A.length;l++) {
-					mat2[k][l]=A[k][l];
-				}
+				System.arraycopy(A[k], 0, mat2[k], 0, A.length);
 			}
 			output.add(mat2);
 			writeMatrix(mat2);
@@ -819,9 +817,7 @@ public class molgen {
 			output.add(A);
 			int[][] mat2= new int[A.length][A.length]; 
 			for(int k=0;k<A.length;k++) {
-				for(int l=0;l<A.length;l++) {
-					mat2[k][l]=A[k][l];
-				}
+				System.arraycopy(A[k], 0, mat2[k], 0, A.length);
 			}
 			System.out.println(Arrays.deepToString(A));
 		}else{
