@@ -29,7 +29,6 @@ import org.openscience.cdk.exception.CDKException;
 import org.openscience.cdk.group.Permutation;
 import org.openscience.cdk.interfaces.IAtomContainer;
 import org.openscience.cdk.interfaces.IAtom;
-import org.openscience.cdk.interfaces.IAtomContainer;
 import org.openscience.cdk.interfaces.IChemObjectBuilder;
 import org.openscience.cdk.interfaces.IBond.Order;
 import org.openscience.cdk.io.SDFWriter;
@@ -47,9 +46,9 @@ public class MORGEN {
 	public static boolean flag=true;
 	public static boolean biggest=true;
 	public static boolean equalAuto=true;
-	public static ArrayList<int[][]> output= new ArrayList<int[][]>();
-	public static ArrayList<String> inchis= new ArrayList<String>();
-	public static List<List<Permutation>> formerPermutations= new ArrayList<List<Permutation>>();
+	public static ArrayList<int[][]> output= new ArrayList<>();
+	public static ArrayList<String> inchis= new ArrayList<>();
+	public static List<List<Permutation>> formerPermutations= new ArrayList<>();
 	public static int[] degrees;
 	public static int[] initialDegrees;
 	public static int[] partition;
@@ -58,10 +57,10 @@ public class MORGEN {
 	public static boolean formerPermutationsCheck=true;
 	public static IChemObjectBuilder builder=DefaultChemObjectBuilder.getInstance();
 	public static IAtomContainer atomContainer= builder.newInstance(IAtomContainer.class);
-	public static List<ArrayList<Integer>> partitionList= new ArrayList<ArrayList<Integer>>();
-	public static ArrayList<ArrayList<Permutation>> representatives = new ArrayList<ArrayList<Permutation>>();
-	public static List<String> symbols = new ArrayList<String>();
-	public static ArrayList<Integer> occurrences  = new ArrayList<Integer>();
+	public static List<ArrayList<Integer>> partitionList= new ArrayList<>();
+	public static ArrayList<ArrayList<Permutation>> representatives = new ArrayList<>();
+	public static List<String> symbols = new ArrayList<>();
+	public static ArrayList<Integer> occurrences  = new ArrayList<>();
 	public static Map<String, Integer> valences; 
 	public static PrintWriter pWriter;
 	public static boolean stripIterate=true;
@@ -74,7 +73,7 @@ public class MORGEN {
 	public static int z=0;
 	static {
 		//The atom valences from CDK.
-		valences = new HashMap<String, Integer>();
+		valences = new HashMap<>();
 			
 		valences.put("C", 4);
 		//valences.put("N", 5);
@@ -112,10 +111,10 @@ public class MORGEN {
 			
 	 public static int toInt(Integer[] array) {
 		 int result=0;
-		 for(int i=0;i<array.length;i++) {
-			 result=result*10;
-			 result=result+array[i];
-		 }
+       for (Integer integer : array) {
+         result = result * 10;
+         result = result + integer;
+       }
 		 return result;
 	 }
 	 
@@ -135,9 +134,9 @@ public class MORGEN {
 	
 	public static int sum(List<Integer> list) {
 		int sum=0;
-		for(int i=0;i<list.size();i++) {
-			sum=sum+list.get(i);
-		}
+      for (Integer integer : list) {
+        sum = sum + integer;
+      }
 		return sum;
 	}
 	
@@ -149,9 +148,9 @@ public class MORGEN {
 	
 	public static int sum(int[] array) {
 		int sum=0;
-		for(int i=0;i<array.length;i++) {
-			sum=sum+array[i];
-		}
+      for (int value : array) {
+        sum = sum + value;
+      }
 		return sum;
 	}
 	
@@ -219,8 +218,8 @@ public class MORGEN {
 	  * @param formula  String molecular formula
 	  */
 	 
-	 public static List<String> firstSymbols= new ArrayList<String>();
-	 public static ArrayList<Integer> firstOccurrences = new ArrayList<Integer>();
+	 public static List<String> firstSymbols= new ArrayList<>();
+	 public static ArrayList<Integer> firstOccurrences = new ArrayList<>();
 	 public static void getSymbolsOccurrences(String formula) {
 		 String[] atoms = formula.split("(?=[A-Z])");
 		 for(String atom : atoms) {
@@ -373,17 +372,17 @@ public class MORGEN {
 	 public static boolean equalCheck(int[] former, int[] current, ArrayList<Integer> partition) {
 		 boolean check=true;
 		 int i=0;
-		 for(int k=0;k<partition.size();k++) {
-			 Integer[] can= getBlocks(former,i,partition.get(k)+i);
-			 Integer[] org= getBlocks(current,i,partition.get(k)+i); 
-			 if(!Arrays.equals(can,org)) {
-				 check=false;
-				 break;
-			 }else {
-				 i=i+partition.get(k);
-				 continue;
-			 }
-		 }
+       for (Integer integer : partition) {
+         Integer[] can = getBlocks(former, i, integer + i);
+         Integer[] org = getBlocks(current, i, integer + i);
+         if (!Arrays.equals(can, org)) {
+           check = false;
+           break;
+         } else {
+           i = i + integer;
+           continue;
+         }
+       }
 		 return check;
 	 }
 	 
@@ -595,9 +594,9 @@ public class MORGEN {
     
 	public static int[][] nextStep(int[][] A, int[] indices,boolean callForward) throws IOException, CloneNotSupportedException, CDKException{
 		if(callForward) {
-			return forwardRow(A, indices,callForward);
+			return forwardRow(A, indices);
 		}else {
-			return backwardDemo(A,indices,callForward);
+			return backwardDemo(A,indices);
 		} 
 	}
 	
@@ -666,14 +665,14 @@ public class MORGEN {
 	  * 
 	  * Backward step in the algorithm.
 	  * 
-	  * @param A 			int[][] adjacency matrix
-	  * @param indices 		ArrayList<Integer> indices
-	  * @throws IOException 
+	  * @param A            int[][] adjacency matrix
+	  * @param indices        ArrayList<Integer> indices
+	  * @throws IOException
 	  * @throws CloneNotSupportedException
 	  * @throws CDKException
 	  */
 	 
-	 public static int[][] backwardDemo(int[][] A, int[] indices, boolean callForward) throws IOException, CloneNotSupportedException, CDKException {
+	 public static int[][] backwardDemo(int[][] A, int[] indices) throws IOException, CloneNotSupportedException, CDKException {
 		int i=indices[0];
 		int j=indices[1];			
 		if(i==0 && j==1) {
@@ -690,21 +689,22 @@ public class MORGEN {
 			/**
 			 * I changed in backcriteria from x to x-1 but then I had error c6h6 was 98 not 217
 			 */
-			if(x>0 && (backwardCriteria((x),l2,L[i][j]) && backwardCriteria((x),c2,C[i][j]))){
+          boolean callForward;
+          if(x>0 && (backwardCriteria((x),l2,L[i][j]) && backwardCriteria((x),c2,C[i][j]))){
 				A[i][j]=(x-1);
 				A[j][i]=(x-1);
 				indices = successor(indices,max.length);
 				updateR(indices);
-				callForward=true;
-				return nextStep(A,indices,callForward);
+				callForward =true;
+				return nextStep(A,indices, callForward);
 			}else {
-				callForward=false;
-				return nextStep(A,indices,callForward);
+				callForward =false;
+				return nextStep(A,indices, callForward);
 			}
 		}
 	 }
 	 
-	public static int[][] forwardRow(int[][] A, int[] indices, boolean callForward) throws IOException, CloneNotSupportedException, CDKException {
+	public static int[][] forwardRow(int[][] A, int[] indices) throws IOException, CloneNotSupportedException, CDKException {
 		int i=indices[0];
 		int j=indices[1];
 		int lInverse= LInverse(degrees,i,j,A);
@@ -716,19 +716,20 @@ public class MORGEN {
 		 * First step in the forward method.
 		 */
 		 
-		int maximumValue = forwardMaximal(minimal, lInverse, L[i][j], cInverse, C[i][j]); 
-		callForward=true;
+		int maximumValue = forwardMaximal(minimal, lInverse, L[i][j], cInverse, C[i][j]);
+      boolean callForward = true;
 		if(j==(max.length-1)) {
-			int[][] newMat= forwardSubRow(lInverse, cInverse, maximumValue, i, j,A,indices,callForward);
+			int[][] newMat= forwardSubRow(lInverse, cInverse, maximumValue, i, j,A,indices);
 			return newMat;
 		}else {
-			return forwardSubRow(lInverse, cInverse, maximumValue, i, j,A,indices,callForward); 
+			return forwardSubRow(lInverse, cInverse, maximumValue, i, j,A,indices);
 		}  
 	} 
 	
 	
-	public static int[][] forwardSubRow(int lInverse, int cInverse, int maximalX,int i, int j, int[][] A, int[] indices, boolean callForward) throws CloneNotSupportedException, CDKException, IOException {
-		 if(((lInverse-maximalX)<=L[i][j]) && ((cInverse-maximalX)<=C[i][j])) {
+	public static int[][] forwardSubRow(int lInverse, int cInverse, int maximalX, int i, int j, int[][] A, int[] indices) throws CloneNotSupportedException, CDKException, IOException {
+      boolean callForward;
+      if(((lInverse-maximalX)<=L[i][j]) && ((cInverse-maximalX)<=C[i][j])) {
 			 A[i][j]=maximalX;
 			 A[j][i]=maximalX;
 			 if(i==(max.length-2) && j==(max.length-1)) {
@@ -768,11 +769,11 @@ public class MORGEN {
 						count++;
 					}
 				}
-				callForward=false;
+				callForward =false;
 				return nextStep(A, indices, callForward);
 			}else {	
 				if(indices[0]==findZ(r) && indices[1]==(max.length-1)) {
-					callForward=canonicalTest(A);
+					callForward =canonicalTest(A);
 					if(callForward) {
 						indices=successor(indices,max.length);
 						updateR(indices);
@@ -789,8 +790,8 @@ public class MORGEN {
 			    }
 			}
 		 }else {
-			 callForward=false;
-			 return nextStep(A, indices,callForward);
+			 callForward =false;
+			 return nextStep(A, indices, callForward);
 		 }
 	 }
 	
@@ -846,7 +847,7 @@ public class MORGEN {
 	  */
 	 
 	 public static ArrayList<Integer> getPartition(int[] degrees, ArrayList<Integer> partition){
-    	 ArrayList<Integer> newPartition = new ArrayList<Integer>();
+    	 ArrayList<Integer> newPartition = new ArrayList<>();
 		 int i=0;
     	 for(Integer p:partition) {
     		 Integer[] subArray= getBlocks(degrees,i,p+i);
@@ -858,7 +859,7 @@ public class MORGEN {
 	 
 	
 	 public static ArrayList<Integer> getSubPartition(Integer[] degrees){
-		 ArrayList<Integer> partition = new ArrayList<Integer>();
+		 ArrayList<Integer> partition = new ArrayList<>();
 		 int i=0;
 	     int size= degrees.length;
 	     int count=0;
@@ -927,7 +928,7 @@ public class MORGEN {
 	  */
 		
 	 public static List<int[]> distributeHydrogens(ArrayList<Integer> partition, int[] degrees) throws FileNotFoundException, UnsupportedEncodingException, CloneNotSupportedException, CDKException{
-		 List<int[]> degreeList= new ArrayList<int[]>();
+		 List<int[]> degreeList= new ArrayList<>();
 		 List<int[]> distributions= HydrogenDistributor.run(partition,degrees);
 		 for(int[] dist: distributions) {
 			 int[] newDegree= new int[size];
@@ -975,7 +976,7 @@ public class MORGEN {
 	  */
 		 
 	 public static Set<Integer> nValues(int index, int total, int[][] mat) {
-		 Set<Integer> nValues= new HashSet<Integer>();
+		 Set<Integer> nValues= new HashSet<>();
 		 nValues.add(index);
 		 int[] theRow = mat[index]; 
 		 for(int i=(index+1);i<total;i++) {
@@ -994,7 +995,7 @@ public class MORGEN {
 	  */
 		 
 	 public static Set<Integer> wValues(Set<Integer> nValues, int[] Kformer){
-		 Set<Integer> wValues= new HashSet<Integer>();
+		 Set<Integer> wValues= new HashSet<>();
 		 for(Integer i:nValues) {
 			 wValues.add(Kformer[i]);
 		 }
@@ -1046,8 +1047,8 @@ public class MORGEN {
 		 boolean check=false;
 		 int total= mat.length;
 		 int[] kValues=initialKList(total);
-		 Set<Integer> nValues= new HashSet<Integer>();
-		 Set<Integer> wValues= new HashSet<Integer>();
+		 Set<Integer> nValues= new HashSet<>();
+		 Set<Integer> wValues= new HashSet<>();
 		 int zValue= 0;
 		 for(int i=0;i<p;i++) {
 			 nValues= nValues(i, total, mat);
@@ -1069,12 +1070,12 @@ public class MORGEN {
 		 
 	 public static boolean allIs0(int[] list) {
 		 boolean check=true;
-		 for(int i=0;i<list.length;i++) {
-			 if(list[i]!=0) {
-				 check=false;
-				 break;
-			 }
-		 }
+       for (int value : list) {
+         if (value != 0) {
+           check = false;
+           break;
+         }
+       }
 		 return check;
 	 }
 	 	
@@ -1120,7 +1121,7 @@ public class MORGEN {
 	}
 	
 	public static void clearFormers(boolean check, int y) {
-		 if(check==false) {
+		 if(!check) {
 			 for(int i=y;i<formerPermutations.size();i++) {
 				 formerPermutations.get(i).removeAll(formerPermutations.get(i));
 			 }
@@ -1131,7 +1132,7 @@ public class MORGEN {
 	}
 	
 	public static void candidatePermutations(int index, int y, int total, List<Permutation> cycles) {
-		List<Permutation> newList = new ArrayList<Permutation>(cycles);
+		List<Permutation> newList = new ArrayList<>(cycles);
 		 formerPermutations.add(index,newList);
 		 if(index!=0) {
 			 List<Permutation> formers = formerPermutations.get(index-1); 
@@ -1140,13 +1141,13 @@ public class MORGEN {
 					 formerPermutations.get(index).add(form);
 				 }
 			 }
-			 List<Permutation> newForm = new ArrayList<Permutation>();
+			 List<Permutation> newForm = new ArrayList<>();
 			 for(Permutation frm: formers) {
 				 if(!frm.isIdentity()) {
 					 newForm.add(frm);
 				 }
 			 }
-			 List<Permutation> newCycles = new ArrayList<Permutation>();
+			 List<Permutation> newCycles = new ArrayList<>();
 			 for(Permutation cyc: cycles) {
 				 if(!cyc.isIdentity()) {
 					 newCycles.add(cyc);
@@ -1180,12 +1181,12 @@ public class MORGEN {
 	
 	public static boolean allis1(ArrayList<Integer> partition) {
 		 boolean check=true;
-		 for(int i=0;i<partition.size();i++) {
-			 if(partition.get(i)!=1) {
-				 check=false;
-				 break;
-			 }
-		 }
+      for (Integer integer : partition) {
+        if (integer != 1) {
+          check = false;
+          break;
+        }
+      }
 		 return check;
 	 }
 	
@@ -1197,7 +1198,7 @@ public class MORGEN {
 	  */
 	 
 	 public static void addPartition(int index, ArrayList<Integer> newPartition, int[][] A) {
-		 ArrayList<Integer> refinedPartition= new ArrayList<Integer>();
+		 ArrayList<Integer> refinedPartition= new ArrayList<>();
 		 if(allis1(newPartition)) {
 			 refinedPartition=newPartition;
 		 }else {
@@ -1220,7 +1221,7 @@ public class MORGEN {
 	  */
 	 
 	 public static ArrayList<Integer> refinedPartitioning(ArrayList<Integer> partition, int[] row){
-		 ArrayList<Integer> refined= new ArrayList<Integer>();
+		 ArrayList<Integer> refined= new ArrayList<>();
 		 int index=0;
 		 int count=1;
 		 for(Integer p:partition) {
@@ -1401,7 +1402,7 @@ public class MORGEN {
 		 
 	public static boolean check(int index, int y, int total, int[][] A, ArrayList<Integer> partition, ArrayList<Integer> newPartition) {
 		 boolean check=true;
-		 List<Permutation> formerList= new ArrayList<Permutation>();
+		 List<Permutation> formerList= new ArrayList<>();
 		 for(Permutation permutation:formerPermutations.get(index)) { 
 			 Permutation canonicalPermutation= getCanonicalCycle(index, y, total, A, partition, newPartition, permutation);
 			 if(biggest) {
@@ -1437,7 +1438,7 @@ public class MORGEN {
 	
 	public static List<Permutation> cycleTranspositions(int index, ArrayList<Integer> partition) {
 		 int total=sum(partition);
-		 List<Permutation> perms= new ArrayList<Permutation>();
+		 List<Permutation> perms= new ArrayList<>();
 		 int lValue = LValue(partition,index);
 		 for(int i=0;i<lValue;i++) {
 	    	 int[] values= idValues(total);
@@ -1493,7 +1494,7 @@ public class MORGEN {
 	  */
 		 
 	 public static ArrayList<Integer> partitionCriteria(ArrayList<Integer> partEx, int degree){
-		 ArrayList<Integer> partNew = new ArrayList<Integer>();
+		 ArrayList<Integer> partNew = new ArrayList<>();
 		 partNew=addOnes(partNew,degree);
 		 /**
 		  * I had (degree-1)

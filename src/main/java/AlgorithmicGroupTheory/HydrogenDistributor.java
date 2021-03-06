@@ -78,7 +78,7 @@ public class HydrogenDistributor {
 	
 	static {
 		//The atom capacities from MOLGEN book. Capacity of an atom equals to 
-		capacities = new HashMap<Integer, Integer>();
+		capacities = new HashMap<>();
 		capacities.put(6, 3);
 		capacities.put(7, 2);
 		capacities.put(8, 1);
@@ -163,9 +163,9 @@ public class HydrogenDistributor {
 	
 	public static int sum(int[] array) {
 		int sum=0;
-		for(int i=0;i<array.length;i++) {
-			sum=sum+array[i];
-		}
+      for (int value : array) {
+        sum = sum + value;
+      }
 		return sum;
 	}
 	
@@ -185,7 +185,7 @@ public class HydrogenDistributor {
 	}
 	
 	public static int[] arraySum(int[] a, int[] b) {
-		List<int[]> arrays= new ArrayList<int[]>();
+		List<int[]> arrays= new ArrayList<>();
 		arrays.add(a);
 		arrays.add(b);
 		return mergeArrays(arrays);
@@ -194,17 +194,16 @@ public class HydrogenDistributor {
 	public static List<List<int[]>> buildLists(int n){
 		List<List<int[]>> lists= new ArrayList<List<int[]>>();
 		for (int i=0; i<n; ++i) {
-			List<int[]> ilist= new ArrayList<int[]>();
+			List<int[]> ilist= new ArrayList<>();
 			lists.add(ilist);
 		}
 		return lists;
 	}
 	public static List<int[]> combineArrays(LinkedList<List <int[]>> lists) {
-		List<int[]> comb = new ArrayList<int[]>();
-		comb.addAll(lists.removeFirst());
+      List<int[]> comb = new ArrayList<>(lists.removeFirst());
 	    while (!lists.isEmpty()) {
 	        List<int[]> list = lists.removeFirst();
-	        List<int[]> newComb =  new ArrayList<int[]>();
+	        List<int[]> newComb = new ArrayList<>();
 	        for (int[] arr1: comb) { 
 	            for (int[] arr2 : list) { 
 	            	newComb.add(arraySum(arr1,arr2));
@@ -260,20 +259,20 @@ public class HydrogenDistributor {
 		HydrogenDistributor.size=partitionSize-1;
 		setValues(partition,degrees);
 		HydrogenDistributor.totalHydrogen=hydrogen;
-		List<int[]> result= new ArrayList<int[]>();
+		List<int[]> result= new ArrayList<>();
 		if(isotopes==1) {
-			List<int[]> iarrays= new ArrayList<int[]>();
+			List<int[]> iarrays= new ArrayList<>();
 			int[] array = new int[0];
 			HydrogenDistributor.hydrogens2distribute=totalHydrogen;
 			distribute(iarrays,totalHydrogen,array,valences[0],totalAtom[0]);
 			result= iarrays;
 		}else {
-			List<int[]> distributions= new ArrayList<int[]>();
+			List<int[]> distributions= new ArrayList<>();
 			for(int[] dene:partition(totalHydrogen,isotopes,0)){
-				LinkedList<List<int[]>> lists = new LinkedList<List <int[]>>();
+				LinkedList<List<int[]>> lists = new LinkedList<>();
 				for(int i=0;i<dene.length;i++) {
 					HydrogenDistributor.hydrogens2distribute=dene[i];
-					List<int[]> iarrays= new ArrayList<int[]>();
+					List<int[]> iarrays= new ArrayList<>();
 					int[] array = new int[0];
 					distribute(iarrays,dene[i],array,valences[i],totalAtom[i]);
 					lists.add(iarrays);
@@ -292,7 +291,7 @@ public class HydrogenDistributor {
 	
 	public static List<int[]> partition(int n, int d,int depth) {
 		if(d==depth) {
-			List<int[]> array= new ArrayList<int[]>();
+			List<int[]> array= new ArrayList<>();
 			int[] take=new int[0];
 			array.add(take);
 			return array;
@@ -302,7 +301,7 @@ public class HydrogenDistributor {
 	}
 	
 	public static List<int[]> buildArray(int n,int d, int depth){
-		List<int[]> array= new ArrayList<int[]>();
+		List<int[]> array= new ArrayList<>();
 		IntStream range = IntStream.rangeClosed(0,n);
 		for(int i:range.toArray()) {
 			for(int[] item: partition(n-i,d,depth+1)) {
@@ -372,7 +371,7 @@ public class HydrogenDistributor {
 	 */
 	
 	public static List<IAtomContainer> generateAtomContainers(List<int[]> distributions) throws CloneNotSupportedException{
-		List<IAtomContainer> acontainers= new ArrayList<IAtomContainer>();
+		List<IAtomContainer> acontainers= new ArrayList<>();
 		for(int[] array:distributions) {
 			IAtomContainer ac=acontainer.clone();
 			acontainers.add(setHydrogens(ac,array));
