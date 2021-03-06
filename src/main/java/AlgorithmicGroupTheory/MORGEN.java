@@ -98,7 +98,7 @@ public class MORGEN {
 	 * Molecule depiction 
 	 */
 		
-	public static void depict(IAtomContainer molecule, String path) throws CloneNotSupportedException, CDKException, IOException{
+	public static void depict(IAtomContainer molecule, String path) throws CDKException, IOException{
 		DepictionGenerator depiction = new DepictionGenerator();
 		depiction.withSize(1000, 1000).withZoom(20).depict(molecule).writeTo(path);
 	}
@@ -202,8 +202,7 @@ public class MORGEN {
 	  */
 	 
 	 public static Permutation idPermutation(int size) {
-		 Permutation perm= new Permutation(size);
-		 return perm;
+		 return new Permutation(size);
 	 }
 	 
 	 /**
@@ -276,16 +275,13 @@ public class MORGEN {
 	  * If provided, fragments are also added.
 	  * @param mol molecular information
 	  * @return atom container new atom container
-	  * @throws IOException
-	  * @throws CloneNotSupportedException
-	  * @throws CDKException
 	  */
 		
-	 public static void build(String mol) throws IOException, CloneNotSupportedException, CDKException {
+	 public static void build(String mol) {
 		 generateAtom(firstSymbols, firstOccurrences, atomContainer);
 	 }
 
-	static void generateAtom(List<String> firstSymbols, ArrayList<Integer> firstOccurrences, IAtomContainer atomContainer) {
+	private static void generateAtom(List<String> firstSymbols, ArrayList<Integer> firstOccurrences, IAtomContainer atomContainer) {
 		for(int i = 0; i< firstSymbols.size(); i++) {
 			for(int j = 0; j< firstOccurrences.get(i); j++) {
 				atomContainer.addAtom(new Atom(firstSymbols.get(i)));
@@ -739,8 +735,7 @@ public class MORGEN {
 		int maximumValue = forwardMaximal(minimal, lInverse, L[i][j], cInverse, C[i][j]);
       boolean callForward = true;
 		if(j==(max.length-1)) {
-			int[][] newMat= forwardSubRow(lInverse, cInverse, maximumValue, i, j,A,indices);
-			return newMat;
+			return forwardSubRow(lInverse, cInverse, maximumValue, i, j,A,indices);
 		}else {
 			return forwardSubRow(lInverse, cInverse, maximumValue, i, j,A,indices);
 		}  
@@ -1111,7 +1106,7 @@ public class MORGEN {
 		 return (sum(initialPartition,r)-1);
 	 }
 	 
-	 public static boolean canonicalTest(int[][] matrix) throws IOException, CloneNotSupportedException, CDKException {
+	 public static boolean canonicalTest(int[][] matrix) {
 		formerPermutationsCheck=true;
 		 return blockTest(r, matrix);
 	}
@@ -1532,7 +1527,7 @@ public class MORGEN {
 		 return partNew;
 	 }
 	 
-	 private void parseArgs(String[] args) throws ParseException, IOException, org.apache.commons.cli.ParseException{
+	 private void parseArgs(String[] args) throws org.apache.commons.cli.ParseException{
 		 Options options = setupOptions(args);	
 		 CommandLineParser parser = new DefaultParser();
 		 try {
@@ -1580,7 +1575,7 @@ public class MORGEN {
 		 return options;
 	 }
 	 
-	public static void main(String[] arguments) throws IOException, CDKException, CloneNotSupportedException {
+	public static void main(String[] arguments) {
 		MORGEN gen= new MORGEN();
 		//String[] argument= {"-f","C4H8", "-d", "C:\\Users\\mehme\\Desktop\\", "-v"};
 		try {

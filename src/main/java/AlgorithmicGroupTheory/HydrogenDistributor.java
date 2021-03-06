@@ -252,7 +252,7 @@ public class HydrogenDistributor {
 		return result;
 	}**/
 	
-	public static List<int[]> run(ArrayList<Integer> partition, int[] degrees) throws FileNotFoundException, UnsupportedEncodingException, CloneNotSupportedException, CDKException {
+	public static List<int[]> run(ArrayList<Integer> partition, int[] degrees) throws CloneNotSupportedException {
 		int partitionSize= partition.size();
 		int hydrogen= partition.get(partitionSize-1);
 		HydrogenDistributor.isotopes=partitionSize-1;
@@ -331,7 +331,7 @@ public class HydrogenDistributor {
 		return Arrays.stream(arr).boxed().sorted().mapToInt(Integer::intValue).toArray();
 	}
 	
-	public static void distribute(List<int[]> arrays,int hydrogen,int[]arr,int valence, int numAtom) throws CloneNotSupportedException {
+	public static void distribute(List<int[]> arrays,int hydrogen,int[]arr,int valence, int numAtom) {
 		if(hydrogen==0 && sum(arr)==hydrogens2distribute){
 			if(arr.length!=numAtom) {
 				arr=addZeros(arr,(numAtom-arr.length));
