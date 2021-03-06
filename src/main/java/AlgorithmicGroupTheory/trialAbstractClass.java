@@ -317,7 +317,7 @@ public class trialAbstractClass {
 		 for(int i=0;i<mat.length;i++) {
 			 for(int j=i+1;j<mat.length;j++) {
 				 if(mat[i][j]==1) {
-					 ac2.addBond(i, j, Order.SINGLE);
+					 ac2.addBond(i, j, Order.SINGLE);;
 				 }else if(mat[i][j]==2) {
 					 ac2.addBond(i, j, Order.DOUBLE);
 				 }else if(mat[i][j]==3) {
@@ -753,7 +753,9 @@ public class trialAbstractClass {
 					//A=addHydrogens(A,hIndex);
 					int[][] mat2= new int[A.length][A.length]; 
 					for(int k=0;k<A.length;k++) {
-						System.arraycopy(A[k], 0, mat2[k], 0, A.length);
+						for(int l=0;l<A.length;l++) {
+							mat2[k][l]=A[k][l];
+						}
 					}
 					//IAtomContainer molden= buildC(addHydrogens(mat2,hIndex));
 					if(connectivityTest(hIndex,addHydrogens(mat2,hIndex))){
@@ -898,7 +900,7 @@ public class trialAbstractClass {
 			 partition.add(1);
 		 }else {
 			 for(int j = i+1; j < size; j++){  
-	         	 if(degrees[i].equals(degrees[j])){
+	         	 if(degrees[i] == degrees[j]){  
 	        		 count++;  
 	        		 if(j==(size-1)){
 	        			 partition.add(count);
@@ -1122,7 +1124,11 @@ public class trialAbstractClass {
 	 
 	 public static boolean canonicalTest(int[][] matrix) throws IOException, CloneNotSupportedException, CDKException {
 		formerPermutationsCheck=true;
-		 return blockTest(r, matrix);
+		if(blockTest(r,matrix)) {
+			return true;
+		 }else {
+			return false;
+		 }
 	}
 	
 	/**
@@ -1161,7 +1167,8 @@ public class trialAbstractClass {
 	}
 	
 	public static void candidatePermutations(int index, int y, int total, List<Permutation> cycles) {
-		List<Permutation> newList = new ArrayList<Permutation>(cycles);
+		 List<Permutation> newList= new ArrayList<Permutation>();
+		 newList.addAll(cycles);
 		 formerPermutations.add(index,newList);
 		 if(index!=0) {
 			 List<Permutation> formers = formerPermutations.get(index-1); 
@@ -1337,7 +1344,9 @@ public class trialAbstractClass {
 	 public static int[] cloneArray(int[] array) {
 		 int length= array.length;
 		 int[] cloned = new int[length];
-		 System.arraycopy(array, 0, cloned, 0, length);
+		 for(int i=0;i<length;i++) {
+			 cloned[i]=array[i];
+		 }
 		 return cloned;
 	 }
 	 
@@ -1376,7 +1385,7 @@ public class trialAbstractClass {
     	 int index=start;
     	 for(int i=start;i<size;i++) {
     		 if(non[i]==value) {
-    			 if(!max[i].equals(non[i])) {
+    			 if(max[i]!=non[i]) {
     				 index=i;
         			 break; 
     			 }
@@ -1389,7 +1398,7 @@ public class trialAbstractClass {
     	 int i=0;
     	 int permutationIndex=0;    	 
     	 while(i<max.length && max[i]!=0) {
-    		 if(!max[i].equals(non[i])) {
+    		 if(max[i]!=non[i]) {
         		 permutationIndex = findMatch(max,non, max[i],i);
         		 if(i!=permutationIndex) {
         			 non=permuteArray(non, i, permutationIndex);

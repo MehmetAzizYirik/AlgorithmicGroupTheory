@@ -183,7 +183,7 @@ public class PermutationGroupFunctions extends HydrogenDistributor {
 	 */
 	
 	public static int[] buildZerosArray(int n) {
-		int[] arr = new int[n];
+		int arr[] = new int[n];
 		for(int i=0;i<arr.length;i++) {
 		    arr[i] = 0;
 		}
@@ -198,7 +198,9 @@ public class PermutationGroupFunctions extends HydrogenDistributor {
 	
 	public static int[] cloneArray(int[] array) {
 		int[] result= new int[array.length];
-		System.arraycopy(array, 0, result, 0, array.length);
+		for(int i=0;i<array.length;i++) {
+			result[i]=array[i];
+		}
 		return result;
 	}
 	
@@ -239,7 +241,7 @@ public class PermutationGroupFunctions extends HydrogenDistributor {
 	
 	public static Comparator<String> DES_STRING_ORDER= new Comparator<String>() {
 		public int compare(String o1, String o2) {
-	        return -valences.get(o1).compareTo(valences.get(o2));
+	        return -Integer.valueOf(valences.get(o1)).compareTo(Integer.valueOf(valences.get(o2)));
 	    }
 	};
 	
@@ -389,7 +391,9 @@ public class PermutationGroupFunctions extends HydrogenDistributor {
 	
 	public static ArrayList<ArrayList<Integer>> cloneList(ArrayList<ArrayList<Integer>> list){
 		ArrayList<ArrayList<Integer>> result= new ArrayList<ArrayList<Integer>>();
-		result.addAll(list);
+		for(ArrayList<Integer> i:list) {
+			result.add(i);
+		}
 		return result;
 	}
 	
@@ -736,7 +740,7 @@ public class PermutationGroupFunctions extends HydrogenDistributor {
 	
 	public static void divideByOrder(HashMap<ArrayList<Integer>,Integer> map) {
 		for(ArrayList<Integer> key:map.keySet()) {
-			map.replace(key, map.get(key), map.get(key)/order);
+			map.replace(key, map.get(key), (Integer)(map.get(key)/order));
 		}
 	}
 	
@@ -1175,7 +1179,7 @@ public class PermutationGroupFunctions extends HydrogenDistributor {
 	 */
 	
 	public static Set<Set<Integer>> subSet( Set<Integer> set ) {
-		Integer[] elements = set.toArray(new Integer[0]);
+		Integer[] elements = set.toArray(new Integer [set.size()]);
         int power = 1 << elements.length;
         Set<Set<Integer>> subsets = new HashSet<Set<Integer>>();
         for( int count = 0; count < power; count++ ) {
@@ -1214,7 +1218,7 @@ public class PermutationGroupFunctions extends HydrogenDistributor {
 	 */
 	
 	public static Set<Set<Integer>> ksubSet(int k, ArrayList<Integer> set ) {
-		Integer[] elements = set.toArray(new Integer[0]);
+		Integer[] elements = set.toArray(new Integer [set.size()]);
         int power = 1 << elements.length;
         Set<Set<Integer>> subsets = new HashSet<Set<Integer>>();
         for( int count = 0; count < power; count++ ) {
@@ -1242,7 +1246,7 @@ public class PermutationGroupFunctions extends HydrogenDistributor {
 	 */
 	
 	public static ArrayList<ArrayList<Integer>> ksubSet2(int k,ArrayList<Integer> set ) {
-		Integer[] elements = set.toArray(new Integer[0]);
+		Integer[] elements = set.toArray(new Integer [set.size()]);
         int power = 1 << elements.length; 
         ArrayList<ArrayList<Integer>> subsets = new ArrayList<ArrayList<Integer>>();
         for( int count = 0; count < power; count++ ) {
@@ -1663,7 +1667,7 @@ public class PermutationGroupFunctions extends HydrogenDistributor {
 	public static boolean listEqual(ArrayList<Integer> list, ArrayList<Integer> list2) {
 		boolean check=true;
 		for(int i=0;i<list.size();i++) {
-			if(!list.get(i).equals(list2.get(i))) {
+			if(list.get(i)!=list2.get(i)) {
 				check=false;
 				break;
 			}
@@ -2594,8 +2598,12 @@ public class PermutationGroupFunctions extends HydrogenDistributor {
 	 
 		
 	public static boolean saturationChecker(IAtomContainer molecule, int index) throws CloneNotSupportedException, CDKException, IOException{
-		if(!molecule.getAtom(index).getSymbol().equals("R")) { // In case if there is non-specificed atom.
-			return (orderSummation(molecule, index)) >= (int) valences.get(molecule.getAtom(index).getSymbol());
+		if(molecule.getAtom(index).getSymbol()!="R") { // In case if there is non-specificed atom.
+			if ((orderSummation(molecule,index))>= (int)valences.get(molecule.getAtom(index).getSymbol())){ 
+				return true;
+			}else{
+				return false;
+			}
 		}else {
 			return true;
 		}
@@ -2632,7 +2640,7 @@ public class PermutationGroupFunctions extends HydrogenDistributor {
 	public static ArrayList<Integer> getOpenIndices(IAtomContainer ac) throws CloneNotSupportedException, CDKException, IOException {
 		ArrayList<Integer> indices = new ArrayList<Integer>();
 		for(int i=0;i<ac.getAtomCount();i++) {
-			if(ac.getAtom(i).getSymbol().equals("R")) {
+			if(ac.getAtom(i).getSymbol()=="R") {
 				indices.add(i);
 			}
 		}
@@ -2647,7 +2655,7 @@ public class PermutationGroupFunctions extends HydrogenDistributor {
 	 */
 	
 	public static int openSites(IAtomContainer molecule, int index) {
-		return valences.get(molecule.getAtom(index).getSymbol()) -orderSummation(molecule,index);
+		return (int)valences.get(molecule.getAtom(index).getSymbol())-orderSummation(molecule,index);
 	}
 	
 	/**
@@ -2683,7 +2691,7 @@ public class PermutationGroupFunctions extends HydrogenDistributor {
 	public static int beginningOfOpenSites(IAtomContainer ac) {
 		int index=0;
 		for(int i=0;i<ac.getAtomCount();i++) {
-			if(ac.getAtom(i).getSymbol().equals("R")) {
+			if(ac.getAtom(i).getSymbol()=="R") {
 				index=index+i;
 				break;
 			}
@@ -2864,7 +2872,8 @@ public class PermutationGroupFunctions extends HydrogenDistributor {
 		 ArrayList<ArrayList<Permutation>> out= new ArrayList<ArrayList<Permutation>>();
 		 for(Permutation perm: group.all()) {
 			 for(ArrayList<Permutation> pair: list) {
-				 ArrayList<Permutation> l = new ArrayList<Permutation>(pair);
+				 ArrayList<Permutation> l= new ArrayList<Permutation>();
+				 l.addAll(pair);
 				 l.add(perm);
 				 out.add(l);
 			 }	 
@@ -2959,7 +2968,7 @@ public class PermutationGroupFunctions extends HydrogenDistributor {
 	 public static ArrayList<Integer> splitIndices(ArrayList<String> set) {
 		 ArrayList<Integer> indices= new ArrayList<Integer>();
 		 for(int i=0;i<set.size()-1;i++) {
-			 if(!set.get(i).equals(set.get(i + 1))) {
+			 if(set.get(i)!=set.get(i+1)) {
 				 indices.add(i+1);
 			 }
 		 }
@@ -4424,7 +4433,9 @@ public class PermutationGroupFunctions extends HydrogenDistributor {
 			
 			int[][] mat2= new int[A.length][A.length]; 
 			for(int k=0;k<A.length;k++) {
-				System.arraycopy(A[k], 0, mat2[k], 0, A.length);
+				for(int l=0;l<A.length;l++) {
+					mat2[k][l]=A[k][l];
+				}
 			}
 			//writeLine(111,"b",mat2);
 			System.out.println(Arrays.deepToString(mat2));
@@ -4459,7 +4470,9 @@ public class PermutationGroupFunctions extends HydrogenDistributor {
 			output.add(A);
 			int[][] mat2= new int[A.length][A.length]; 
 			for(int k=0;k<A.length;k++) {
-				System.arraycopy(A[k], 0, mat2[k], 0, A.length);
+				for(int l=0;l<A.length;l++) {
+					mat2[k][l]=A[k][l];
+				}
 			}
 			//writeLine(111,"b",mat2);
 			System.out.println("done");
@@ -4512,7 +4525,9 @@ public class PermutationGroupFunctions extends HydrogenDistributor {
 			output.add(A);
 			int[][] mat2= new int[A.length][A.length]; 
 			for(int k=0;k<A.length;k++) {
-				System.arraycopy(A[k], 0, mat2[k], 0, A.length);
+				for(int l=0;l<A.length;l++) {
+					mat2[k][l]=A[k][l];
+				}
 			}
 			System.out.println("h"+" "+hIndex);
 			if(connectivityTest(6,addHydrogens(A,6))){
@@ -6976,7 +6991,7 @@ public class PermutationGroupFunctions extends HydrogenDistributor {
 			 int i=0;
 			 //System.out.println("index changes"+" "+extPart+" "+part);
 			 while(i<extS) {
-				 if(!extPart.get(i).equals(part.get(j))) {
+				 if(extPart.get(i)!=part.get(j)) {
 					 changes.add(sum(part,j)-1);
 					 if(sum(extPart,i)==sum(part,j+1)) {
 						 i++;
@@ -6999,7 +7014,7 @@ public class PermutationGroupFunctions extends HydrogenDistributor {
 		 if(extS!=newS) {
 			 int j=0;
 			 for(int i=0;i<extS;i++) {
-				 if(!extPart.get(i).equals(part.get(j))) {
+				 if(extPart.get(i)!=part.get(j)) {
 					 changes.add(sum(extPart,i)-2);
 					 j=j+2;
 				 }else {
@@ -7288,7 +7303,8 @@ public class PermutationGroupFunctions extends HydrogenDistributor {
 	 }**/
 	 
 	 public static ArrayList<Integer> resetPartition(ArrayList<Integer> partition){
-		 ArrayList<Integer> newOne = new ArrayList<Integer>(partition);
+		 ArrayList<Integer> newOne= new ArrayList<Integer>();
+		 newOne.addAll(partition);
 		 return newOne;
 	 }
 	 
@@ -7335,7 +7351,9 @@ public class PermutationGroupFunctions extends HydrogenDistributor {
 	 
 	 public static ArrayList<Permutation> firstRepresentatives(int y){
 		 ArrayList<Permutation> list= new ArrayList<Permutation>();
-		 list.addAll(representatives.get(y));
+		 for(Permutation perm: representatives.get(y)) {
+			 list.add(perm);
+		 }
 		 return list;
 	 }
 	
@@ -7837,7 +7855,7 @@ public class PermutationGroupFunctions extends HydrogenDistributor {
 			 List<Integer> indices= new ArrayList<Integer>();
 			 if(LValue!=1) {
 				 for(Integer i: extPart) {
-					 if(!i.equals(part.get(index))) {
+					 if(i!=part.get(index)) {
 						 indices.add(sumPrev(part,index));
 						 index++;
 						 if(indices.size()==LValue) {
@@ -8386,7 +8404,7 @@ public class PermutationGroupFunctions extends HydrogenDistributor {
 		 for(int i=0;i<mat.length;i++) {
 			 for(int j=i+1;j<mat.length;j++) {
 				 if(mat[i][j]==1) {
-					 ac2.addBond(i, j, Order.SINGLE);
+					 ac2.addBond(i, j, Order.SINGLE);;
 				 }else if(mat[i][j]==2) {
 					 ac2.addBond(i, j, Order.DOUBLE);
 				 }else if(mat[i][j]==3) {
