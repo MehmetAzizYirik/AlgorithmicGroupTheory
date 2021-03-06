@@ -171,15 +171,19 @@ public class MORGEN {
 	}
 	
 	public static int[] actArray(int[] strip, Permutation p) {
+		return getInts(strip, p);
+	}
+
+	static int[] getInts(int[] strip, Permutation p) {
 		int permLength= p.size();
 		int arrayLength=strip.length;
 		int[] modified = new int[arrayLength];
 		for(int i=0; i<permLength;i++) {
-			modified[p.get(i)]=strip[i]; 
+			modified[p.get(i)]=strip[i];
 		}
 		return modified;
 	}
-	
+
 	/**
 	  * Values for an id permutation for a given size
 	  * @param size 
@@ -278,18 +282,22 @@ public class MORGEN {
 	  */
 		
 	 public static void build(String mol) throws IOException, CloneNotSupportedException, CDKException {
-		 for(int i=0;i<firstSymbols.size();i++) {
-			 for(int j=0;j<firstOccurrences.get(i);j++) {
-				 atomContainer.addAtom(new Atom(firstSymbols.get(i)));
-			 }
-		 }
-		    
-		 for(IAtom atom: atomContainer.atoms()) {
-			 atom.setImplicitHydrogenCount(0);
-		 }
+		 generateAtom(firstSymbols, firstOccurrences, atomContainer);
 	 }
-	
-	 /**
+
+	static void generateAtom(List<String> firstSymbols, ArrayList<Integer> firstOccurrences, IAtomContainer atomContainer) {
+		for(int i = 0; i< firstSymbols.size(); i++) {
+			for(int j = 0; j< firstOccurrences.get(i); j++) {
+				atomContainer.addAtom(new Atom(firstSymbols.get(i)));
+			}
+		}
+
+		for(IAtom atom: atomContainer.atoms()) {
+			atom.setImplicitHydrogenCount(0);
+		}
+	}
+
+	/**
 	  * Building an atom container for an adjacency matrix
 	  * @param mat int[][] adjacency matrix
 	  * @return
@@ -387,20 +395,24 @@ public class MORGEN {
 	 }
 	 
 	 public static int[] descendingSort(int[] array, int index0, int index1) {
-		 int temp=0;
-		 for (int i = index0; i < index1; i++) {     
-			 for (int j = i+1; j < index1; j++) {     
-				 if(array[i] < array[j]) {    
-					 temp = array[i];    
-	                 array[i] = array[j];    
-	                 array[j] = temp;    
-	             }     
-	         }     
-		 }
-		 return array;
+		 return getInts(array, index0, index1);
 	 }
-	 
-	 public static int[] descendingSortWithPartition(int[] array, ArrayList<Integer> partition) {
+
+	static int[] getInts(int[] array, int index0, int index1) {
+		int temp=0;
+		for (int i = index0; i < index1; i++) {
+			for (int j = i+1; j < index1; j++) {
+				if(array[i] < array[j]) {
+					temp = array[i];
+					array[i] = array[j];
+					array[j] = temp;
+				}
+			}
+		}
+		return array;
+	}
+
+	public static int[] descendingSortWithPartition(int[] array, ArrayList<Integer> partition) {
 		 int i=0;
 		 for(Integer p:partition) {
 			 array=descendingSort(array,i,i+p);
@@ -567,31 +579,39 @@ public class MORGEN {
 	}
 	
     public static int[] successor(int[] indices, int size) {
-    	int i0= indices[0];
-    	int i1= indices[1];
-    	if(i1<(size-1)) {
-    		 indices[0]=i0;
-    		 indices[1]=(i1+1);
-    	}else if(i0<(size-2) && i1==(size-1)) {
-    		 indices[0]=(i0+1);
-    		 indices[1]=(i0+2);
-    	}
-    	return indices;
-    }
-    
-    public static int[] predecessor(int[] indices, int size) {
-    	int i0= indices[0];
-   	 	int i1= indices[1];
-   	 	if(i0==i1-1) {
-   	 		indices[0]=(i0-1);
-   	 		indices[1]=(size-1);
-   	 	}else {
-   	 		indices[0]=i0;
-   	 		indices[1]=(i1-1);
-   	 	}
-   	 	return indices;
-    }
-    
+		return getInts(indices, size);
+	}
+
+	static int[] getInts(int[] indices, int size) {
+		int i0= indices[0];
+		int i1= indices[1];
+		if(i1<(size-1)) {
+			 indices[0]=i0;
+			 indices[1]=(i1+1);
+		}else if(i0<(size-2) && i1==(size-1)) {
+			 indices[0]=(i0+1);
+			 indices[1]=(i0+2);
+		}
+		return indices;
+	}
+
+	public static int[] predecessor(int[] indices, int size) {
+		return getIndices(indices, size);
+	}
+
+	static int[] getIndices(int[] indices, int size) {
+		int i0= indices[0];
+		int i1= indices[1];
+		if(i0==i1-1) {
+			indices[0]=(i0-1);
+			indices[1]=(size-1);
+		}else {
+			indices[0]=i0;
+			indices[1]=(i1-1);
+		}
+		return indices;
+	}
+
 	public static int[][] nextStep(int[][] A, int[] indices,boolean callForward) throws IOException, CloneNotSupportedException, CDKException{
 		if(callForward) {
 			return forwardRow(A, indices);
