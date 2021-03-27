@@ -1138,10 +1138,10 @@ public class MORGEN {
 	public static void clearFormers(boolean check, int y) {
 		 if(!check) {
 			 for(int i=y;i<formerPermutations.size();i++) {
-				 formerPermutations.get(i).removeAll(formerPermutations.get(i));
+				 formerPermutations.get(i).clear();
 			 }
 			 for(int i=y+1;i<partitionList.size();i++) {
-				 partitionList.get(i).removeAll(partitionList.get(i));
+				 partitionList.get(i).clear();
 			 }
 		 }
 	}
