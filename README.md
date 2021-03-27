@@ -2,8 +2,8 @@
 
 Copyright 2019 Mehmet Aziz Yirik
 
-[![Java CI with Maven](https://github.com/javadev/AlgorithmicGroupTheory/actions/workflows/maven.yml/badge.svg)](https://github.com/javadev/AlgorithmicGroupTheory/actions/workflows/maven.yml)
-[![codecov](https://codecov.io/gh/javadev/AlgorithmicGroupTheory/branch/master/graph/badge.svg?token=G296G5EEDG)](https://codecov.io/gh/javadev/AlgorithmicGroupTheory)
+[![Java CI with Maven](https://github.com/MehmetAzizYirik/AlgorithmicGroupTheory/actions/workflows/maven.yml/badge.svg)](https://github.com/MehmetAzizYirik/AlgorithmicGroupTheory/actions/workflows/maven.yml)
+[![codecov](https://codecov.io/gh/MehmetAzizYirik/AlgorithmicGroupTheory/branch/master/graph/badge.svg?token=G296G5EEDG)](https://codecov.io/gh/MehmetAzizYirik/AlgorithmicGroupTheory)
 
 ## Introduction
 
