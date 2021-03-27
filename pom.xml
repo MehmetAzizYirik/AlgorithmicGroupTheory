@@ -4,6 +4,11 @@
   <artifactId>AlgorithmicGroupTheory</artifactId>
   <version>1.0</version>
   <description>This project is for Algorithmic group theory, especially for implementation in molecular structure generation.</description>
+
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+  </properties>
+
   <dependencies>  
 	<!-- https://mvnrepository.com/artifact/org.junit/junit -->
 	<dependency>
@@ -160,6 +165,19 @@
       			</descriptorRefs>                 
     		</configuration>
   		</plugin> 
+      <plugin>
+        <groupId>org.jacoco</groupId>
+        <artifactId>jacoco-maven-plugin</artifactId>
+        <version>0.8.6</version>
+        <executions>
+          <execution>
+            <id>prepare-agent</id>
+            <goals>
+              <goal>prepare-agent</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
 	</plugins>
   </build>
 </project>
