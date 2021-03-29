@@ -29,7 +29,6 @@ import org.openscience.cdk.exception.CDKException;
 import org.openscience.cdk.group.Permutation;
 import org.openscience.cdk.interfaces.IAtomContainer;
 import org.openscience.cdk.interfaces.IAtom;
-import org.openscience.cdk.interfaces.IAtomContainer;
 import org.openscience.cdk.interfaces.IChemObjectBuilder;
 import org.openscience.cdk.interfaces.IBond.Order;
 import org.openscience.cdk.io.SDFWriter;
@@ -37,6 +36,8 @@ import org.openscience.cdk.tools.manipulator.AtomContainerManipulator;
 
 public class MORGEN {
 	public static int size=0;
+	public static int[] lernenIndices = new int[2];
+	public static int lernenC=0;
 	public static int hIndex=0;
 	public static int count=0;
 	public static int matrixSize=0;
@@ -45,27 +46,19 @@ public class MORGEN {
 	public static String formula;
 	public static String filedir;
 	public static boolean flag=true;
+	public static boolean lernen=false;
 	public static boolean biggest=true;
-	public static boolean equalAuto=true;
-	public static ArrayList<int[][]> output= new ArrayList<int[][]>();
-	public static ArrayList<String> inchis= new ArrayList<String>();
 	public static List<List<Permutation>> formerPermutations= new ArrayList<List<Permutation>>();
 	public static int[] degrees;
 	public static int[] initialDegrees;
-	public static int[] partition;
 	public static ArrayList<Integer> initialPartition;
-	public static ArrayList<Integer> inputPartition;
-	public static boolean formerPermutationsCheck=true;
 	public static IChemObjectBuilder builder=DefaultChemObjectBuilder.getInstance();
 	public static IAtomContainer atomContainer= builder.newInstance(IAtomContainer.class);
 	public static List<ArrayList<Integer>> partitionList= new ArrayList<ArrayList<Integer>>();
-	public static ArrayList<ArrayList<Permutation>> representatives = new ArrayList<ArrayList<Permutation>>();
 	public static List<String> symbols = new ArrayList<String>();
 	public static ArrayList<Integer> occurrences  = new ArrayList<Integer>();
 	public static Map<String, Integer> valences; 
 	public static PrintWriter pWriter;
-	public static boolean stripIterate=true;
-	public static boolean entryChanges=false;
 	public static int[][] max;
 	public static int[][] L;
 	public static int[][] C;
@@ -77,12 +70,9 @@ public class MORGEN {
 		valences = new HashMap<String, Integer>();
 			
 		valences.put("C", 4);
-		//valences.put("N", 5);
 		valences.put("N", 3);
 		valences.put("O", 2);
-		//valences.put("S", 6);
 		valences.put("S", 2);
-		//valences.put("P", 5);
 		valences.put("P", 3);
 		valences.put("F", 1);
 		valences.put("I", 1);
@@ -232,8 +222,6 @@ public class MORGEN {
 				 symbols.add(info[0]);
 				 occurrences.add(atomOccurrunce(info));
 				 hIndex=hIndex+atomOccurrunce(info);
-			 }else {
-				 //hIndex=atomOccurrunce(info); ustteki sonradan
 			 }
 		 }
 	 }
@@ -363,7 +351,7 @@ public class MORGEN {
 		 boolean check=true;
 		 int[] canonical= A[index];
 		 int[] original= A[index];
-		 original=actArray(actArray(A[cycleTransposition.get(index)],cycleTransposition),perm); //siteden
+		 original=actArray(actArray(A[cycleTransposition.get(index)],cycleTransposition),perm); 
 		 if(!Arrays.equals(canonical,original)) {
 			 check=false;
 		 }
@@ -411,9 +399,241 @@ public class MORGEN {
 	 }
 	 
 	 public static boolean biggerCheck(int index, int[] original, int[] permuted, ArrayList<Integer> partition) {
-		 permuted=descendingSortWithPartition(permuted, partition);
-		 //return descendingOrderUpperMatrix(index,partition, original, permuted);
-		 return descendingOrdercomparison(partition, original, permuted);
+		 int[] sorted= cloneArray(permuted);
+		 sorted=descendingSortWithPartition(sorted, partition);
+		 return descendingOrderUpperMatrix(index,partition, original, sorted);
+	 }
+	 
+	 public static void biggerCheck(int index, int[][] A, Permutation permutation, ArrayList<Integer> partition) {
+		 biggest=true;
+		 int[] check = row2compare(index, A, permutation);
+		 if(!biggerCheck(index, A[index],check,partition)) {
+			 biggest=false;
+		 }
+	 }
+	 
+	 public static boolean firstCheck(int index, int[][]A, ArrayList<Integer> partition) {
+		 boolean check = true;
+		 if(!descendingOrdercomparison(index, partition,A[index])) {
+			 check=false;
+			 int[] array = cloneArray(A[index]);
+			 array = descendingSortWithPartition(array, partition);
+			 Permutation canonicalPermutation = getCanonicalPermutation(array,A[index],partition);
+			 lernen=true;  
+			 lernenIndices = upperIndex(index, index, A, canonicalPermutation); 
+		 }
+		 return check;
+	 }
+	 
+	 /**
+	  * Learning from the canonical test - Grund  Chapter 3.4.1
+	  */
+		 
+	 /**
+	  * By a given permutation, checking which entry is mapped to the index.
+	  * @param perm Permutation
+	  * @param index int entry index in the row
+	  * @return int
+	  */
+	 
+	 public static int getPermutedIndex(Permutation perm, int index) {
+		 int out=0;
+		 for(int i=0; i<perm.size();i++) {
+			 if(perm.get(i)==index) {
+				 out+=i;
+				 break;
+			 }
+		 }
+		 return out;
+	 }
+	 /**
+	  * Looking for the upper limit where the original entry
+	  * is smaller. 
+	  * @param index int row index
+	  * @param size int row size
+	  * @param original int[] original row to compare
+	  * @param perm Permutation permutation from canonical test
+	  * @return int upper limit.
+	  */
+		
+	 
+	 public static int[] limit(int index, int nextRowIndex, int[][] A, Permutation permutation) {
+		 int[] original= A[index];
+		 int[] permuted= A[nextRowIndex];
+		 int[] limit= new int[2];
+		 limit[0]=index;
+		 int newIndex, value, newValue;
+		 for(int i=index+1; i<size;i++) {
+			 newIndex= getPermutedIndex(permutation, i);
+			 value= original[i];
+			 newValue= permuted[newIndex];
+			 if(value!= newValue) {
+				 if(value< newValue) {
+					 limit[1]=i;
+				 }
+				 break;
+			 }
+		 }	
+		 return limit;
+		}
+		
+		/**
+		 * Looking for the maximum index where the entry is not zero.
+		 * @param index int row index
+		 * @param size int row size
+		 * @param original int[] original row to compare
+		 * @param perm Permutation permutation from canonical test
+		 * @return int lowerIndex
+		 */
+		
+		public static int[] lowerIndex(int index, int nextRowIndex, int[][] A, Permutation permutation) {
+			int max=0;
+			int upperLimit=limit(index, nextRowIndex, A, permutation)[1];
+			int[] permuted= A[nextRowIndex];
+			int newIndex, newValue;
+			for(int i=index+1; i<upperLimit;i++) {
+				newIndex = getPermutedIndex(permutation, i);
+				newValue = permuted[newIndex];
+				if(newValue>0) {
+					if(max<newIndex) {
+						max=newIndex;
+					}
+				}
+			}
+			int[] pair= new int[2];
+			pair[0]=nextRowIndex;
+			pair[1]=max;
+			return pair;
+		}
+		
+		/**
+		 * As explained in Grund 3.4.1; we need to calculate upperIndex.
+		 * First, we need our j index where the original row become 
+		 * smaller, then calculating the lower index. Based on these two
+		 * values and the value of j in the permutation, we calculate
+		 * our upper index. 
+		 * 
+		 * This upper index is used for the 'learning from canonical test'
+		 * method. 
+		 * 
+		 * @param index int row index
+		 * @param size  int row size
+		 * @param original int[] original row to compare
+		 * @param perm Permutation permutation from canonical test
+		 * @return int upper index
+		 */
+		
+		public static int[] upperIndex(int index, int nextRowIndex, int[][] A, Permutation permutation) {
+			int[] limit  = limit(index, nextRowIndex, A, permutation);
+			int[] lowerLimit = lowerIndex(index, nextRowIndex, A, permutation);
+			int[] upperLimit= new int[2];
+			upperLimit[0]=nextRowIndex;
+			upperLimit[1]=getPermutedIndex(permutation, limit[1]);
+			int[] maximalIndices = getMaximumPair(upperLimit,getMaximumPair(limit,lowerLimit));			
+			maximalIndices=maximalIndexWithNonZeroEntry(A, maximalIndices);		
+			return getTranspose(maximalIndices, A);
+		}
+		
+		public static boolean ascending(int[] indices) {
+			boolean check=true;
+			if(indices[0]>=indices[1]) {
+				check=false;
+			}
+			return check;
+		}
+		
+		public static int[] getOne(int[] indices, int[][] A) {
+			int[] output= new int[2];
+			output[0]=indices[0];
+			output[1]=indices[0]+1;
+			return output;
+		}
+		
+		public static int[] maximalIndexWithNonZeroEntry(int[][] A, int[] maximalIndices) {
+			int rowIndex= maximalIndices[0];
+			int columnIndex= maximalIndices[1];
+			if((columnIndex>rowIndex) && A[rowIndex][columnIndex]!=0) {
+				return maximalIndices;
+			}else {
+				int[] output= new int[2];
+				for(int i=columnIndex; i<size;i++) {
+					if(A[rowIndex][i]>0) {
+						output[0]=rowIndex;
+						output[1]=i;
+						break;
+					}
+				}
+				return output;
+			}
+		}
+		
+		public static int[] getBetween(int[][] A, int[] maximalIndices) {
+			int rowIndex= maximalIndices[0];
+			int columnIndex= maximalIndices[1];
+			int[] output= new int[2];
+			for(int i=columnIndex+1; i<size;i++) {
+				if(A[rowIndex][i]>0) {
+					output[0]=rowIndex;
+					output[1]=i;
+					break;
+				}
+			}
+			return output;
+		}
+		
+		public static int[] getTranspose(int[] indices, int[][] A) {
+			int[] out= new int[2];
+			if(indices[0]>indices[1]) {
+				out[0]=indices[1];
+				out[1]=indices[0];
+				return out;
+			}else {
+				return indices;
+			}
+		}
+		
+		public static int[] getMaximumPair(int[] a, int[] b) {
+			if(a[0]>b[0]) {
+				return a;
+			}else if(b[0]>a[0]) {
+				return b;
+			}else {
+				if(a[1]>b[1]) {
+					return a;
+				}else if(b[1]>a[1]) {
+					return b;
+				}else {
+					return a;
+				}
+			}
+		}
+	
+	 public static boolean descendingOrderUpperMatrix(int index, ArrayList<Integer> partition, int[] original, int[] permuted){
+		 boolean check=true;		 
+		 int i=index+1;
+		 for(int k=index+1;k<partition.size();k++) {
+			 int p = partition.get(k);
+			 Integer[] org= getBlocks(original,i,p+i);
+			 Integer[] perm= getBlocks(permuted,i,p+i);
+			 if(desOrderCheck(org)) {	 
+			 	if(!Arrays.equals(org,perm)) {
+					 if(toInt(org)==toInt(perm)) {
+						 continue;
+					 }else if(toInt(org)>toInt(perm)) {
+						 check=true;
+						 break; //If bigger than already in lexico order.
+					 }else if(toInt(org)<toInt(perm)) {
+						 check=false;
+						 break;
+					 }
+				 }
+				 i=i+p;
+			 }else {
+				 check=false;
+				 break;
+			 }
+		 }
+		 return check;
 	 }
 	 
 	 /**
@@ -438,8 +658,8 @@ public class MORGEN {
 		 boolean check=true;		 
 		 int i=0;
 		 for(Integer p:partition) {
-			 Integer[] org= getBlocks(original,i,p+i);
-			 Integer[] perm= getBlocks(permuted,i,p+i);
+			 Integer[] org = getBlocks(original,i,p+i);
+			 Integer[] perm = getBlocks(permuted,i,p+i);
 			 if(desOrderCheck(org)) {	 
 			 	if(!Arrays.equals(org,perm)) {
 					 if(toInt(org)==toInt(perm)) {
@@ -461,6 +681,21 @@ public class MORGEN {
 		 return check;
 	 }
 	 
+	 public static boolean descendingOrdercomparison(int index, ArrayList<Integer> partition, int[] row){
+		 boolean check=true;		 
+		 int i=0;
+		 for(Integer p:partition) {
+			 Integer[] org= getBlocks(row,i,p+i);
+			 if(!desOrderCheck(org)) {
+				 check=false;
+				 break;
+			 }else {
+				 i=i+p;
+			 }
+		 }
+		 return check;
+	 }
+	 
 	/**
 	 *********************************************************************
 	 */
@@ -471,7 +706,7 @@ public class MORGEN {
 	
 	 /**
 	  * L; upper triangular matrix like given in 3.2.1.
-	  *  For (i,j), after the index, giving the maximum line capacity.
+	  * For (i,j), after the index, giving the maximum line capacity.
 	  * @param degrees
 	  * @return upper triangular matrix
 	  */
@@ -557,13 +792,28 @@ public class MORGEN {
 		 y=findY(r);
 		 z=findZ(r);
 		 while(flag) {
-	 		 int[][] mat=nextStep(A,indices,callForward);
+			 nextStep(A,indices,callForward);
 	 		 if(!flag) {
 	 			 break;
 	 		 }
-			 indices=successor(indices,max.length);
-			 callForward=true;
-			 nextStep(mat,indices,callForward); 
+	 		 if(connectLernen) {
+	 			indices=connect;
+	 			findR(indices);
+	 			clearFormers(false, findY(r));
+	 			connectLernen=false;
+	 			callForward=false;
+	 		 }else {
+	 			if(lernen) {
+	 				indices=successor(lernenIndices,max.length);
+	 				findR(indices);
+	 				lernen=false;
+	 				callForward=false;
+	 			}else {
+	 				indices=successor(indices,max.length);
+	 				updateR(indices);
+	 				callForward=true; 
+	 			}
+	 		 }
 		 }
 	}
 	
@@ -597,7 +847,7 @@ public class MORGEN {
 		if(callForward) {
 			return forwardRow(A, indices,callForward);
 		}else {
-			return backwardDemo(A,indices,callForward);
+			return backward(A,indices,callForward);
 		} 
 	}
 	
@@ -642,6 +892,19 @@ public class MORGEN {
 		 }
 	 }
 	 
+	 public static void findR(int[] indices) {
+		 int block=0;
+		 int index=0;
+		 int rowIndex= indices[0];
+		 for(Integer part: initialPartition) {
+			 if(index<=rowIndex && rowIndex<(index+part)) {
+				 break;
+			 }
+			 block++;
+			 index=index+part;
+		 }
+		 r=block;
+	 }
 	 /**
 	  * The third line of the backward method in Grund 3.2.3. The criteria 
 	  * to decide which function is needed: forward or backward.
@@ -673,7 +936,7 @@ public class MORGEN {
 	  * @throws CDKException
 	  */
 	 
-	 public static int[][] backwardDemo(int[][] A, int[] indices, boolean callForward) throws IOException, CloneNotSupportedException, CDKException {
+	 public static int[][] backward(int[][] A, int[] indices, boolean callForward) throws IOException, CloneNotSupportedException, CDKException {
 		int i=indices[0];
 		int j=indices[1];			
 		if(i==0 && j==1) {
@@ -687,6 +950,7 @@ public class MORGEN {
 			int x= A[i][j];
 			int l2= LInverse(degrees,i,j,A);
 			int c2= CInverse(degrees,i,j,A);
+			
 			/**
 			 * I changed in backcriteria from x to x-1 but then I had error c6h6 was 98 not 217
 			 */
@@ -719,7 +983,7 @@ public class MORGEN {
 		int maximumValue = forwardMaximal(minimal, lInverse, L[i][j], cInverse, C[i][j]); 
 		callForward=true;
 		if(j==(max.length-1)) {
-			int[][] newMat= forwardSubRow(lInverse, cInverse, maximumValue, i, j,A,indices,callForward);
+			int[][] newMat = forwardSubRow(lInverse, cInverse, maximumValue, i, j,A,indices,callForward);
 			return newMat;
 		}else {
 			return forwardSubRow(lInverse, cInverse, maximumValue, i, j,A,indices,callForward); 
@@ -733,53 +997,44 @@ public class MORGEN {
 			 A[j][i]=maximalX;
 			 if(i==(max.length-2) && j==(max.length-1)) {
 				if(canonicalTest(A)) {
-					output.add(A);
-					//A=addHydrogens(A,hIndex);
 					int[][] mat2= new int[A.length][A.length]; 
 					for(int k=0;k<A.length;k++) {
 						for(int l=0;l<A.length;l++) {
 							mat2[k][l]=A[k][l];
 						}
 					}
-					//IAtomContainer molden= buildC(addHydrogens(mat2,hIndex));
-					if(connectivityTest(hIndex,addHydrogens(mat2,hIndex))){
-						/**System.out.println("**************");
-						for(int s=0;s<10;s++) {
-							for(int k=0; k<s;k++) {
-								System.out.print(" ");
-							}
-							for(int k=s+1; k<10;k++) {
-								System.out.print(mat2[s][k]);
-							}
-							System.out.println();
-						}
-						System.out.println("**************");
-						pWriter.println("canonical matrix"+" "+count);
-						for(int s=0;s<6;s++) {
-							for(int k=0; k<s;k++) {
-								pWriter.print(" ");
-							}
-							for(int k=s+1; k<6;k++) {
-								pWriter.print(mat2[s][k]);
-							}
-							pWriter.println();
-						}**/
-						IAtomContainer mol= buildC(addHydrogens(mat2,hIndex));
-						outFile.write(mol);
-						//depict(mol,filedir+count+".png");
+					if(connectivityTest(mat2)){
+						//IAtomContainer mol= buildC(addHydrogens(mat2,hIndex));
+						//outFile.write(mol);
 						count++;
+						callForward=false;
+						return nextStep(A, indices, callForward);
+					}else {
+						connectLernen=true;
+						return A;
+					}
+				}else {
+					if(lernen) {
+						return A;
+					}else {
+						callForward=false;
+						return nextStep(A, indices, callForward);
 					}
 				}
-				callForward=false;
-				return nextStep(A, indices, callForward);
 			}else {	
 				if(indices[0]==findZ(r) && indices[1]==(max.length-1)) {
 					callForward=canonicalTest(A);
 					if(callForward) {
 						indices=successor(indices,max.length);
 						updateR(indices);
+						return nextStep(A, indices, callForward);
+					}else {
+						if(lernen) {
+							return A;
+						}else {
+							return nextStep(A, indices, callForward);
+						}
 					}
-					return nextStep(A, indices, callForward);
 			    }else {
 			    	 if(i<findZ(r) && j==(max.length-1)) {
 			    		 return A;
@@ -792,7 +1047,7 @@ public class MORGEN {
 			}
 		 }else {
 			 callForward=false;
-			 return nextStep(A, indices,callForward);
+			 return nextStep(A, indices, callForward);
 		 }
 	 }
 	
@@ -899,19 +1154,18 @@ public class MORGEN {
 	 }
 	 public static void run() throws IOException, CDKException, CloneNotSupportedException {
 		 long startTime = System.nanoTime(); 
+		 if(verbose) System.out.println("MORGEN is generating isomers of "+formula+"...");
 		 getSymbolsOccurrences(formula);
 		 initialDegrees();
-		 //initialPartition=occurrences;
-		 build(formula);
+		 //build(formula);
 		 outFile = new SDFWriter(new FileWriter(filedir+"output.sdf"));
-		 canonicalBlockbasedGeneratorDemo();
-		 //if(verbose) System.out.println("The number of structures is: "+count);
-		 System.out.println("The number of structures is: "+count);
+		 canonicalBlockbasedGenerator();
+		 if(verbose) System.out.println("The number of structures is: "+count);
 		 outFile.close();
 		 long endTime = System.nanoTime() - startTime;
 		 double seconds = (double) endTime / 1000000000.0;
 	     DecimalFormat d = new DecimalFormat(".###");
-	     System.out.println("time"+" "+d.format(seconds));
+	     if(verbose) System.out.println("Time: "+d.format(seconds));
 	}
 	 
 	 /**
@@ -941,23 +1195,20 @@ public class MORGEN {
 		 return degreeList;
 	 }
 	 
-	 public static void canonicalBlockbasedGeneratorDemo() throws IOException, CloneNotSupportedException, CDKException{
+	 public static int[] opc;
+	 public static void canonicalBlockbasedGenerator() throws IOException, CloneNotSupportedException, CDKException{
 		size=initialDegrees.length;
 		List<int[]> newDegrees= distributeHydrogens(firstOccurrences, firstDegrees);
-		//System.out.println(initialPartition);
-		//partitionList.add(0,initialPartition);		
-		/**int[] newDegrees = new int[6];
-		newDegrees[0]=3;
-		newDegrees[1]=3;
-		newDegrees[2]=3;
-		newDegrees[3]=3;
-		newDegrees[4]=3;
-		newDegrees[5]=3;
-		genStrip(newDegrees);**/
+		lernenIndices= new int[2];
+		lernen=false;
+		connectLernen=false;
 		for(int[] degree: newDegrees) {
+			lernenIndices= new int[2];
+			connect= new int[2];
+			connectLernen=false;
+			lernen=false;
 			partitionList.clear();
 			formerPermutations.clear();
-			//genDemo(degree);
 			initialPartition=getPartition(degree,occurrences);
 			partitionList.add(0,initialPartition);
 			genStrip(degree);
@@ -1043,26 +1294,53 @@ public class MORGEN {
 	  * @param mat int[][] adjacency matrix
 	  * @return boolean
 	  */
-		 
-	 public static boolean connectivityTest(int p, int[][] mat) {
+		
+	 public static int[] connect=new int[2];
+	 public static boolean connectLernen=false; 
+	 public static boolean connectivityTest(int[][] mat) {
+		 connectLernen=false;
 		 boolean check=false;
-		 int total= mat.length;
-		 int[] kValues=initialKList(total);
+		 int[] kValues=initialKList(hIndex);
 		 Set<Integer> nValues= new HashSet<Integer>();
 		 Set<Integer> wValues= new HashSet<Integer>();
 		 int zValue= 0;
-		 for(int i=0;i<p;i++) {
-			 nValues= nValues(i, total, mat);
+		 for(int i=0;i<hIndex;i++) {
+			 nValues= nValues(i, hIndex, mat);
 			 wValues=wValues(nValues,kValues);
 			 zValue = Collections.min(wValues);
-			 kValues= kValues(total, wValues, kValues);
+			 kValues= kValues(hIndex, wValues, kValues);
 		 }
 		 if(zValue==0 && allIs0(kValues)) {
 			 check=true;
+		 }else {
+			 setLernenConnectivity(mat, kValues);
 		 }
 		 return check;
 	 }
 	 
+	 public static void setLernenConnectivity(int[][] mat, int[] kValues) {
+		 int value=kValues[hIndex-1];
+		 for(int i=hIndex-2;i>=0;i--) {
+			 if(kValues[i]!=value) {
+				 connectLernen=true;
+				 connect[0]=i;
+				 connect[1]=hIndex-1;
+				 break;
+			 }
+		 }
+	 }
+	 
+	 public static int findNonZeroEntry(int[] row) {
+		 int index=0;
+		 int lastEntry=row[hIndex-1];
+		 for(int i=hIndex-2;i>0;i--) {
+			 if(row[i]!=lastEntry) {
+				 index=i;
+				 break;
+			 }
+		 }
+		 return index;
+	 }
 	 /**
 	  * Checks whether all the entries are equal to 0 or not. (Grund 3.6.2)
 	  * @param list ArrayList<Integer>
@@ -1093,12 +1371,12 @@ public class MORGEN {
 	 }
 	 
 	 public static boolean canonicalTest(int[][] matrix) throws IOException, CloneNotSupportedException, CDKException {
-		formerPermutationsCheck=true;
+		lernen=false;
 		if(blockTest(r,matrix)) {
 			return true;
-		 }else {
+		}else {
 			return false;
-		 }
+		}
 	}
 	
 	/**
@@ -1171,17 +1449,21 @@ public class MORGEN {
 	 }
 	
 	public static boolean blockTestPerm(int index, int r,int[][] A, ArrayList<Integer> partition, ArrayList<Integer> newPartition) {
-		 int y = findY(r);
 		 boolean check= true;
-		 int total = sum(partition);
-		 List<Permutation> cycleTrans=cycleTranspositions(index, partition);
-		 candidatePermutations(index,y,total,cycleTrans);		 
-		 boolean cycleCheck=check(index, y, total, A, partition, newPartition); 
-		 if(!cycleCheck) {
-			 check=false;
-		 }else {
-			 addPartition(index, newPartition, A);  
-		 } 		 
+		 if(!firstCheck(index, A, newPartition)){
+		 	check=false;
+	     }else {
+	    	 int y = findY(r);
+	    	 int total = sum(partition);
+	    	 List<Permutation> cycleTrans=cycleTranspositions(index, partition);
+	    	 candidatePermutations(index,y,total,cycleTrans);		 
+	    	 boolean cycleCheck=check(index, y, total, A, partition, newPartition); 
+	    	 if(!cycleCheck) {
+	    		 check=false;
+	    	 }else {
+	    		 addPartition(index, newPartition, A);  
+	    	 }
+	     }
 		 return check;
 	 }
 	
@@ -1321,7 +1603,7 @@ public class MORGEN {
 	 }
 	 
 	 public static 	Permutation getCanonicalPermutation(int[] max, int[] check,ArrayList<Integer> partition) {
-    	 //size belirle
+    	 //set size 
 		 int[] cycles= getCyclePermutation(max, check, partition);
     	 int[] perm= new int[size];
 		 for(int i=0;i<size;i++) {
@@ -1385,39 +1667,33 @@ public class MORGEN {
 	 public static Permutation getEqualPerm(Permutation cycleTransposition, int index, int y, int total, int[][] A, ArrayList<Integer> partition, ArrayList<Integer> newPartition) {
 		 int[] check=row2compare(index, A, cycleTransposition);
 		 Permutation canonicalPermutation = getCanonicalPermutation(A[index],check,newPartition);
-		 if(!biggerCheck(index, A[index],check,newPartition)) {
-			 biggest=false;
-		 }
 		 return canonicalPermutation;
 	 }
+	 
 	 	 
 	public static Permutation getCanonicalCycle(int index, int y, int total, int[][] A, ArrayList<Integer> partition, ArrayList<Integer> newPartition,Permutation cycleTransposition) {
-		 equalAuto=true;
 		 biggest=true;
 		 Permutation canonicalPermutation = idPermutation(total);
 		 if(!equalBlockCheck(newPartition,index,y,A,cycleTransposition, canonicalPermutation)) {
 			 canonicalPermutation = getEqualPerm(cycleTransposition, index, y, total,A, partition, newPartition);
 			 int[] check= row2compare(index, A, cycleTransposition);
 			 check = actArray(check,canonicalPermutation);
-			 if(canonicalPermutation.isIdentity()) {
-				 if(!descendingOrdercomparison(newPartition,A[index],check)) {
-					 equalAuto=false; 
-				 }
-			 } 
 		 }			 
 		 return canonicalPermutation;
 	 }
-		 
+	
 	public static boolean check(int index, int y, int total, int[][] A, ArrayList<Integer> partition, ArrayList<Integer> newPartition) {
 		 boolean check=true;
 		 List<Permutation> formerList= new ArrayList<Permutation>();
 		 for(Permutation permutation:formerPermutations.get(index)) { 
-			 Permutation canonicalPermutation= getCanonicalCycle(index, y, total, A, partition, newPartition, permutation);
+			 biggerCheck(index, A, permutation, newPartition);
 			 if(biggest) {
+				 Permutation canonicalPermutation = getCanonicalCycle(index, y, total, A, partition, newPartition, permutation);
 				 int[] test=row2compare(index, A, permutation);
 				 test= actArray(test,canonicalPermutation);	
-				 if(descendingOrdercomparison(newPartition,A[index], test)) {
-					 if(canonicalPermutation.isIdentity()) {
+				 //if(descendingOrderUpperMatrix(index, newPartition, A[index], test)) {
+				 if(descendingOrdercomparison(newPartition,A[index], test)) {	
+				 	 if(canonicalPermutation.isIdentity()) {
 						 if(equalCheck(A[index],test,partition)) {
 							 formerList.add(permutation); 
 						 }
@@ -1436,14 +1712,12 @@ public class MORGEN {
 				 break;
 			 }	  
 		 }
-		 
 		 if(check) {
 			 formerPermutations.get(index).clear();
 			 formerPermutations.set(index, formerList);
 		 }
 		 return check;
 	 }
-	
 	public static List<Permutation> cycleTranspositions(int index, ArrayList<Integer> partition) {
 		 int total=sum(partition);
 		 List<Permutation> perms= new ArrayList<Permutation>();
@@ -1538,7 +1812,7 @@ public class MORGEN {
 						 + "Besides this formula, the directory is needed to be specified for the output"
 						 + "file. \n\n";
 			 String footer = "\nPlease report issues at https://github.com/MehmetAzizYirik/AlgorithmicGroupTheory";
-			 formatter.printHelp( "java -jar AlgorithmicGroupTheory.jar", header, options, footer, true );
+			 formatter.printHelp( "java -jar MORGEN.jar", header, options, footer, true );
 			 throw new ParseException("Problem parsing command line");
 		 }
 	 }
@@ -1567,12 +1841,12 @@ public class MORGEN {
 		 options.addOption(filedir);
 		 return options;
 	 }
-	 
-	public static void main(String[] arguments) throws IOException, CDKException, CloneNotSupportedException {
-		MORGEN gen= new MORGEN();
-		//String[] argument= {"-f","C4H8", "-d", "C:\\Users\\mehme\\Desktop\\", "-v"};
+	
+	public static void main(String[] args) throws IOException, CDKException, CloneNotSupportedException {	
+		MORGEN gen = new MORGEN();
+		//String[] arg= {"-f", "C10H16", "-d", "C:\\Users\\mehme\\Desktop\\", "-v"};
 		try {
-			gen.parseArgs(arguments);
+			gen.parseArgs(args);
 			MORGEN.run();
 		} catch (Exception e) {
 			if (MORGEN.verbose) e.getCause(); 
