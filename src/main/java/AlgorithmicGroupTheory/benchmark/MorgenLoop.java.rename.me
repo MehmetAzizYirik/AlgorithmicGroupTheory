@@ -1,0 +1,71 @@
+package AlgorithmicGroupTheory.benchmark;
+
+import AlgorithmicGroupTheory.MORGEN;
+import org.openjdk.jmh.annotations.*;
+import org.openjdk.jmh.infra.Blackhole;
+import org.openjdk.jmh.runner.Runner;
+import org.openjdk.jmh.runner.RunnerException;
+import org.openjdk.jmh.runner.options.Options;
+import org.openjdk.jmh.runner.options.OptionsBuilder;
+
+import java.io.IOException;
+import java.security.GeneralSecurityException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
+
+@BenchmarkMode(Mode.AverageTime)
+@OutputTimeUnit(TimeUnit.MILLISECONDS)
+@Fork(value = 1, jvmArgs = {"-Xms2G", "-Xmx2G"})
+@Warmup(iterations = 5)
+@Measurement(iterations = 10)
+@State(Scope.Benchmark)
+public class MorgenLoop {
+
+    private static String[] SAMPLE_FORMULAS = {
+            "C3O3H4"
+//            "C2H5NO2",
+//            "C4H7NO3",
+//            "C5H9N3"
+    };
+    @Param({"1", "10"})
+    private int N;
+
+    private List<String> DATA_FOR_TESTING = createData();
+
+    public static void main(String[] argv) throws RunnerException {
+        Options opt = new OptionsBuilder()
+                .include(MORGEN.class.getSimpleName())
+                .forks(1)
+                .build();
+
+        new Runner(opt).run();
+    }
+
+    @Setup
+    public void setup() throws GeneralSecurityException, IOException {
+        DATA_FOR_TESTING = createData();
+    }
+
+    @Benchmark
+    public void signLoop(Blackhole bh) {
+        try {
+            for (int i = 0; i < DATA_FOR_TESTING.size(); i++) {
+                AlgorithmicGroupTheory.MORGEN.main(new String[] {"-f", DATA_FOR_TESTING.get(i), "-v", "-d", "result1"});
+                bh.consume("");
+            }
+        } catch (Throwable ex) {
+            System.out.println(ex.getMessage());
+            throw ex;
+        }
+    }
+
+    private List<String> createData() {
+        List<String> data = new ArrayList<>();
+        for (int i = 0; i < N; i++) {
+            data.add(SAMPLE_FORMULAS[N % SAMPLE_FORMULAS.length]);
+        }
+        return data;
+    }
+
+}

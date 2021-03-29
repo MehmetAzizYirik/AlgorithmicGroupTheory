@@ -1,0 +1,26 @@
+# JMH version: 1.21
+# VM version: JDK 1.8.0_271, Java HotSpot(TM) 64-Bit Server VM, 25.271-b09
+# VM invoker: C:\Program Files\Java\jre1.8.0_271\bin\java.exe
+# VM options: -Xms2G -Xmx2G
+# Warmup: 5 iterations, 10 s each
+# Measurement: 10 iterations, 10 s each
+# Timeout: 10 min per iteration
+# Threads: 1 thread, will synchronize iterations
+# Benchmark mode: Average time, time/op
+# Benchmark: AlgorithmicGroupTheory.benchmark.MorgenLoop.signLoop
+# Parameters: (N = 1)
+
+# Run progress: 0.00% complete, ETA 00:05:00
+# Fork: 1 of 1
+# Warmup Iteration   1: The number of structures is: 152
+time .171
+795.971 ms/op
+# Warmup Iteration   2: 7531.695 ms/op
+# Warmup Iteration   3: 19055.577 ms/op
+# Warmup Iteration   4: 26404.301 ms/op
+# Warmup Iteration   5: 50424.010 ms/op
+Iteration   1: 64289.844 ms/op
+Iteration   2: 106552.572 ms/op
+Iteration   3: 215872.551 ms/op
+Iteration   4: 301319.803 ms/op
+Iteration   5:
