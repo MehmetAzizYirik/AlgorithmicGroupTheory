@@ -1004,8 +1004,8 @@ public class MORGEN {
 						}
 					}
 					if(connectivityTest(mat2)){
-						//IAtomContainer mol= buildC(addHydrogens(mat2,hIndex));
-						//outFile.write(mol);
+						IAtomContainer mol= buildC(addHydrogens(mat2,hIndex));
+						outFile.write(mol);
 						count++;
 						callForward=false;
 						return nextStep(A, indices, callForward);
@@ -1157,7 +1157,7 @@ public class MORGEN {
 		 if(verbose) System.out.println("MORGEN is generating isomers of "+formula+"...");
 		 getSymbolsOccurrences(formula);
 		 initialDegrees();
-		 //build(formula);
+		 build(formula);
 		 outFile = new SDFWriter(new FileWriter(filedir+"output.sdf"));
 		 canonicalBlockbasedGenerator();
 		 if(verbose) System.out.println("The number of structures is: "+count);
@@ -1844,7 +1844,7 @@ public class MORGEN {
 	
 	public static void main(String[] args) throws IOException, CDKException, CloneNotSupportedException {	
 		MORGEN gen = new MORGEN();
-		//String[] arg= {"-f", "C10H16", "-d", "C:\\Users\\mehme\\Desktop\\", "-v"};
+		//String[] arg= {"-f", "C6H6", "-d", "C:\\Users\\mehme\\Desktop\\", "-v"};
 		try {
 			gen.parseArgs(args);
 			MORGEN.run();
