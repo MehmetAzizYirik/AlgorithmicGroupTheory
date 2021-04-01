@@ -1,0 +1,11 @@
+-------------------------------------------------------
+ T E S T S
+-------------------------------------------------------
+Running AlgorithmicGroupTheory.MorgenTest
+First call
+MORGEN is generating isomers of C5H9N3...
+The number of structures is: 254
+Time: .674
+Second call
+MORGEN is generating isomers of C5H9N3...
+Terminate batch job (Y/N)? y
