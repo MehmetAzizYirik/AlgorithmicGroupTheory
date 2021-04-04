@@ -48,7 +48,7 @@ public class MORGEN {
 	public static boolean flag=true;
 	public static boolean lernen=false;
 	public static boolean biggest=true;
-	public static List<List<Permutation>> formerPermutations= new ArrayList<List<Permutation>>();
+	public static ThreadLocal<List<List<Permutation>>> formerPermutations= ThreadLocal.withInitial(() -> new ArrayList<List<Permutation>>());
 	public static int[] degrees;
 	public static int[] initialDegrees;
 	public static ArrayList<Integer> initialPartition;
@@ -1202,13 +1202,13 @@ public class MORGEN {
 		lernenIndices= new int[2];
 		lernen=false;
 		connectLernen=false;
-		newDegrees.stream().forEach(degree -> {
+		newDegrees.parallelStream().forEach(degree -> {
 			 lernenIndices= new int[2];
 			 connect= new int[2];
 			 connectLernen=false;
 			 lernen=false;
 			 partitionList.clear();
-			 formerPermutations.clear();
+			 formerPermutations.get().clear();
 			 initialPartition=getPartition(degree,occurrences);
 			 partitionList.add(0,initialPartition);
 			 try {
@@ -1409,11 +1409,11 @@ public class MORGEN {
 	
 	public static void clearFormers(boolean check, int y) {
 		 if(check==false) {
-			 for(int i=y;i<formerPermutations.size();i++) {
-				 formerPermutations.get(i).removeAll(formerPermutations.get(i));
+			 for(int i=y;i<formerPermutations.get().size();i++) {
+				 formerPermutations.get().get(i).clear();
 			 }
 			 for(int i=y+1;i<partitionList.size();i++) {
-				 partitionList.get(i).removeAll(partitionList.get(i));
+				 partitionList.get(i).clear();
 			 }
 		 }
 	}
@@ -1421,12 +1421,12 @@ public class MORGEN {
 	public static void candidatePermutations(int index, int y, int total, List<Permutation> cycles) {
 		 List<Permutation> newList= new ArrayList<Permutation>();
 		 newList.addAll(cycles);
-		 formerPermutations.add(index,newList);
+		 formerPermutations.get().add(index,newList);
 		 if(index!=0) {
-			 List<Permutation> formers = formerPermutations.get(index-1); 
+			 List<Permutation> formers = formerPermutations.get().get(index-1);
 			 for(Permutation form: formers) {
 				 if(!form.isIdentity()) {
-					 formerPermutations.get(index).add(form);
+					 formerPermutations.get().get(index).add(form);
 				 }
 			 }
 			 List<Permutation> newForm = new ArrayList<Permutation>();
@@ -1445,7 +1445,7 @@ public class MORGEN {
 				 for(Permutation cycle: newCycles) {
 					 Permutation newPermutation =cycle.multiply(perm);
 					 if(!newPermutation.isIdentity()) {
-						 formerPermutations.get(index).add(newPermutation); 
+						 formerPermutations.get().get(index).add(newPermutation);
 					 }
 				 }
 			 }
@@ -1689,7 +1689,7 @@ public class MORGEN {
 	public static boolean check(int index, int y, int total, int[][] A, ArrayList<Integer> partition, ArrayList<Integer> newPartition) {
 		 boolean check=true;
 		 List<Permutation> formerList= new ArrayList<Permutation>();
-		 for(Permutation permutation:formerPermutations.get(index)) { 
+		 for(Permutation permutation:formerPermutations.get().get(index)) {
 			 biggerCheck(index, A, permutation, newPartition);
 			 if(biggest) {
 				 Permutation canonicalPermutation = getCanonicalCycle(index, y, total, A, partition, newPartition, permutation);
@@ -1717,8 +1717,8 @@ public class MORGEN {
 			 }	  
 		 }
 		 if(check) {
-			 formerPermutations.get(index).clear();
-			 formerPermutations.set(index, formerList);
+			 formerPermutations.get().get(index).clear();
+			 formerPermutations.get().set(index, formerList);
 		 }
 		 return check;
 	 }
