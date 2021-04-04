@@ -51,12 +51,12 @@ public class MORGEN {
 	public static ThreadLocal<List<List<Permutation>>> formerPermutations= ThreadLocal.withInitial(() -> new ArrayList<List<Permutation>>());
 	public static int[] degrees;
 	public static int[] initialDegrees;
-	public static ArrayList<Integer> initialPartition;
+	public static ThreadLocal<ArrayList<Integer>> initialPartition;
 	public static IChemObjectBuilder builder=DefaultChemObjectBuilder.getInstance();
 	public static IAtomContainer atomContainer= builder.newInstance(IAtomContainer.class);
-	public static List<ArrayList<Integer>> partitionList= new ArrayList<ArrayList<Integer>>();
+	public static ThreadLocal<List<ThreadLocal<ArrayList<Integer>>>> partitionList= ThreadLocal.withInitial(() -> new ArrayList<ThreadLocal<ArrayList<Integer>>>());
 	public static List<String> symbols = new ArrayList<String>();
-	public static ArrayList<Integer> occurrences  = new ArrayList<Integer>();
+	public static ThreadLocal<ArrayList<Integer>> occurrences  = ThreadLocal.withInitial(() -> new ArrayList<Integer>());
 	public static Map<String, Integer> valences; 
 	public static PrintWriter pWriter;
 	public static int[][] max;
@@ -123,10 +123,10 @@ public class MORGEN {
 	 * @return int sum
 	 */
 	
-	public static int sum(List<Integer> list) {
+	public static int sum(ThreadLocal<ArrayList<Integer>> list) {
 		int sum=0;
-		for(int i=0;i<list.size();i++) {
-			sum=sum+list.get(i);
+		for(int i=0;i<list.get().size();i++) {
+			sum=sum+list.get().get(i);
 		}
 		return sum;
 	}
@@ -145,10 +145,10 @@ public class MORGEN {
 		return sum;
 	}
 	
-	public static int sum(ArrayList<Integer> list, int index) {
+	public static int sum(ThreadLocal<ArrayList<Integer>> list, int index) {
 		int sum=0;
 		for(int i=0;i<=index;i++) {
-			sum=sum+list.get(i);
+			sum=sum+list.get().get(i);
 		}
 		return sum;
 	}
@@ -210,17 +210,17 @@ public class MORGEN {
 	  */
 	 
 	 public static List<String> firstSymbols= new ArrayList<String>();
-	 public static ArrayList<Integer> firstOccurrences = new ArrayList<Integer>();
+	 public static ThreadLocal<ArrayList<Integer>> firstOccurrences = ThreadLocal.withInitial(() -> new ArrayList<Integer>());
 	 public static void getSymbolsOccurrences(String formula) {
 		 String[] atoms = formula.split("(?=[A-Z])");
 		 for(String atom : atoms) {
 			 String[] info = atom.split("(?=[0-9])", 2); 
 			 matrixSize=matrixSize+atomOccurrunce(info);
 			 firstSymbols.add(info[0]);
-			 firstOccurrences.add(atomOccurrunce(info));
+			 firstOccurrences.get().add(atomOccurrunce(info));
 			 if(!info[0].equals("H")) {
 				 symbols.add(info[0]);
-				 occurrences.add(atomOccurrunce(info));
+				 occurrences.get().add(atomOccurrunce(info));
 				 hIndex=hIndex+atomOccurrunce(info);
 			 }
 		 }
@@ -240,7 +240,7 @@ public class MORGEN {
 		 int firstIndex=0;
 		 for(int i=0;i<symbols.size();i++) {
 			 String symbol= symbols.get(i);
-		     for(int j=0;j<occurrences.get(i);j++) {
+		     for(int j=0;j<occurrences.get().get(i);j++) {
 		    	 if(!symbol.equals("H")) {
 		    		 initialDegrees[index]=valences.get(symbol);
 			    	 index++; 
@@ -249,7 +249,7 @@ public class MORGEN {
 		 }
 		 for(int i=0; i<firstSymbols.size();i++) {
 			 String symbol= firstSymbols.get(i);
-			 for(int j=0;j<firstOccurrences.get(i);j++) {
+			 for(int j=0;j<firstOccurrences.get().get(i);j++) {
 		    	 firstDegrees[firstIndex]=valences.get(symbol);
 		    	 firstIndex++; 
 		     }
@@ -268,7 +268,7 @@ public class MORGEN {
 		
 	 public static void build(String mol) throws IOException, CloneNotSupportedException, CDKException {
 		 for(int i=0;i<firstSymbols.size();i++) {
-			 for(int j=0;j<firstOccurrences.get(i);j++) {
+			 for(int j=0;j<firstOccurrences.get().get(i);j++) {
 				 atomContainer.addAtom(new Atom(firstSymbols.get(i)));
 			 }
 		 }
@@ -321,7 +321,7 @@ public class MORGEN {
 		 return check;
 	 }
 	 
-	 public static boolean equalSetCheck(int[] original, int[] permuted, ArrayList<Integer> partition) {
+	 public static boolean equalSetCheck(int[] original, int[] permuted, ThreadLocal<ArrayList<Integer>> partition) {
 		 int[] temp= cloneArray(permuted);
 		 temp=descendingSortWithPartition(temp, partition);
 		 return equalSetCheck(partition, original, temp);
@@ -331,10 +331,10 @@ public class MORGEN {
 		 return IntStream.range(begin, end).mapToObj(i->row[i]).toArray(Integer[]::new);
 	 }
 	 
-	 public static boolean equalSetCheck(ArrayList<Integer> partition, int[] original, int[] permuted){
+	 public static boolean equalSetCheck(ThreadLocal<ArrayList<Integer>> partition, int[] original, int[] permuted){
 		 boolean check=true;		 
 		 int i=0;
-		 for(Integer p:partition) {
+		 for(Integer p:partition.get()) {
 			 Integer[] org= getBlocks(original,i,p+i);
 			 Integer[] perm= getBlocks(permuted,i,p+i);
 			 if(Arrays.equals(org, perm)) {	 
@@ -347,7 +347,7 @@ public class MORGEN {
 		 return check;
 	 }
 	 
-	 public static boolean equalBlockCheck(ArrayList<Integer> partition, int index, int y, int[][] A, Permutation cycleTransposition,Permutation perm){
+	 public static boolean equalBlockCheck(ThreadLocal<ArrayList<Integer>> partition, int index, int y, int[][] A, Permutation cycleTransposition,Permutation perm){
 		 boolean check=true;
 		 int[] canonical= A[index];
 		 int[] original= A[index];
@@ -358,17 +358,17 @@ public class MORGEN {
 		 return check;
 	 }
 	 
-	 public static boolean equalCheck(int[] former, int[] current, ArrayList<Integer> partition) {
+	 public static boolean equalCheck(int[] former, int[] current, ThreadLocal<ArrayList<Integer>> partition) {
 		 boolean check=true;
 		 int i=0;
-		 for(int k=0;k<partition.size();k++) {
-			 Integer[] can= getBlocks(former,i,partition.get(k)+i);
-			 Integer[] org= getBlocks(current,i,partition.get(k)+i); 
+		 for(int k=0;k<partition.get().size();k++) {
+			 Integer[] can= getBlocks(former,i,partition.get().get(k)+i);
+			 Integer[] org= getBlocks(current,i,partition.get().get(k)+i);
 			 if(!Arrays.equals(can,org)) {
 				 check=false;
 				 break;
 			 }else {
-				 i=i+partition.get(k);
+				 i=i+partition.get().get(k);
 				 continue;
 			 }
 		 }
@@ -389,22 +389,22 @@ public class MORGEN {
 		 return array;
 	 }
 	 
-	 public static int[] descendingSortWithPartition(int[] array, ArrayList<Integer> partition) {
+	 public static int[] descendingSortWithPartition(int[] array, ThreadLocal<ArrayList<Integer>> partition) {
 		 int i=0;
-		 for(Integer p:partition) {
+		 for(Integer p:partition.get()) {
 			 array=descendingSort(array,i,i+p);
 			 i=i+p;
 		 }
 		 return array;
 	 }
 	 
-	 public static boolean biggerCheck(int index, int[] original, int[] permuted, ArrayList<Integer> partition) {
+	 public static boolean biggerCheck(int index, int[] original, int[] permuted, ThreadLocal<ArrayList<Integer>> partition) {
 		 int[] sorted= cloneArray(permuted);
 		 sorted=descendingSortWithPartition(sorted, partition);
 		 return descendingOrderUpperMatrix(index,partition, original, sorted);
 	 }
 	 
-	 public static void biggerCheck(int index, int[][] A, Permutation permutation, ArrayList<Integer> partition) {
+	 public static void biggerCheck(int index, int[][] A, Permutation permutation, ThreadLocal<ArrayList<Integer>> partition) {
 		 biggest=true;
 		 int[] check = row2compare(index, A, permutation);
 		 if(!biggerCheck(index, A[index],check,partition)) {
@@ -412,7 +412,7 @@ public class MORGEN {
 		 }
 	 }
 	 
-	 public static boolean firstCheck(int index, int[][]A, ArrayList<Integer> partition) {
+	 public static boolean firstCheck(int index, int[][]A, ThreadLocal<ArrayList<Integer>> partition) {
 		 boolean check = true;
 		 if(!descendingOrdercomparison(index, partition,A[index])) {
 			 check=false;
@@ -608,11 +608,11 @@ public class MORGEN {
 			}
 		}
 	
-	 public static boolean descendingOrderUpperMatrix(int index, ArrayList<Integer> partition, int[] original, int[] permuted){
+	 public static boolean descendingOrderUpperMatrix(int index, ThreadLocal<ArrayList<Integer>> partition, int[] original, int[] permuted){
 		 boolean check=true;		 
 		 int i=index+1;
-		 for(int k=index+1;k<partition.size();k++) {
-			 int p = partition.get(k);
+		 for(int k=index+1;k<partition.get().size();k++) {
+			 int p = partition.get().get(k);
 			 Integer[] org= getBlocks(original,i,p+i);
 			 Integer[] perm= getBlocks(permuted,i,p+i);
 			 if(desOrderCheck(org)) {	 
@@ -654,10 +654,10 @@ public class MORGEN {
 		 return check;
 	 }
 	 	 
-	 public static boolean descendingOrdercomparison(ArrayList<Integer> partition, int[] original, int[] permuted){
+	 public static boolean descendingOrdercomparison(ThreadLocal<ArrayList<Integer>> partition, int[] original, int[] permuted){
 		 boolean check=true;		 
 		 int i=0;
-		 for(Integer p:partition) {
+		 for(Integer p:partition.get()) {
 			 Integer[] org = getBlocks(original,i,p+i);
 			 Integer[] perm = getBlocks(permuted,i,p+i);
 			 if(desOrderCheck(org)) {	 
@@ -681,10 +681,10 @@ public class MORGEN {
 		 return check;
 	 }
 	 
-	 public static boolean descendingOrdercomparison(int index, ArrayList<Integer> partition, int[] row){
+	 public static boolean descendingOrdercomparison(int index, ThreadLocal<ArrayList<Integer>> partition, int[] row){
 		 boolean check=true;		 
 		 int i=0;
-		 for(Integer p:partition) {
+		 for(Integer p:partition.get()) {
 			 Integer[] org= getBlocks(row,i,p+i);
 			 if(!desOrderCheck(org)) {
 				 check=false;
@@ -896,7 +896,7 @@ public class MORGEN {
 		 int block=0;
 		 int index=0;
 		 int rowIndex= indices[0];
-		 for(Integer part: initialPartition) {
+		 for(Integer part: initialPartition.get()) {
 			 if(index<=rowIndex && rowIndex<(index+part)) {
 				 break;
 			 }
@@ -1102,12 +1102,12 @@ public class MORGEN {
 	  * Main functions
 	  */
 	 
-	 public static ArrayList<Integer> getPartition(int[] degrees, ArrayList<Integer> partition){
-    	 ArrayList<Integer> newPartition = new ArrayList<Integer>();
+	 public static ThreadLocal<ArrayList<Integer>> getPartition(int[] degrees, ThreadLocal<ArrayList<Integer>> partition){
+		 ThreadLocal<ArrayList<Integer>> newPartition = ThreadLocal.withInitial(() -> new ArrayList<Integer>());
 		 int i=0;
-    	 for(Integer p:partition) {
+    	 for(Integer p:partition.get()) {
     		 Integer[] subArray= getBlocks(degrees,i,p+i);
-    		 newPartition.addAll(getSubPartition(subArray));
+    		 newPartition.get().addAll(getSubPartition(subArray));
     		 i=i+p; 
     	 }
     	 return newPartition;
@@ -1182,9 +1182,9 @@ public class MORGEN {
 	  * @throws CDKException
 	  */
 		
-	 public static List<int[]> distributeHydrogens(ArrayList<Integer> partition, int[] degrees) throws FileNotFoundException, UnsupportedEncodingException, CloneNotSupportedException, CDKException{
+	 public static List<int[]> distributeHydrogens(ThreadLocal<ArrayList<Integer>> partition, int[] degrees) throws FileNotFoundException, UnsupportedEncodingException, CloneNotSupportedException, CDKException{
 		 List<int[]> degreeList= new ArrayList<int[]>();
-		 List<int[]> distributions= HydrogenDistributor.run(partition,degrees);
+		 List<int[]> distributions= HydrogenDistributor.run(partition.get(),degrees);
 		 for(int[] dist: distributions) {
 			 int[] newDegree= new int[size];
 			 for(int i=0;i<size;i++) {
@@ -1207,10 +1207,10 @@ public class MORGEN {
 			 connect= new int[2];
 			 connectLernen=false;
 			 lernen=false;
-			 partitionList.clear();
+			 partitionList.get().clear();
 			 formerPermutations.get().clear();
 			 initialPartition=getPartition(degree,occurrences);
-			 partitionList.add(0,initialPartition);
+			 partitionList.get().add(0,initialPartition);
 			 try {
 				 genStrip(degree);
 			 } catch (Exception e) {
@@ -1398,7 +1398,7 @@ public class MORGEN {
 		int y=findY(r);
 		int z=findZ(r);
 		for(int i=y;i<=z;i++) {
-			if(!blockTestPerm(i, r, A, partitionList.get(i),canonicalPartition(i,partitionList.get(i)))){	
+			if(!blockTestPerm(i, r, A, partitionList.get().get(i),canonicalPartition(i,partitionList.get().get(i)))){
 				check=false;
 				break;
 			}
@@ -1412,8 +1412,8 @@ public class MORGEN {
 			 for(int i=y;i<formerPermutations.get().size();i++) {
 				 formerPermutations.get().get(i).clear();
 			 }
-			 for(int i=y+1;i<partitionList.size();i++) {
-				 partitionList.get(i).clear();
+			 for(int i=y+1;i<partitionList.get().size();i++) {
+				 partitionList.get().get(i).get().clear();
 			 }
 		 }
 	}
@@ -1452,7 +1452,7 @@ public class MORGEN {
 		 }
 	 }
 	
-	public static boolean blockTestPerm(int index, int r,int[][] A, ArrayList<Integer> partition, ArrayList<Integer> newPartition) {
+	public static boolean blockTestPerm(int index, int r,int[][] A, ThreadLocal<ArrayList<Integer>> partition, ThreadLocal<ArrayList<Integer>> newPartition) {
 		 boolean check= true;
 		 if(!firstCheck(index, A, newPartition)){
 		 	check=false;
@@ -1471,10 +1471,10 @@ public class MORGEN {
 		 return check;
 	 }
 	
-	public static boolean allis1(ArrayList<Integer> partition) {
+	public static boolean allis1(ThreadLocal<ArrayList<Integer>> partition) {
 		 boolean check=true;
-		 for(int i=0;i<partition.size();i++) {
-			 if(partition.get(i)!=1) {
+		 for(int i=0;i<partition.get().size();i++) {
+			 if(partition.get().get(i)!=1) {
 				 check=false;
 				 break;
 			 }
@@ -1489,17 +1489,17 @@ public class MORGEN {
 	  * @param A int[][] adjacency matrix
 	  */
 	 
-	 public static void addPartition(int index, ArrayList<Integer> newPartition, int[][] A) {
-		 ArrayList<Integer> refinedPartition= new ArrayList<Integer>();
+	 public static void addPartition(int index, ThreadLocal<ArrayList<Integer>> newPartition, int[][] A) {
+		 ThreadLocal<ArrayList<Integer>> refinedPartition= ThreadLocal.withInitial(() -> new ArrayList<Integer>());
 		 if(allis1(newPartition)) {
 			 refinedPartition=newPartition;
 		 }else {
 			 refinedPartition= refinedPartitioning(newPartition,A[index]);
 		 }
-		 if(partitionList.size()==(index+1)) {
-			 partitionList.add(refinedPartition);
+		 if(partitionList.get().size()==(index+1)) {
+			 partitionList.get().add(refinedPartition);
 		 }else {
-			 partitionList.set(index+1, refinedPartition);
+			 partitionList.get().set(index+1, refinedPartition);
 		 }
 	 }
 	 
@@ -1512,28 +1512,28 @@ public class MORGEN {
 	  * @return
 	  */
 	 
-	 public static ArrayList<Integer> refinedPartitioning(ArrayList<Integer> partition, int[] row){
-		 ArrayList<Integer> refined= new ArrayList<Integer>();
+	 public static ThreadLocal<ArrayList<Integer>> refinedPartitioning(ThreadLocal<ArrayList<Integer>> partition, int[] row){
+		 ThreadLocal<ArrayList<Integer>> refined= ThreadLocal.withInitial(() -> new ArrayList<Integer>());
 		 int index=0;
 		 int count=1;
-		 for(Integer p:partition) {
+		 for(Integer p:partition.get()) {
 			 if(p!=1) {
 				 for(int i=index;i<p+index-1;i++) {
 					 if(i+1<p+index-1) { 
 						 if(row[i]==row[i+1]) {
 							 count++;
 						 }else{
-							 refined.add(count);
+							 refined.get().add(count);
 							 count=1;
 						 } 
 					 }else {
 						 if(row[i]==row[i+1]) {
 							 count++;
-							 refined.add(count);
+							 refined.get().add(count);
 							 count=1;
 						 }else{
-							 refined.add(count);
-							 refined.add(1);
+							 refined.get().add(count);
+							 refined.get().add(1);
 							 count=1;
 						 }
 					 }
@@ -1541,7 +1541,7 @@ public class MORGEN {
 				 index=index+p;
 			 }else {
 				 index++;
-				 refined.add(1);
+				 refined.get().add(1);
 				 count=1;
 			 }
 		 }
@@ -1606,7 +1606,7 @@ public class MORGEN {
 		 return cloned;
 	 }
 	 
-	 public static 	Permutation getCanonicalPermutation(int[] max, int[] check,ArrayList<Integer> partition) {
+	 public static 	Permutation getCanonicalPermutation(int[] max, int[] check,ThreadLocal<ArrayList<Integer>> partition) {
     	 //set size 
 		 int[] cycles= getCyclePermutation(max, check, partition);
     	 int[] perm= new int[size];
@@ -1620,13 +1620,13 @@ public class MORGEN {
 		 return new Permutation(perm);
      }
 	 	 	 
-	 public static int[] getCyclePermutation(int[] max, int[] check,ArrayList<Integer> partition) {
+	 public static int[] getCyclePermutation(int[] max, int[] check,ThreadLocal<ArrayList<Integer>> partition) {
     	 int[] values= idValues(sum(partition));
     	 int i=0;
     	 if(!equalSetCheck(max,check,partition)) {
     		 return values;
     	 }else {
-    		 for(Integer p:partition) {
+    		 for(Integer p:partition.get()) {
     			 Integer[] can= getBlocks(max,i,p+i);
     			 Integer[] non= getBlocks(check,i,p+i);
     			 values = getCyclesList(can, non, i, values);
@@ -1668,14 +1668,14 @@ public class MORGEN {
     	 return values;
      }
 	 
-	 public static Permutation getEqualPerm(Permutation cycleTransposition, int index, int y, int total, int[][] A, ArrayList<Integer> partition, ArrayList<Integer> newPartition) {
+	 public static Permutation getEqualPerm(Permutation cycleTransposition, int index, int y, int total, int[][] A, ThreadLocal<ArrayList<Integer>> partition, ThreadLocal<ArrayList<Integer>> newPartition) {
 		 int[] check=row2compare(index, A, cycleTransposition);
 		 Permutation canonicalPermutation = getCanonicalPermutation(A[index],check,newPartition);
 		 return canonicalPermutation;
 	 }
 	 
 	 	 
-	public static Permutation getCanonicalCycle(int index, int y, int total, int[][] A, ArrayList<Integer> partition, ArrayList<Integer> newPartition,Permutation cycleTransposition) {
+	public static Permutation getCanonicalCycle(int index, int y, int total, int[][] A, ThreadLocal<ArrayList<Integer>> partition, ThreadLocal<ArrayList<Integer>> newPartition,Permutation cycleTransposition) {
 		 biggest=true;
 		 Permutation canonicalPermutation = idPermutation(total);
 		 if(!equalBlockCheck(newPartition,index,y,A,cycleTransposition, canonicalPermutation)) {
@@ -1686,7 +1686,7 @@ public class MORGEN {
 		 return canonicalPermutation;
 	 }
 	
-	public static boolean check(int index, int y, int total, int[][] A, ArrayList<Integer> partition, ArrayList<Integer> newPartition) {
+	public static boolean check(int index, int y, int total, int[][] A, ThreadLocal<ArrayList<Integer>> partition, ThreadLocal<ArrayList<Integer>> newPartition) {
 		 boolean check=true;
 		 List<Permutation> formerList= new ArrayList<Permutation>();
 		 for(Permutation permutation:formerPermutations.get().get(index)) {
@@ -1722,7 +1722,7 @@ public class MORGEN {
 		 }
 		 return check;
 	 }
-	public static List<Permutation> cycleTranspositions(int index, ArrayList<Integer> partition) {
+	public static List<Permutation> cycleTranspositions(int index, ThreadLocal<ArrayList<Integer>> partition) {
 		 int total=sum(partition);
 		 List<Permutation> perms= new ArrayList<Permutation>();
 		 int lValue = LValue(partition,index);
@@ -1746,7 +1746,7 @@ public class MORGEN {
 	  * @return
 	  */
 	 
-	 public static int LValue(ArrayList<Integer> partEx, int degree) {
+	 public static int LValue(ThreadLocal<ArrayList<Integer>> partEx, int degree) {
 		 return (sum(partEx,(degree))-(degree)); //In Grund, the numeration starts with 1. Since we start with 0, it should be -(degree+1)+1, so just -degree
 	 }
 	 
@@ -1757,7 +1757,7 @@ public class MORGEN {
 	  * @return
 	  */
 	 
-	public static ArrayList<Integer> canonicalPartition(int i, ArrayList<Integer> partition){
+	public static ThreadLocal<ArrayList<Integer>> canonicalPartition(int i, ThreadLocal<ArrayList<Integer>> partition){
 		 return partitionCriteria(partition,i+1);
 	}
 	 
@@ -1765,9 +1765,9 @@ public class MORGEN {
 	  * add number of 1s into a ArrayList
 	  */
 		 
-	 public static ArrayList<Integer> addOnes(ArrayList<Integer> list, int number) {
+	 public static ThreadLocal<ArrayList<Integer>> addOnes(ThreadLocal<ArrayList<Integer>> list, int number) {
 		 for(int i=0;i<number;i++) {
-			 list.add(1);
+			 list.get().add(1);
 		 }
 		 return list;
 	 }
@@ -1779,20 +1779,20 @@ public class MORGEN {
 	  * @return
 	  */
 		 
-	 public static ArrayList<Integer> partitionCriteria(ArrayList<Integer> partEx, int degree){
-		 ArrayList<Integer> partNew = new ArrayList<Integer>();
+	 public static ThreadLocal<ArrayList<Integer>> partitionCriteria(ThreadLocal<ArrayList<Integer>> partEx, int degree){
+		 ThreadLocal<ArrayList<Integer>> partNew = ThreadLocal.withInitial(() -> new ArrayList<Integer>());
 		 partNew=addOnes(partNew,degree);
 		 /**
 		  * I had (degree-1)
 		  */
-		 if(partEx.get(degree-1)>1) {
-			 partNew.add(partEx.get(degree-1)-1);
-			 for(int k=degree;k<partEx.size();k++) {
-				 partNew.add(partEx.get(k));
+		 if(partEx.get().get(degree-1)>1) {
+			 partNew.get().add(partEx.get().get(degree-1)-1);
+			 for(int k=degree;k<partEx.get().size();k++) {
+				 partNew.get().add(partEx.get().get(k));
 			 }
-		 }else if(partEx.get(degree-1)==1){
-			 for(int k=degree;k<partEx.size();k++) {
-				 partNew.add(partEx.get(k));
+		 }else if(partEx.get().get(degree-1)==1){
+			 for(int k=degree;k<partEx.get().size();k++) {
+				 partNew.get().add(partEx.get().get(k));
 			 }
 		 }
 		 return partNew;
