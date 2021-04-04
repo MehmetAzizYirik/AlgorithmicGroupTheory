@@ -1202,17 +1202,21 @@ public class MORGEN {
 		lernenIndices= new int[2];
 		lernen=false;
 		connectLernen=false;
-		for(int[] degree: newDegrees) {
-			lernenIndices= new int[2];
-			connect= new int[2];
-			connectLernen=false;
-			lernen=false;
-			partitionList.clear();
-			formerPermutations.clear();
-			initialPartition=getPartition(degree,occurrences);
-			partitionList.add(0,initialPartition);
-			genStrip(degree);
-		}
+		newDegrees.stream().forEach(degree -> {
+			 lernenIndices= new int[2];
+			 connect= new int[2];
+			 connectLernen=false;
+			 lernen=false;
+			 partitionList.clear();
+			 formerPermutations.clear();
+			 initialPartition=getPartition(degree,occurrences);
+			 partitionList.add(0,initialPartition);
+			 try {
+				 genStrip(degree);
+			 } catch (Exception e) {
+				 e.printStackTrace();
+			 }
+		});
 	 } 
 	 	 
 	 /**
