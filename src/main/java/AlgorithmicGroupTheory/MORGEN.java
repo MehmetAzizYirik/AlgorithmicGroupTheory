@@ -51,12 +51,12 @@ public class MORGEN {
 	public static ThreadLocal<List<List<Permutation>>> formerPermutations= ThreadLocal.withInitial(() -> new ArrayList<List<Permutation>>());
 	public static int[] degrees;
 	public static int[] initialDegrees;
-	public static ThreadLocal<ArrayList<Integer>> initialPartition;
+	public static ThreadLocal<ArrayList<Integer>> initialPartition = ThreadLocal.withInitial(() -> new ArrayList<Integer>());
 	public static IChemObjectBuilder builder=DefaultChemObjectBuilder.getInstance();
 	public static IAtomContainer atomContainer= builder.newInstance(IAtomContainer.class);
 	public static ThreadLocal<List<ThreadLocal<ArrayList<Integer>>>> partitionList= ThreadLocal.withInitial(() -> new ArrayList<ThreadLocal<ArrayList<Integer>>>());
 	public static List<String> symbols = new ArrayList<String>();
-	public static ThreadLocal<ArrayList<Integer>> occurrences  = ThreadLocal.withInitial(() -> new ArrayList<Integer>());
+	public static ArrayList<Integer> occurrences  = new ArrayList<Integer>();
 	public static Map<String, Integer> valences; 
 	public static PrintWriter pWriter;
 	public static int[][] max;
@@ -130,7 +130,21 @@ public class MORGEN {
 		}
 		return sum;
 	}
-	
+
+	/**
+	 * Summing entries of a list.
+	 * @param list List<Integer>
+	 * @return int sum
+	 */
+
+	public static int sum(ArrayList<Integer> list) {
+		int sum=0;
+		for(int i=0;i<list.size();i++) {
+			sum=sum+list.get(i);
+		}
+		return sum;
+	}
+
 	/**
 	 * Summing entries of an array.
 	 * @param array int[]
@@ -220,7 +234,7 @@ public class MORGEN {
 			 firstOccurrences.get().add(atomOccurrunce(info));
 			 if(!info[0].equals("H")) {
 				 symbols.add(info[0]);
-				 occurrences.get().add(atomOccurrunce(info));
+				 occurrences.add(atomOccurrunce(info));
 				 hIndex=hIndex+atomOccurrunce(info);
 			 }
 		 }
@@ -240,7 +254,7 @@ public class MORGEN {
 		 int firstIndex=0;
 		 for(int i=0;i<symbols.size();i++) {
 			 String symbol= symbols.get(i);
-		     for(int j=0;j<occurrences.get().get(i);j++) {
+		     for(int j=0;j<occurrences.get(i);j++) {
 		    	 if(!symbol.equals("H")) {
 		    		 initialDegrees[index]=valences.get(symbol);
 			    	 index++; 
@@ -1102,10 +1116,11 @@ public class MORGEN {
 	  * Main functions
 	  */
 	 
-	 public static ThreadLocal<ArrayList<Integer>> getPartition(int[] degrees, ThreadLocal<ArrayList<Integer>> partition){
-		 ThreadLocal<ArrayList<Integer>> newPartition = ThreadLocal.withInitial(() -> new ArrayList<Integer>());
+	 public static ThreadLocal<ArrayList<Integer>> getPartition(int[] degrees, ArrayList<Integer> partition
+			 , ThreadLocal<ArrayList<Integer>> newPartition){
+		 newPartition.get().clear();
 		 int i=0;
-    	 for(Integer p:partition.get()) {
+    	 for(Integer p:partition) {
     		 Integer[] subArray= getBlocks(degrees,i,p+i);
     		 newPartition.get().addAll(getSubPartition(subArray));
     		 i=i+p; 
@@ -1209,7 +1224,7 @@ public class MORGEN {
 			 lernen=false;
 			 partitionList.get().clear();
 			 formerPermutations.get().clear();
-			 initialPartition=getPartition(degree,occurrences);
+			 getPartition(degree,occurrences, initialPartition);
 			 partitionList.get().add(0,initialPartition);
 			 try {
 				 genStrip(degree);
