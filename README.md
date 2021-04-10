@@ -41,8 +41,7 @@ The definitions of the arguments are given below:
 usage: java -jar MORGEN.jar -f <arg> [-v] -d <arg>
 
 Generates molecular structures for a given molecular formula. The input is 
-a molecular formula string. For example 'C2OH4'. For this version, the hydrogens should be
-kept at the end of the string. Besides molecular formula, the
+a molecular formula string. For example 'C2OH4'. Besides molecular formula, the
 directory is needed to be specified for the output file.
 
  -f,--molecularFormula <arg>   Molecular formula as a string (required)
