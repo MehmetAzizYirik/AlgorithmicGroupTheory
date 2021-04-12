@@ -1253,6 +1253,7 @@ public class MORGEN {
 			 partitionList.get().add(0,initialPartition);
 			 try {
 				 genStrip(degree);
+				 System.out.println(count + " " + Arrays.toString(degree));
 			 } catch (Exception e) {
 				 e.printStackTrace();
 			 }
