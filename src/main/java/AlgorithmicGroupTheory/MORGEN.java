@@ -1168,7 +1168,8 @@ public class MORGEN {
 		 return count;
 	 }
 	 public static void run() throws IOException, CDKException, CloneNotSupportedException {
-		 long startTime = System.nanoTime(); 
+	 	clearGlobals();
+	 	long startTime = System.nanoTime();
 		 if(verbose) System.out.println("MORGEN is generating isomers of "+formula+"...");
 		 getSymbolsOccurrences(formula);
 		 initialDegrees();
@@ -1182,8 +1183,32 @@ public class MORGEN {
 	     DecimalFormat d = new DecimalFormat(".###");
 	     if(verbose) System.out.println("Time: "+d.format(seconds));
 	}
-	 
-	 /**
+
+	private static void clearGlobals() {
+		connect = new int[2];
+		connectLernen=false;
+		atomContainer= builder.newInstance(IAtomContainer.class);
+		size=0;
+		lernenIndices = new int[2];
+		lernenC=0;
+		hIndex=0;
+		count = 0;
+		matrixSize=0;
+		verbose = true;
+		formerPermutations.set(new ArrayList<List<Permutation>>());
+		partitionList.set(new ArrayList<ThreadLocal<ArrayList<Integer>>>());
+		symbols = new ArrayList<String>();
+		occurrences = new ArrayList<Integer>();
+		r = 0;
+		y=0;
+		z=0;
+//        partSize=0;
+		firstSymbols= new ArrayList<String>();
+		firstOccurrences.set(new ArrayList<Integer>());
+	}
+
+
+	/**
 	  * The main function for the block based canonical matrix generation.
 	  * 
 	  * @param molecularFormula String molecular formula
@@ -1217,7 +1242,7 @@ public class MORGEN {
 		lernenIndices= new int[2];
 		lernen=false;
 		connectLernen=false;
-		newDegrees.parallelStream().forEach(degree -> {
+		newDegrees.stream().forEach(degree -> {
 			 lernenIndices= new int[2];
 			 connect= new int[2];
 			 connectLernen=false;
