@@ -62,7 +62,7 @@ public class MORGEN {
 	public static int[][] max;
 	public static int[][] L;
 	public static int[][] C;
-	public static int r=0; 
+	public static ThreadLocal<Integer> r=ThreadLocal.withInitial(() -> 0);
 	public static int y=0;
 	public static int z=0;
 	static {
@@ -802,9 +802,9 @@ public class MORGEN {
 		 indices[0]=0;
 		 indices[1]=1;
 		 boolean callForward=true;
-		 r=0;
-		 y=findY(r);
-		 z=findZ(r);
+		 r.set(0);
+		 y=findY(r.get());
+		 z=findZ(r.get());
 		 while(flag) {
 			 nextStep(A,indices,callForward);
 	 		 if(!flag) {
@@ -813,7 +813,7 @@ public class MORGEN {
 	 		 if(connectLernen) {
 	 			indices=connect;
 	 			findR(indices);
-	 			clearFormers(false, findY(r));
+	 			clearFormers(false, findY(r.get()));
 	 			connectLernen=false;
 	 			callForward=false;
 	 		 }else {
@@ -897,12 +897,12 @@ public class MORGEN {
 	 */
 	 
 	 public static void updateR(int[] indices) {
-		 int y=findY(r);
-		 int z=findZ(r);
+		 int y=findY(r.get());
+		 int z=findZ(r.get());
 		 if(indices[0]<y) {
-			 r--;
+			 r.set(r.get() - 1);
 		 }else if(indices[0]>z) {
-			 r++;
+			 r.set(r.get() + 1);
 		 }
 	 }
 	 
@@ -917,7 +917,7 @@ public class MORGEN {
 			 block++;
 			 index=index+part;
 		 }
-		 r=block;
+		 r.set(block);
 	 }
 	 /**
 	  * The third line of the backward method in Grund 3.2.3. The criteria 
@@ -1036,7 +1036,7 @@ public class MORGEN {
 					}
 				}
 			}else {	
-				if(indices[0]==findZ(r) && indices[1]==(max.length-1)) {
+				if(indices[0]==findZ(r.get()) && indices[1]==(max.length-1)) {
 					callForward=canonicalTest(A);
 					if(callForward) {
 						indices=successor(indices,max.length);
@@ -1050,7 +1050,7 @@ public class MORGEN {
 						}
 					}
 			    }else {
-			    	 if(i<findZ(r) && j==(max.length-1)) {
+			    	 if(i<findZ(r.get()) && j==(max.length-1)) {
 			    		 return A;
 			    	 }else {
 			    		 indices=successor(indices,max.length);
@@ -1199,7 +1199,7 @@ public class MORGEN {
 		partitionList.set(new ArrayList<ThreadLocal<ArrayList<Integer>>>());
 		symbols = new ArrayList<String>();
 		occurrences = new ArrayList<Integer>();
-		r = 0;
+		r.set(0);
 		y=0;
 		z=0;
 //        partSize=0;
@@ -1247,8 +1247,8 @@ public class MORGEN {
 			 connect= new int[2];
 			 connectLernen=false;
 			 lernen=false;
-			 partitionList.get().clear();
-			 formerPermutations.get().clear();
+			 partitionList.set(new ArrayList<ThreadLocal<ArrayList<Integer>>>());
+			 formerPermutations.set(new ArrayList<List<Permutation>>());
 			 getPartition(degree,occurrences, initialPartition);
 			 partitionList.get().add(0,initialPartition);
 			 try {
@@ -1417,7 +1417,7 @@ public class MORGEN {
 	 
 	 public static boolean canonicalTest(int[][] matrix) throws IOException, CloneNotSupportedException, CDKException {
 		lernen=false;
-		if(blockTest(r,matrix)) {
+		if(blockTest(r.get(),matrix)) {
 			return true;
 		}else {
 			return false;
