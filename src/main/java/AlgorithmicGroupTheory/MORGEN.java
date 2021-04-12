@@ -36,7 +36,7 @@ import org.openscience.cdk.tools.manipulator.AtomContainerManipulator;
 
 public class MORGEN {
 	public static int size=0;
-	public static int[] lernenIndices = new int[2];
+	public static ThreadLocal<int[]> lernenIndices = ThreadLocal.withInitial(() -> new int[2]);
 	public static int lernenC=0;
 	public static int hIndex=0;
 	public static int count=0;
@@ -434,7 +434,7 @@ public class MORGEN {
 			 array = descendingSortWithPartition(array, partition);
 			 Permutation canonicalPermutation = getCanonicalPermutation(array,A[index],partition);
 			 lernen=true;  
-			 lernenIndices = upperIndex(index, index, A, canonicalPermutation); 
+			 lernenIndices.set(upperIndex(index, index, A, canonicalPermutation));
 		 }
 		 return check;
 	 }
@@ -811,14 +811,14 @@ public class MORGEN {
 	 			 break;
 	 		 }
 	 		 if(connectLernen) {
-	 			indices=connect;
+	 			indices=connect.get();
 	 			findR(indices);
 	 			clearFormers(false, findY(r.get()));
 	 			connectLernen=false;
 	 			callForward=false;
 	 		 }else {
 	 			if(lernen) {
-	 				indices=successor(lernenIndices,max.length);
+	 				indices=successor(lernenIndices.get(),max.length);
 	 				findR(indices);
 	 				lernen=false;
 	 				callForward=false;
@@ -1185,11 +1185,11 @@ public class MORGEN {
 	}
 
 	private static void clearGlobals() {
-		connect = new int[2];
+		connect.set(new int[2]);
 		connectLernen=false;
 		atomContainer= builder.newInstance(IAtomContainer.class);
 		size=0;
-		lernenIndices = new int[2];
+		lernenIndices.set(new int[2]);
 		lernenC=0;
 		hIndex=0;
 		count = 0;
@@ -1239,12 +1239,12 @@ public class MORGEN {
 	 public static void canonicalBlockbasedGenerator() throws IOException, CloneNotSupportedException, CDKException{
 		size=initialDegrees.length;
 		List<int[]> newDegrees= distributeHydrogens(firstOccurrences, firstDegrees);
-		lernenIndices= new int[2];
+		lernenIndices.set(new int[2]);
 		lernen=false;
 		connectLernen=false;
 		newDegrees.stream().forEach(degree -> {
-			 lernenIndices= new int[2];
-			 connect= new int[2];
+			 lernenIndices.set(new int[2]);
+			 connect.set(new int[2]);
 			 connectLernen=false;
 			 lernen=false;
 			 partitionList.set(new ArrayList<ThreadLocal<ArrayList<Integer>>>());
@@ -1340,7 +1340,7 @@ public class MORGEN {
 	  * @return boolean
 	  */
 		
-	 public static int[] connect=new int[2];
+	 public static ThreadLocal<int[]> connect=ThreadLocal.withInitial(() -> new int[2]);
 	 public static boolean connectLernen=false; 
 	 public static boolean connectivityTest(int[][] mat) {
 		 connectLernen=false;
@@ -1368,8 +1368,8 @@ public class MORGEN {
 		 for(int i=hIndex-2;i>=0;i--) {
 			 if(kValues[i]!=value) {
 				 connectLernen=true;
-				 connect[0]=i;
-				 connect[1]=hIndex-1;
+				 connect.get()[0]=i;
+				 connect.get()[1]=hIndex-1;
 				 break;
 			 }
 		 }
