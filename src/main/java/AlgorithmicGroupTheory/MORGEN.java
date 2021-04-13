@@ -56,7 +56,7 @@ public class MORGEN implements Cloneable {
 	public IChemObjectBuilder builder=DefaultChemObjectBuilder.getInstance();
 	public IAtomContainer atomContainer= builder.newInstance(IAtomContainer.class);
 	public ThreadLocal<List<ThreadLocal<ArrayList<Integer>>>> partitionList= ThreadLocal.withInitial(() -> new ArrayList<ThreadLocal<ArrayList<Integer>>>());
-	public List<String> symbols = new ArrayList<String>();
+	public ArrayList<String> symbols = new ArrayList<String>();
 	public ArrayList<Integer> occurrences  = new ArrayList<Integer>();
 	public Map<String, Integer> valences; 
 	public PrintWriter pWriter;
@@ -224,7 +224,7 @@ public class MORGEN implements Cloneable {
 	  * @param formula  String molecular formula
 	  */
 	 
-	 public List<String> firstSymbols= new ArrayList<String>();
+	 public ArrayList<String> firstSymbols= new ArrayList<String>();
 	 public ThreadLocal<ArrayList<Integer>> firstOccurrences = ThreadLocal.withInitial(() -> new ArrayList<Integer>());
 	 public void getSymbolsOccurrences(String formula) {
 		 String[] atoms = formula.split("(?=[A-Z])");
@@ -1250,26 +1250,30 @@ public class MORGEN implements Cloneable {
     @Override
 	protected MORGEN clone() {
 		MORGEN morgen = new MORGEN();
-		morgen.connect=connect;
+		morgen.connect=ThreadLocal.withInitial(() -> connect.get());
 		morgen.connectLernen=connectLernen;
-		morgen.atomContainer= atomContainer;
+		try {
+			morgen.atomContainer= atomContainer.clone();
+		} catch (CloneNotSupportedException e) {
+			e.printStackTrace();
+		}
 		morgen.size=size;
-		morgen.lernenIndices=lernenIndices;
+		morgen.lernenIndices=ThreadLocal.withInitial(() -> lernenIndices.get());
 		morgen.lernenC=lernenC;
 		morgen.hIndex=hIndex;
 		morgen.matrixSize=matrixSize;
 		morgen.verbose = verbose;
-		morgen.formerPermutations = formerPermutations;
-		morgen.partitionList = partitionList;
-		morgen.symbols = symbols;
-		morgen.occurrences = occurrences;
-		morgen.r=r;
+		morgen.formerPermutations = ThreadLocal.withInitial(() -> formerPermutations.get());
+		morgen.partitionList = ThreadLocal.withInitial(() -> partitionList.get());
+		morgen.symbols = (ArrayList<String>) symbols.clone();
+		morgen.occurrences = (ArrayList<Integer>) occurrences.clone();
+		morgen.r=ThreadLocal.withInitial(() -> r.get());
 		morgen.y=y;
 		morgen.z=z;
 //        partSize=0;
-		morgen.firstSymbols= firstSymbols;
-		morgen.firstOccurrences = firstOccurrences;
-		morgen.initialDegrees=initialDegrees;
+		morgen.firstSymbols= (ArrayList<String>) firstSymbols.clone();
+		morgen.firstOccurrences = ThreadLocal.withInitial(() -> firstOccurrences.get());
+		morgen.initialDegrees=initialDegrees.clone();
 		morgen.outFile=outFile;
 		return morgen;
 	}
