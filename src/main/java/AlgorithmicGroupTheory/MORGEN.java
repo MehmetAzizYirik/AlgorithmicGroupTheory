@@ -2045,7 +2045,7 @@ public class MORGEN {
 		 return options;
 	 }
 	
-	public void main(String[] args) throws IOException, CDKException, CloneNotSupportedException {	
+	public static void main(String[] args) throws IOException, CDKException, CloneNotSupportedException {	
 		MORGEN gen = new MORGEN();
 		try {
 			gen.parseArgs(args);

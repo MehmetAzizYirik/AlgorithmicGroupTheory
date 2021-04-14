@@ -74,6 +74,14 @@ public class MorgenTest {
 
 	@Test
 
+	public void test_C7H6N2O() throws IOException, CDKException, CloneNotSupportedException {
+		morgen.formula="C7H6N2O";
+		morgen.run();
+		assertEquals(10_504_307,(long) MORGEN.count.get());
+	}
+
+	@Test
+
 	public void test_C6OF2H12() throws IOException, CDKException, CloneNotSupportedException {
 		morgen.formula="C6OF2H12";
 		morgen.run();
@@ -94,6 +102,14 @@ public class MorgenTest {
 		morgen.formula="C6O2H12";
 		morgen.run();
 		assertEquals(1313,MORGEN.count);
+	}
+
+	@Test
+
+	public void test_C5H2N2O3() throws IOException, CDKException, CloneNotSupportedException {
+		morgen.formula="C5H2N2O3";
+		morgen.run();
+		assertEquals(1_197_634, (long) MORGEN.count.get());
 	}
 
 	@Test
