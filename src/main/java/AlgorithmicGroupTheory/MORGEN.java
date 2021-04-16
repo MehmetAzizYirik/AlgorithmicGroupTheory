@@ -2,7 +2,6 @@ package AlgorithmicGroupTheory;
 import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
@@ -35,7 +34,6 @@ import org.openscience.cdk.io.SDFWriter;
 import org.openscience.cdk.tools.manipulator.AtomContainerManipulator;
 
 public class MORGEN {
-	public static PrintWriter pWriter;
 	public static int size=0;
 	public static int total=0;
 	public static int[] ys;
@@ -995,7 +993,6 @@ public class MORGEN {
 	 			 break;
 	 		 }
 	 		 if(learningFromConnectivity) {
-	 			pWriter.println("connectivity"+" "+Arrays.toString(indices));
 	 			indices=connectivityIndices;
 	 			findR(indices);
 	 			y=ys[r];
@@ -1004,7 +1001,6 @@ public class MORGEN {
 	 			callForward=false;
 	 		 }else {
 	 			if(learningFromCanonicalTest) {
-	 				pWriter.println("canonical"+" "+Arrays.toString(indices));
 	 				indices=successor(nonCanonicalIndices,max.length);
 	 				findR(indices);	 				
 	 				learningFromCanonicalTest=false;
@@ -1087,18 +1083,12 @@ public class MORGEN {
 			int hIndex=index;
 			int limit=0;
 			int hydrogen=0;
-			int hydrogens=0;
-			outer:
 			for(int i=0;i<index;i++) {
 				hydrogen=initialDegrees[i]-sum(A[i]);
-				hydrogens+=hydrogen;
 				limit=hIndex+hydrogen;
 				for(int j=hIndex;j<limit;j++) {
 					A[i][j]=1;
 					A[j][i]=1;
-					if(hydrogens==totalHydrogen) {
-						break outer;
-					}
 				}
 				if(hydrogen!=0) {
 					hIndex=hIndex+hydrogen;
@@ -1236,23 +1226,11 @@ public class MORGEN {
 							mat2[k][l]=A[k][l];
 						}
 					}
-					if(connectivityTest(mat2)){
-						count++;
-						pWriter.println("can"+" "+count);
-						for(int s=0;s<10;s++) {
-							for(int k=0; k<s;k++) {
-								pWriter.print(" ");
-							}
-							for(int k=s+1; k<10;k++) {
-								pWriter.print(mat2[s][k]);
-							}
-							pWriter.println();
-						}
-						pWriter.println();
+					if(connectivityTest(mat2)){						
 						output.add(mat2);
-						//IAtomContainer mol= buildC(addHydrogens(mat2,hIndex));
-						//outFile.write(mol);
-						//count++;
+						IAtomContainer mol= buildC(addHydrogens(mat2,hIndex));
+						outFile.write(mol);
+						count++;
 						callForward=false;
 					}else {
 						callForward=false;
@@ -1445,15 +1423,11 @@ public class MORGEN {
 			 if(verbose) System.out.println("MORGEN is generating isomers of "+formula+"...");
 			 getSymbolsOccurrences(formula);
 			 initialDegrees();			 
-			 //build(formula);
-			 //outFile = new SDFWriter(new FileWriter(filedir+"output.sdf"));
-			 FileWriter fWriter = new FileWriter(filedir+"dene.txt");
-			 pWriter= new PrintWriter(fWriter);
-			 pWriter.println("List of "+formula+"'s isomers: ");
+			 build(formula);
+			 outFile = new SDFWriter(new FileWriter(filedir+"output.sdf"));
 			 structureGenerator();
 			 if(verbose) System.out.println("The number of structures is: "+count);
-			 //outFile.close();
-			 pWriter.close();
+			 outFile.close();
 			 long endTime = System.nanoTime() - startTime;
 			 double seconds = (double) endTime / 1000000000.0;
 		     DecimalFormat d = new DecimalFormat(".###");
@@ -1512,7 +1486,7 @@ public class MORGEN {
 		 if(!callHydrogenDistributor) {
 			 degreeList.add(firstDegrees);
 		 }else {
-			 List<int[]> distributions= HydrogenDistributor.run(firstOccurrences,firstDegrees);
+			 List<int[]> distributions = HydrogenDistributor.run(firstOccurrences, firstDegrees);
 			 for(int[] dist: distributions) {
 				 int[] newDegree= new int[size];
 				 for(int i=0;i<size;i++) {
@@ -2347,9 +2321,9 @@ public class MORGEN {
 	
 	public static void main(String[] args) throws IOException, CDKException, CloneNotSupportedException {	
 		MORGEN gen = new MORGEN();
-		String[] arg= {"-f", "C10", "-v", "-d", "C:\\Users\\mehme\\Desktop\\"};
+		//String[] arg= {"-f", "C6H6", "-v", "-d", "C:\\Users\\mehme\\Desktop\\"};
 		try {
-			gen.parseArgs(arg);
+			gen.parseArgs(args);
 			MORGEN.run();
 		} catch (Exception e) {
 			if (MORGEN.verbose) e.getCause(); 
