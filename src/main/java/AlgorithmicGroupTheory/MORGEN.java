@@ -1,7 +1,8 @@
 package AlgorithmicGroupTheory;
+import java.io.BufferedWriter;
 import java.io.FileNotFoundException;
-import java.io.FileWriter;
 import java.io.IOException;
+import java.io.OutputStreamWriter;
 import java.io.UnsupportedEncodingException;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
@@ -50,7 +51,7 @@ public class MORGEN {
 	public boolean learningFromConnectivity=false; 
 	public SDFWriter outFile;
 	public String formula;
-	public String filedir;
+	public boolean outputOption;
 	public boolean flag=true;
 	public boolean learningFromCanonicalTest=false;
 	public boolean biggest=true;
@@ -212,7 +213,7 @@ public class MORGEN {
 	  * The initializer function, reading the formula to set the degrees,
 	  * partition and file directory variables.
 	  * @param formula String molecular formula
-	  * @param filedir String file directory
+	  * @param outputOption is output option defined
 	  * @throws IOException
 	  * @throws CDKException
 	  * @throws CloneNotSupportedException
@@ -1229,8 +1230,10 @@ public class MORGEN {
 					}
 					if(connectivityTest(mat2)){						
 						output.add(mat2);
-						IAtomContainer mol= buildC(addHydrogens(mat2,hIndex));
-						outFile.write(mol);
+						if (outputOption) {
+							IAtomContainer mol = buildC(addHydrogens(mat2, hIndex));
+							outFile.write(mol);
+						}
 						count.incrementAndGet();
 						callForward=false;
 					}else {
@@ -1421,13 +1424,13 @@ public class MORGEN {
 		 if(canBuildGraph(formula)) {
 			 clearGlobals();
 			 long startTime = System.nanoTime(); 
-			 if(verbose) System.out.println("MORGEN is generating isomers of "+formula+"...");
+			 if(verbose) System.err.println("MORGEN is generating isomers of "+formula+"...");
 			 getSymbolsOccurrences(formula);
 			 initialDegrees();			 
 			 build(formula);
-			 outFile = new SDFWriter(new FileWriter(filedir+"output.sdf"));
+			 outFile = new SDFWriter(new BufferedWriter(new OutputStreamWriter(System.out)));
 			 structureGenerator();
-			 if(verbose) System.out.println("The number of structures is: "+count);
+			 if(verbose) System.err.println("The number of structures is: "+count);
 			 outFile.close();
 			 long endTime = System.nanoTime() - startTime;
 			 double seconds = (double) endTime / 1000000000.0;
@@ -1578,6 +1581,7 @@ public class MORGEN {
 		morgen.firstOccurrences = firstOccurrences;
 		morgen.initialDegrees=initialDegrees;
 		morgen.outFile=outFile;
+		morgen.outputOption=outputOption;
 		return morgen;
 	}
 
@@ -2312,7 +2316,7 @@ public class MORGEN {
 		 try {
 			 CommandLine cmd = parser.parse(options, args);
 			 this.formula = cmd.getOptionValue("formula");
-			 this.filedir = cmd.getOptionValue("filedir");
+			 this.outputOption = cmd.hasOption("output");
 			 if (cmd.hasOption("verbose")) this.verbose = true;
 		 } catch (ParseException e) {
 			 HelpFormatter formatter = new HelpFormatter();
@@ -2343,13 +2347,12 @@ public class MORGEN {
 								.desc("print message")
 								.build();
 		 options.addOption(verbose);	
-		 Option filedir = Option.builder("d")
+		 Option output = Option.builder("o")
 					 			.required(false)
-					 			.hasArg()
-					 			.longOpt("filedir")
-					 			.desc("Creates and store the output txt file in the directory (required)")
+					 			.longOpt("output")
+					 			.desc("Writes the output to the console")
 					 			.build();
-		 options.addOption(filedir);
+		 options.addOption(output);
 		 return options;
 	 }
 	
