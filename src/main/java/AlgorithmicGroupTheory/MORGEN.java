@@ -4,17 +4,16 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.UnsupportedEncodingException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.text.DecimalFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.time.Duration;
+import java.time.Instant;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -35,6 +34,8 @@ import org.openscience.cdk.interfaces.IBond.Order;
 import org.openscience.cdk.io.SDFWriter;
 import org.openscience.cdk.tools.manipulator.AtomContainerManipulator;
 
+import static java.util.stream.Collectors.toList;
+
 public class MORGEN {
 	public int size=0;
 	public int total=0;
@@ -51,6 +52,7 @@ public class MORGEN {
 	public boolean learningFromConnectivity=false; 
 	public SDFWriter outFile;
 	public String formula;
+	public String formulaList;
 	public boolean outputOption;
 	public boolean flag=true;
 	public boolean learningFromCanonicalTest=false;
@@ -1420,14 +1422,14 @@ public class MORGEN {
 	  * @throws CloneNotSupportedException
 	  */
 	 
-	 public List<int[][]> run() throws IOException, CDKException, CloneNotSupportedException {
-		 if(canBuildGraph(formula)) {
+	 public List<int[][]> run(String localFormula) throws IOException, CDKException, CloneNotSupportedException {
+		 if(canBuildGraph(localFormula)) {
 			 clearGlobals();
 			 long startTime = System.nanoTime(); 
-			 if(verbose) System.err.println("MORGEN is generating isomers of "+formula+"...");
-			 getSymbolsOccurrences(formula);
+			 if(verbose) System.err.println("MORGEN is generating isomers of "+localFormula+"...");
+			 getSymbolsOccurrences(localFormula);
 			 initialDegrees();			 
-			 build(formula);
+			 build(localFormula);
 			 outFile = new SDFWriter(new BufferedWriter(new OutputStreamWriter(System.out)));
 			 structureGenerator();
 			 if(verbose) System.err.println("The number of structures is: "+count);
@@ -1437,7 +1439,7 @@ public class MORGEN {
 		     DecimalFormat d = new DecimalFormat(".###");
 		     if(verbose) System.out.println("Time: "+d.format(seconds)+" seconds");
 		 }else {
-			 if(verbose) System.out.println("The input formula, "+formula+", does not represent any molecule.");
+			 if(verbose) System.out.println("The input formula, "+localFormula+", does not represent any molecule.");
 		 }
 		 return output;
 	}
@@ -2316,31 +2318,46 @@ public class MORGEN {
 		 try {
 			 CommandLine cmd = parser.parse(options, args);
 			 this.formula = cmd.getOptionValue("formula");
+			 this.formulaList = cmd.getOptionValue("formula-list");
 			 this.outputOption = cmd.hasOption("output");
 			 if (cmd.hasOption("verbose")) this.verbose = true;
+			 if (Objects.isNull(formula) && Objects.isNull(formulaList)) {
+				 displayHelp(options);
+			 }
 		 } catch (ParseException e) {
-			 HelpFormatter formatter = new HelpFormatter();
-			 formatter.setOptionComparator(null);
-			 String header = "\nGenerates 	molecular structures for a given molecular formula."
-						 + " The input is a molecular formula string."
-						 + "For example 'C2OH4'."
-						 + "Besides this formula, the directory is needed to be specified for the output"
-						 + "file. \n\n";
-			 String footer = "\nPlease report issues at https://github.com/MehmetAzizYirik/AlgorithmicGroupTheory";
-			 formatter.printHelp( "java -jar MORGEN.jar", header, options, footer, true );
+			 displayHelp(options);
 			 throw new ParseException("Problem parsing command line");
 		 }
 	 }
-				
-	 private Options setupOptions(String[] args){
+
+	private void displayHelp(Options options) {
+		HelpFormatter formatter = new HelpFormatter();
+		formatter.setOptionComparator(null);
+		String header = "\nGenerates 	molecular structures for a given molecular formula."
+					+ " The input is a molecular formula string."
+					+ "For example 'C2OH4'."
+					+ "Besides this formula, the directory is needed to be specified for the output"
+					+ "file. \n\n";
+		String footer = "\nPlease report issues at https://github.com/MehmetAzizYirik/AlgorithmicGroupTheory";
+		formatter.printHelp( "java -jar MORGEN.jar", header, options, footer, true );
+	}
+
+	private Options setupOptions(String[] args){
 		 Options options = new Options();
 		 Option formula = Option.builder("f")
-					 			.required(true)
+					 			.required(false)
 					 			.hasArg()
 					 			.longOpt("formula")
 					 			.desc("formula (required)")
 					 			.build();
 		 options.addOption(formula);
+		 Option formulaList = Option.builder("fl")
+				 .required(false)
+				 .hasArg()
+				 .longOpt("formula-list")
+				 .desc("file name with formulas")
+				 .build();
+		 options.addOption(formulaList);
 		 Option verbose = Option.builder("v")
 								.required(false)
 								.longOpt("verbose")
@@ -2361,9 +2378,49 @@ public class MORGEN {
 		//String[] arg= {"-f", "C6H6", "-v", "-d", "C:\\Users\\mehme\\Desktop\\"};
 		try {
 			gen.parseArgs(args);
-			gen.run();
+			if (Objects.nonNull(gen.formula)) {
+				gen.run(gen.formula);
+			} else if (Objects.nonNull(gen.formulaList)) {
+				class Line {
+					String formula;
+					double averageTime;
+					long numberOfStructure;
+					public Line(String formula, double averageTime, long numberOfStructure) {
+						this.formula = formula;
+						this.averageTime = averageTime;
+						this.numberOfStructure = numberOfStructure;
+					}
+
+					@Override
+					public String toString() {
+						return "Line{" +
+								"formula='" + formula + '\'' +
+								", averageTime=" + averageTime +
+								", numberOfStructure=" + numberOfStructure +
+								'}';
+					}
+				}
+				List<Line> lines = Files.lines(Paths.get(gen.formulaList)).map(formula -> {
+					double average = IntStream.rangeClosed(1, 5).asLongStream().map(
+							i -> execMorgen(gen, formula)).average().getAsDouble();
+					return new Line(formula, average, MORGEN.count.get());
+				}).collect(toList());
+				System.err.println(lines);
+			}
 		} catch (Exception e) {
 			if (gen.verbose) e.getCause();
 		}
+	}
+
+	private static long execMorgen(MORGEN gen, String formula) {
+		Instant start = Instant.now();
+		MORGEN.count.set(0);
+		try {
+			gen.run(formula);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		Instant finish = Instant.now();
+		return Duration.between(start, finish).toMillis();
 	}
 }
