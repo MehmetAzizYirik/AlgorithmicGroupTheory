@@ -1,6 +1,6 @@
 package AlgorithmicGroupTheory;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
 import java.io.IOException;
 
@@ -17,20 +17,20 @@ public class MorgenTest {
 	 * same number of isomers like MOLGEN.
 	 */
 	
-        private MORGEN morgen;
+	private MORGEN morgen;
 
-        @Before
-        public void before() {
-            morgen = new MORGEN();
-            MORGEN.count.set(0);
-        }
+	@Before
+	public void before() {
+		morgen = new MORGEN();
+		MORGEN.count.set(0);
+	}
 
 	@Test
 
 	public void test_C3Cl2H4() throws IOException, CDKException, CloneNotSupportedException {
 		morgen.formula="C3Cl2H4";
 		morgen.run();
-		assertEquals(7l,(long) MORGEN.count.get());
+		assertEquals(7l, MORGEN.count.get());
 	}
 
 	@Test
@@ -208,9 +208,9 @@ public class MorgenTest {
 		morgen.run();
 		assertEquals(24201,(long) MORGEN.count.get());
 	}
-	
+
 	@Test
-	
+
 	public void test_C10H16() throws IOException, CDKException, CloneNotSupportedException {
 		morgen.formula="C10H16";
 		morgen.run();
