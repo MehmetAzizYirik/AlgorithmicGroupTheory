@@ -4,16 +4,23 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.text.DecimalFormat;
 import java.time.Duration;
 import java.time.Instant;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-import java.util.stream.Stream;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -34,6 +41,7 @@ import org.openscience.cdk.interfaces.IBond.Order;
 import org.openscience.cdk.io.SDFWriter;
 import org.openscience.cdk.tools.manipulator.AtomContainerManipulator;
 
+import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
 
 public class MORGEN {
@@ -1422,14 +1430,14 @@ public class MORGEN {
 	  * @throws CloneNotSupportedException
 	  */
 	 
-	 public List<int[][]> run(String localFormula) throws IOException, CDKException, CloneNotSupportedException {
-		 if(canBuildGraph(localFormula)) {
+	 public List<int[][]> run() throws IOException, CDKException, CloneNotSupportedException {
+		 if(canBuildGraph(formula)) {
 			 clearGlobals();
 			 long startTime = System.nanoTime(); 
-			 if(verbose) System.err.println("MORGEN is generating isomers of "+localFormula+"...");
-			 getSymbolsOccurrences(localFormula);
+			 if(verbose) System.err.println("MORGEN is generating isomers of "+formula+"...");
+			 getSymbolsOccurrences(formula);
 			 initialDegrees();			 
-			 build(localFormula);
+			 build(formula);
 			 outFile = new SDFWriter(new BufferedWriter(new OutputStreamWriter(System.out)));
 			 structureGenerator();
 			 if(verbose) System.err.println("The number of structures is: "+count);
@@ -1437,9 +1445,9 @@ public class MORGEN {
 			 long endTime = System.nanoTime() - startTime;
 			 double seconds = (double) endTime / 1000000000.0;
 		     DecimalFormat d = new DecimalFormat(".###");
-		     if(verbose) System.out.println("Time: "+d.format(seconds)+" seconds");
+		     if(verbose) System.err.println("Time: "+d.format(seconds)+" seconds");
 		 }else {
-			 if(verbose) System.out.println("The input formula, "+localFormula+", does not represent any molecule.");
+			 if(verbose) System.err.println("The input formula, "+formula+", does not represent any molecule.");
 		 }
 		 return output;
 	}
@@ -1460,7 +1468,6 @@ public class MORGEN {
 		 hIndex=0;
 		 count.set(0);
 		 matrixSize=0;
-		 verbose = true;
 		 formerPermutations.set(new ArrayList<ThreadLocal<ArrayList<Permutation>>>());
 		 partitionList.set(new ArrayList<ThreadLocal<ArrayList<Integer>>>());
 		 symbols = new ArrayList<String>();
@@ -2379,7 +2386,7 @@ public class MORGEN {
 		try {
 			gen.parseArgs(args);
 			if (Objects.nonNull(gen.formula)) {
-				gen.run(gen.formula);
+				gen.run();
 			} else if (Objects.nonNull(gen.formulaList)) {
 				class Line {
 					String formula;
@@ -2405,7 +2412,12 @@ public class MORGEN {
 							i -> execMorgen(gen, formula)).average().getAsDouble();
 					return new Line(formula, average, MORGEN.count.get());
 				}).collect(toList());
-				System.err.println(lines);
+				Files.write(Paths.get(gen.formulaList + ".csv"),
+						lines.stream().map(line ->
+								String.join(";", line.formula, String.valueOf(line.averageTime),
+										String.valueOf(line.numberOfStructure)))
+								.collect(joining("\n")).getBytes(StandardCharsets.UTF_8),
+						new java.nio.file.OpenOption[0]);
 			}
 		} catch (Exception e) {
 			if (gen.verbose) e.getCause();
@@ -2416,7 +2428,8 @@ public class MORGEN {
 		Instant start = Instant.now();
 		MORGEN.count.set(0);
 		try {
-			gen.run(formula);
+			gen.formula = formula;
+			gen.run();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
