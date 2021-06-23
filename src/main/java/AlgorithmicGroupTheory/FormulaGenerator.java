@@ -1,13 +1,5 @@
 package AlgorithmicGroupTheory;
 
-import org.apache.commons.cli.CommandLine;
-import org.apache.commons.cli.CommandLineParser;
-import org.apache.commons.cli.DefaultParser;
-import org.apache.commons.cli.HelpFormatter;
-import org.apache.commons.cli.Option;
-import org.apache.commons.cli.Options;
-import org.apache.commons.cli.ParseException;
-
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -15,6 +7,13 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.CommandLineParser;
+import org.apache.commons.cli.DefaultParser;
+import org.apache.commons.cli.HelpFormatter;
+import org.apache.commons.cli.Option;
+import org.apache.commons.cli.Options;
+import org.apache.commons.cli.ParseException;
 
 public class FormulaGenerator {
     private String carbon;
@@ -45,49 +44,61 @@ public class FormulaGenerator {
     private void displayHelp(Options options) {
         HelpFormatter formatter = new HelpFormatter();
         formatter.setOptionComparator(null);
-        String header = "\nGenerates formulas for a given components."
-                + " The input is component strings."
-                + "For example '-c 6 -h 10 -n 3 -o 2 -p 0'.\n\n";
-        String footer = "\nPlease report issues at https://github.com/MehmetAzizYirik/AlgorithmicGroupTheory";
-        formatter.printHelp("java -cp MORGEN.jar AlgorithmicGroupTheory.FormulaGenerator", header, options, footer, true);
+        String header =
+                "\nGenerates formulas for a given components."
+                        + " The input is component strings."
+                        + "For example '-c 6 -h 10 -n 3 -o 2 -p 0'.\n\n";
+        String footer =
+                "\nPlease report issues at https://github.com/MehmetAzizYirik/AlgorithmicGroupTheory";
+        formatter.printHelp(
+                "java -cp MORGEN.jar AlgorithmicGroupTheory.FormulaGenerator",
+                header,
+                options,
+                footer,
+                true);
     }
 
     private Options setupOptions(String[] args) {
         Options options = new Options();
-        Option carbon = Option.builder("c")
-                .required(false)
-                .hasArg()
-                .longOpt("carbon")
-                .desc("Carbon")
-                .build();
+        Option carbon =
+                Option.builder("c")
+                        .required(false)
+                        .hasArg()
+                        .longOpt("carbon")
+                        .desc("Carbon")
+                        .build();
         options.addOption(carbon);
-        Option hydrogen = Option.builder("h")
-                .required(false)
-                .hasArg()
-                .longOpt("hydrogen")
-                .desc("Hydrogen")
-                .build();
+        Option hydrogen =
+                Option.builder("h")
+                        .required(false)
+                        .hasArg()
+                        .longOpt("hydrogen")
+                        .desc("Hydrogen")
+                        .build();
         options.addOption(hydrogen);
-        Option nitrogen = Option.builder("n")
-                .required(false)
-                .hasArg()
-                .longOpt("nitrogen")
-                .desc("Nitrogen")
-                .build();
+        Option nitrogen =
+                Option.builder("n")
+                        .required(false)
+                        .hasArg()
+                        .longOpt("nitrogen")
+                        .desc("Nitrogen")
+                        .build();
         options.addOption(nitrogen);
-        Option oxygen = Option.builder("o")
-                .required(false)
-                .hasArg()
-                .longOpt("oxygen")
-                .desc("Oxygen")
-                .build();
+        Option oxygen =
+                Option.builder("o")
+                        .required(false)
+                        .hasArg()
+                        .longOpt("oxygen")
+                        .desc("Oxygen")
+                        .build();
         options.addOption(oxygen);
-        Option phosphorus = Option.builder("p")
-                .required(false)
-                .hasArg()
-                .longOpt("phosphorus")
-                .desc("Phosphorus")
-                .build();
+        Option phosphorus =
+                Option.builder("p")
+                        .required(false)
+                        .hasArg()
+                        .longOpt("phosphorus")
+                        .desc("Phosphorus")
+                        .build();
         options.addOption(phosphorus);
         return options;
     }
@@ -116,24 +127,24 @@ public class FormulaGenerator {
             for (int index = 1; index <= carbonValue; index += 1) {
                 if (hydrogenValue > 0) {
                     for (int index2 = 1; index2 <= hydrogenValue; index2 += 1) {
-                        generatedFormulas.add(getItem("C", index)
-                                + getItem("H", index2)
-                                + getItem("O", oxygenValue)
-                                + getItem("N", nitrogenValue)
-                                + getItem("P", phosphorusValue)
-                        );
+                        generatedFormulas.add(
+                                getItem("C", index)
+                                        + getItem("H", index2)
+                                        + getItem("O", oxygenValue)
+                                        + getItem("N", nitrogenValue)
+                                        + getItem("P", phosphorusValue));
                     }
                 } else {
-                    generatedFormulas.add(getItem("C", index)
-                            + getItem("O", oxygenValue)
-                            + getItem("N", nitrogenValue)
-                            + getItem("P", phosphorusValue)
-                    );
+                    generatedFormulas.add(
+                            getItem("C", index)
+                                    + getItem("O", oxygenValue)
+                                    + getItem("N", nitrogenValue)
+                                    + getItem("P", phosphorusValue));
                 }
             }
-            Files.write(Paths.get("generated-formulas.txt"),
-                    String.join("\n", generatedFormulas).getBytes(StandardCharsets.UTF_8)
-            );
+            Files.write(
+                    Paths.get("generated-formulas.txt"),
+                    String.join("\n", generatedFormulas).getBytes(StandardCharsets.UTF_8));
             System.out.println(generatedFormulas.size() + " formulas have been generated.");
         }
     }
@@ -143,6 +154,8 @@ public class FormulaGenerator {
     }
 
     private Integer getIntegerValue(String intValue) {
-        return Objects.nonNull(intValue) && intValue.matches("\\d+") ? Integer.parseInt(intValue) : 0;
+        return Objects.nonNull(intValue) && intValue.matches("\\d+")
+                ? Integer.parseInt(intValue)
+                : 0;
     }
 }
